@@ -71,8 +71,9 @@ Lui.extend('Lui.Component', Lui.Observable, {
      */
     getCssClass: function () {
         var typeCls = this.type.toLowerCase().replace(/\./g, '-'),
-            cls = Object.getPrototypeOf(this).cls;
-        return  (typeCls + ' ' + cls + (cls ? ' ': '') + this.cls).trim();
+            cls = Object.getPrototypeOf(this).cls,
+            extraCls = this.hasOwnProperty('cls') ? this.cls : '';
+        return  (typeCls + ' ' + cls + (cls ? ' ': '') + extraCls).trim();
     },
     /**
      * @protected

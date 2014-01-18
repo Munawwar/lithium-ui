@@ -1,0 +1,19 @@
+.alert-stick-top {
+    position: absolute;
+    width: 80%;
+    left: 10%;
+    top: 0;
+    border-radius: 0 0 7px 7px;
+    padding: 5px 10px;
+}
+
+.alert-stick-top .icon {
+    font-size: 18px;
+    margin-right: 5px;
+    vertical-align: middle;
+    top: 0;
+}
+
+.alert-stick-top .text {
+    vertical-align: middle;
+}

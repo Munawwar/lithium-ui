@@ -2,26 +2,37 @@ window.Lui = {
     version: '0.1.0',
 
     /**
-     * Pass an array of component configs, to render to given target element.
+     * Pass an array of component configs, to return an array of initialized components.
      */
-    //TODO: Separate construction from render.
-    create: function (target, ui) {
-        if (!target) {
-            if (console) {
-                console.error('Called Lui.create with undefined/null as target');
-            }asdasd
-            return null;
-        }
+    create: function (ui) {
+        var created = [];
         ui.forEach(function (o) {
             if (!(o instanceof Lui.Component)) {
                 o.type = o.type || 'Lui.Box';
                 var ClassRef = this.getClass(o.type), cmp;
-                //delete o.type;
                 cmp = new ClassRef(o);
                 o = cmp;
+                created.push(o);
             }
-            o.render(target);
         }, this);
+        return created;
+    },
+
+    /**
+     * Render an array of components to a render target element.
+     */
+    render: function (target, ui) {
+        if (!target) {
+            if (console) {
+                console.error('Called Lui.render with undefined/null as target');
+            }
+            return null;
+        }
+        ui.forEach(function (o) {
+            if (o instanceof Lui.Component) {
+                o.render(target);
+            }
+        });
     },
 
     /**
@@ -98,5 +109,18 @@ window.Lui = {
             }
         }, this);
         return comps;
+    },
+
+    /**
+     * Traverses through the given component's instance
+     * (or a plain object with type properties) sub-tree.
+     */
+    traverse: function (component, callback, context) {
+        if (this.getClass(component.type).prototype instanceof Lui.Box) {
+            (component.items || []).forEach(function (item) {
+                callback.call(context, item);
+                Lui.traverse(item, callback, context);
+            });
+        }
     }
 };

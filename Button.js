@@ -6,9 +6,6 @@ INCLUDE('Component.js');
 Lui.extend('Lui.Button', Lui.Component, {
     label: 'Button',
     cls: 'btn btn-default',
-    constructor: function () {
-        this.super(arguments);
-    },
     /**
      * @override
      */
@@ -27,9 +24,10 @@ Lui.extend('Lui.Button', Lui.Component, {
         }
         return Li.format(this.tpl.text, {
             id: this.id,
+            type: this.type,
             cls: this.getCssClass(),
+            style: this.style,
             label: this.label,
-            type: this.type
         });
     }
 });
