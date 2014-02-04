@@ -146,10 +146,14 @@ Lui.extend('Lui.Component', Lui.Observable, {
      * @protected
      */
     unrender: function () {
-        if (this.rootEl && this.rootEl.parentNode) {
-            this.rootEl.parentNode.removeChild(this.rootEl);
-        }
+        /* If you call this method from blur event, then the removal of rootEl
+         * could cause a second blur event to fire.
+         * Hence store rootEl in temporary and set this.rootEl to null*/
+        var rootEl = this.rootEl;
         this.rootEl = null;
+        if (rootEl && rootEl.parentNode) {
+            rootEl.parentNode.removeChild(rootEl);
+        }
     },
     /**
      * Post render processing. Mainly attaching of listeners.
