@@ -11,7 +11,6 @@ Lui.extend('Lui.Button', Lui.Component, {
      */
     parseLV: function (target) {
         var cfg = this.super(arguments);
-        //TODO: Parse atributes
         cfg.label = target.firstChild.nodeValue;
         return cfg;
     },

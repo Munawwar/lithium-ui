@@ -22,6 +22,12 @@ Lui.extend('Lui.Component', Lui.Observable, {
      * Inline CSS style to apply on {@link #rootEl}.
      */
     style: '',
+    /**
+     * The component's template that is within script tag with data-type=<type of component>.
+     * Original tpl would be stored as a string as this.tpl.text.
+     * @readonly
+     */
+    tpl: null,
     constructor: function (cfg) {
         this.id = 'cmp-' + Lui.Component.getNewId();
         this.set(cfg);
@@ -34,7 +40,7 @@ Lui.extend('Lui.Component', Lui.Observable, {
         $.extend(this, cfg);
     },
     /**
-     * This method gets the template (that is within script tag wth data-type=<type of component>)
+     * This method gets the template (that is within script tag with data-type=<type of component>)
      * parses it as HTML and stores it as this.tpl.dom and the original tpl as string as this.tpl.text.
      */
     prepareTemplate: function () {
@@ -52,6 +58,7 @@ Lui.extend('Lui.Component', Lui.Observable, {
     /**
      * Parse Logical View.
      * @param {HTMLElement} el Component's root element in logical view.
+     * @protected
      */
     parseLV: function (element) {
         this.prepareTemplate();
@@ -102,7 +109,7 @@ Lui.extend('Lui.Component', Lui.Observable, {
         return '</div>';
     },
     /**
-     * @returns {String} The html string to be used by {@link #render} method.
+     * @returns {String} The html markup of this component, to be used by {@link #render} method.
      * @protected
      */
     getHtml: function () {
@@ -147,39 +154,63 @@ Lui.extend('Lui.Component', Lui.Observable, {
      * @protected
      */
     postRender: function (target) {
-        this.removeListeners(target);
         this.initListeners(target);
     },
+    /**
+     * Rebinds listeners.
+     */
     initListeners: function () {
+        this.removeListeners();
         if (this.listeners) {
-            if (this.listeners.dom) {
-                var list = this.listeners.dom;
-                Li.forEach(list, function (fn, event) {
-                    if (!fn._binded_) {
-                        fn = list[event] = Li.bind(fn, this.listeners.scope || this);
-                        fn._binded_ = true;
-                    }
-                    $(this.rootEl).on(event, fn);
-                }, this);
+            if (!Li.isArray(this.listeners)) {
+                this.listeners = [this.listeners];
             }
-            Li.forEach(this.listeners, function (fn, event) {
-                if (event !== 'dom' && event !== 'scope') {
-                    this.on(event, fn, this.listeners.scope || this);
+            var allListeners = this.listeners;
+            this.listeners = [];
+            allListeners.forEach(this.addListeners, this);
+        }
+    },
+    /**
+     * Adds listeners.
+     */
+    addListeners: function (listeners) {
+        //Push to this.listeners
+        this.listeners = this.listeners || [];
+        if (!Li.isArray(this.listeners)) {
+            this.listeners = [this.listeners];
+        }
+        this.listeners.push(listeners);
+
+        //If rendered, then add dom listeners
+        if (listeners.dom && this.rootEl) {
+            var list = listeners.dom;
+            Li.forEach(list, function bindAndAddListener(fn, event) {
+                if (!fn._scoped_) {
+                    fn = list[event] = Li.bind(fn, listeners.scope || this);
+                    fn._scoped_ = true;
                 }
+                $(this.rootEl).on(event, fn);
             }, this);
         }
+        Li.forEach(listeners, function (fn, event) {
+            if (event !== 'dom' && event !== 'scope') {
+                this.on(event, fn, listeners.scope || this);
+            }
+        }, this);
     },
     removeListeners: function () {
         if (this.listeners) {
-            if (this.listeners.dom) {
-                Li.forEach(this.listeners.dom, function (fn, event) {
-                    $(this.rootEl).off(event, fn);
-                }, this);
-            }
-            Li.forEach(this.listeners, function (fn, event) {
-                if (event !== 'dom' && event !== 'scope') {
-                    this.off(event, fn);
+            this.listeners.forEach(function (listeners) {
+                if (listeners.dom && this.rootEl) {
+                    Li.forEach(listeners.dom, function (fn, event) {
+                        $(this.rootEl).off(event, fn);
+                    }, this);
                 }
+                Li.forEach(listeners, function (fn, event) {
+                    if (event !== 'dom' && event !== 'scope') {
+                        this.off(event, fn);
+                    }
+                }, this);
             }, this);
         }
     },
