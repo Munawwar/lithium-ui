@@ -1,7 +1,9 @@
-//Assuming jQuery has been added
-
-INCLUDE('lib:lithium.js');
-INCLUDE('lib:lithium.observable.js');
+/*
+ * Assuming following dependencies have been added:
+ * jQuery
+ * lithium.js
+ * lithium.observable.js
+ */
 
 INCLUDE('utils.js');
 
