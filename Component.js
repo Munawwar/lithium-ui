@@ -134,6 +134,8 @@ Lui.extend('Lui.Component', Lui.Observable, {
      * @protected
      */
     render: function (target, childIndex) {
+        this.unrender();
+        this.prepareTemplate();
         this.renderOuter(target, childIndex);
         this.renderInner(target, childIndex);
         this.postRender(target);
