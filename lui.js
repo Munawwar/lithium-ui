@@ -2,6 +2,33 @@ window.Lui = {
     version: '0.1.0',
 
     /**
+     * Parse Logical View and and return array of component configs.
+     * @param {HTMLElement} target HTMLElement that contains the logical view. Typically this is document.body.
+     * @param {Object} parentCfg Config of parent component. So that this method can be used recursively to establish parent-child relationship.
+     */
+    parseLV: function (target) {
+        var comps = [];
+        Li.slice(target.childNodes).forEach(function (el) {
+            if (el.nodeType === 1 && (/^(X|L)\-/).test(el.nodeName)) {
+                var className = el.nodeName.replace(/^X\-/, '')
+                        .replace(/^L\-/, 'Lui.')
+                        .replace(/-/g, '.'),
+                    classRef = this.getClass(className),
+                    cfg;
+                if (classRef.prototype.parseLV) {
+                    cfg = classRef.prototype.parseLV(el, cfg);
+                } else {
+                    cfg = {
+                        type: classRef.prototype.type
+                    };
+                }
+                comps.push(cfg);
+            }
+        }, this);
+        return comps;
+    },
+
+    /**
      * Pass an array of component configs, to return an array of initialized components.
      */
     create: function (ui) {
@@ -82,33 +109,6 @@ window.Lui = {
             className = parts.pop(),
             ns = this.getPart(parts.join('.'));
         ns[className] = Li.extend(baseClass, proto);
-    },
-
-    /**
-     * Parse Logical View and and return array of component configs.
-     * @param {HTMLElement} target HTMLElement that contains the logical view. Typically this is document.body.
-     * @param {Object} parentCfg Config of paretn component. So that this method can be used recursivly to establish gparent-child relationship.
-     */
-    parseLV: function (target) {
-        var comps = [];
-        Li.slice(target.childNodes).forEach(function (el) {
-            if (el.nodeType === 1 && (/^(X|L)\-/).test(el.nodeName)) {
-                var className = el.nodeName.replace(/^X\-/, '')
-                        .replace(/^L\-/, 'Lui.')
-                        .replace(/-/g, '.'),
-                    classRef = this.getClass(className),
-                    cfg;
-                if (classRef.prototype.parseLV) {
-                    cfg = classRef.prototype.parseLV(el, cfg);
-                } else {
-                    cfg = {
-                        type: classRef.prototype.type
-                    };
-                }
-                comps.push(cfg);
-            }
-        }, this);
-        return comps;
     },
 
     /**

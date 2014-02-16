@@ -46,7 +46,7 @@ Lui.extend('Lui.Box', Lui.Component, {
 
     init: function () {
         this.items.forEach(function (o, index) {
-            o.type = o.type || 'Box';
+            o.type = o.type || 'Lui.Box';
             var classRef = Lui.getClass(o.type), cmp;
             if (!(o instanceof Lui.Component)) {
                 o.parent = this;
