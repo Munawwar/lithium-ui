@@ -1,10 +1,9 @@
 INCLUDE('lui.js');
-INCLUDE('utils/Observable.js');
 
 /**
  * Base class for all components.
  */
-Lui.extend('Lui.Component', Lui.Observable, {
+Lui.extend('Lui.Component', Li.Observable, {
     /**
      * Top most element of this component
      * @readonly
@@ -77,10 +76,8 @@ Lui.extend('Lui.Component', Lui.Observable, {
      * @protected
      */
     getCssClass: function () {
-        var typeCls = this.type.toLowerCase().replace(/\./g, '-'),
-            cls = Object.getPrototypeOf(this).cls,
-            extraCls = this.hasOwnProperty('cls') ? this.cls : '';
-        return  (typeCls + ' ' + cls + (cls ? ' ': '') + extraCls).trim();
+        var typeCls = this.type.toLowerCase().replace(/\./g, '-');
+        return (typeCls + ' ' + this.cls).trim();
     },
     /**
      * @protected
