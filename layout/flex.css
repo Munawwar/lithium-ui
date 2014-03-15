@@ -43,11 +43,15 @@
     -ms-flex: 1; /*IE10*/
 }
 
+/*Using 100% width/height doesn't always play nice with flexbox, on Chrome.*/
 .vstretch {
     height: 100%;
 }
 .hstretch {
     width: 100%;
+}
+.stretch {
+    align-self: stretch;
 }
 
 .vcenter {
