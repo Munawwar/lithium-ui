@@ -1,4 +1,5 @@
 INCLUDE('lui.js');
+INCLUDE('util/Template.js');
 
 /**
  * Base class for all components.
@@ -41,16 +42,17 @@ Lui.extend('Lui.Component', Li.Observable, {
     /**
      * This method gets the template (that is within script tag with data-type=<type of component>)
      * parses it as HTML and stores it as this.tpl.dom and the original tpl as string as this.tpl.text.
+     *
+     * Leaf-level components use this for rendering the view of the component.
+     * For higher level components, this template is the logical view.
      */
+    //FIXME: We need this.renderTpl and this.logicalTpl, to solve any component that needs both kind of templates.
     prepareTemplate: function () {
         if (!this.tpl) {
             var tpl = $('script[data-type="' + this.type + '"]')[0];
             if (tpl) {
                 var text = tpl.firstChild.nodeValue.trim();
-                this.tpl = {
-                    dom: Li.dom(text),
-                    text: text
-                };
+                this.tpl = new Lui.util.Template(text);
             }
         }
     },
@@ -60,7 +62,6 @@ Lui.extend('Lui.Component', Li.Observable, {
      * @protected
      */
     parseLV: function (element) {
-        this.prepareTemplate();
         var cfg = {
             type: this.type,
             id: element.id || undefined,
@@ -80,45 +81,49 @@ Lui.extend('Lui.Component', Li.Observable, {
         return (typeCls + ' ' + this.cls).trim();
     },
     /**
+     * @returns {DocumentFragment}
      * @protected
      */
-    getHtmlStart: function () {
-        var html = Li.format('<div id="{0}" data-type="{1}"', this.id, this.type),
-            cls = this.getCssClass();
-        html += cls ? Li.format(' class="{0}"', cls) : '';
-        html += this.style ? Li.format(' style="{0}"', this.style) : '';
-        html += Li.format('>');
-        return html;
+    getOuterHtml: function () {
+        var tpl = new Lui.util.Template('<div data-bind="attr: {id: id, data-type: type, class: cls, style: style}"></div>');
+        return tpl.toDocumentFragment({
+            id: this.id,
+            type: this.type,
+            cls: this.getCssClass() || '',
+            style: this.style || ''
+        });
     },
     /**
+     * @returns {DocumentFragment|undefined}
      * Can be overridden by a derived class.
      * @protected
      */
-    getHtmlSelf: function () {
+    getInnerHtml: function () {
         //FIXME: Something is not right here.
         this.prepareTemplate();
-        return this.html;
+        if (this.html) {
+            return Li.dom(this.html);
+        }
     },
     /**
-     * @protected
-     */
-    getHtmlEnd: function () {
-        return '</div>';
-    },
-    /**
-     * @returns {String} The html markup of this component, to be used by {@link #render} method.
+     * @returns {DocumentFragment} The html markup of this component, to be used by {@link #render} method.
      * @protected
      */
     getHtml: function () {
-        return this.getHtmlStart() + this.getHtmlSelf() + this.getHtmlEnd();
+        var outer = this.getOuterHtml(),
+            inner = this.getInnerHtml();
+        if (inner) {
+            outer.firstChild.appendChild(inner);
+        }
+        return outer;
     },
 
     /**
      * @protected
      */
     renderOuter: function (target, childIndex) {
-        var df = Li.dom(this.getHtml());
-        target.insertBefore(df, target.childNodes[childIndex]);
+        this.prepareTemplate();
+        target.insertBefore(this.getHtml(), target.childNodes[childIndex]);
         this.rootEl = $('#' + this.id, target)[0];
     },
     /**

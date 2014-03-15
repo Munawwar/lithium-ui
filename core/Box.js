@@ -31,7 +31,7 @@ Lui.extend('Lui.Box', Lui.Component, {
         //Load template if any
         this.prepareTemplate();
         if (this.tpl) {
-            var tplComps = Lui.parseLV(this.tpl.dom);
+            var tplComps = Lui.parseLV(this.tpl.toDocumentFragment({}));
             if (tplComps.length) {
                 cfg.items = tplComps;
             }

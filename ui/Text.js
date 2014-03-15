@@ -30,7 +30,7 @@ Lui.extend('Lui.Text', Lui.Component, {
         if (!this.tpl) {
             throw new Error("Can't find template for " + this.type);
         }
-        return Li.format(this.tpl.text, {
+        return this.tpl.toDocumentFragment({
             id: this.id,
             type: this.type,
             cls: this.getCssClass(),
