@@ -98,7 +98,7 @@ window.Lui = {
 
     /**
      * Uses Li.extend to create a new global Class of 'type' using a base Class and prototype.
-     * This automatically adds type string to class.
+     * This automatically adds type string to class (which Lui.Component uses to add data-type and class name to the rendered rool element).
      * @param {String} type Full namespace to be used for the new class. eg 'Lui.Box'.
      * @param {Function} baseClass
      * @param {Object} proto Protype to use on new class.
@@ -112,11 +112,12 @@ window.Lui = {
     },
 
     /**
-     * Traverses through the given component's instance
-     * (or a plain object with type properties) sub-tree.
+     * Recirsively traverses through a given component's instance
+     * (or a plain object with type properties) and child items.
      */
     traverse: function (component, callback, context) {
-        if (this.getClass(component.type).prototype instanceof Lui.Box) {
+        var classRef = this.getClass(component.type);
+        if (classRef === Lui.Box || (classRef.prototype instanceof Lui.Box)) {
             (component.items || []).forEach(function (item) {
                 callback.call(context, item);
                 Lui.traverse(item, callback, context);

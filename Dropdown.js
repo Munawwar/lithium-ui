@@ -5,7 +5,6 @@ INCLUDE('Dropdown.css');
  * Dropdown.
  */
 Lui.extend('Lui.Dropdown', Lui.Component, {
-    cls: 'lui-dropdown',
     options: [],
     /**
      * @override
