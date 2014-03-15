@@ -1,4 +1,4 @@
-INCLUDE('Component.js');
+INCLUDE('../core/Component.js');
 
 /**
  * Button.

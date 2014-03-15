@@ -2,7 +2,7 @@
 
 INCLUDE('Alert.css');
 
-INCLUDE('Component.js');
+INCLUDE('../core/Component.js');
 
 /**
  * Alert.
