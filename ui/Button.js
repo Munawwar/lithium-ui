@@ -9,7 +9,7 @@ Lui.extend('Lui.Button', Lui.Component, {
     /**
      * @override
      */
-    parseLV: function (target) {
+    makeConfigFromViewImplementation: function (target) {
         var cfg = this.super(arguments);
         cfg.label = target.firstChild.nodeValue;
         return cfg;

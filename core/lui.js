@@ -2,11 +2,11 @@ window.Lui = {
     version: '0.1.0',
 
     /**
-     * Parse Logical View and and return array of component configs.
-     * @param {HTMLElement} target HTMLElement that contains the logical view. Typically this is document.body.
+     * Read a static view implementation and return an array of component configs.
+     * @param {HTMLElement} target HTMLElement that contains the view. Typically this is document.body.
      * @param {Object} parentCfg Config of parent component. So that this method can be used recursively to establish parent-child relationship.
      */
-    parseLV: function (target) {
+    makeConfigFromViewImplementation: function (target) {
         var comps = [];
         Li.slice(target.childNodes).forEach(function (el) {
             if (el.nodeType === 1 && (/^(X|L)\-/).test(el.nodeName)) {
@@ -15,8 +15,8 @@ window.Lui = {
                         .replace(/-/g, '.'),
                     classRef = this.getClass(className),
                     cfg;
-                if (classRef.prototype.parseLV) {
-                    cfg = classRef.prototype.parseLV(el, cfg);
+                if (classRef.prototype.makeConfigFromViewImplementation) {
+                    cfg = classRef.prototype.makeConfigFromViewImplementation(el, cfg);
                 } else {
                     cfg = {
                         type: classRef.prototype.type

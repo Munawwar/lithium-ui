@@ -10,7 +10,7 @@ Lui.extend('Lui.Text', Lui.Component, {
     /**
      * @override
      */
-    parseLV: function (target) {
+    makeConfigFromViewImplementation: function (target) {
         var cfg = this.super(arguments),
             node = target.firstChild,
             placeholder = node.getAttribute('placeholder'),

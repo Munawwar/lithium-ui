@@ -22,7 +22,7 @@ Lui.extend('Lui.Box', Lui.Component, {
     /**
      * Override
      */
-    parseLV: function (element, cfg) {
+    makeConfigFromViewImplementation: function (element, cfg) {
         if (!cfg) {
             this.prepareTemplate();
             cfg = this.super(arguments);
@@ -31,13 +31,13 @@ Lui.extend('Lui.Box', Lui.Component, {
         //Load template if any
         this.prepareTemplate();
         if (this.tpl) {
-            var tplComps = Lui.parseLV(this.tpl.toDocumentFragment({}));
+            var tplComps = Lui.makeConfigFromViewImplementation(this.tpl.toDocumentFragment({}));
             if (tplComps.length) {
                 cfg.items = tplComps;
             }
         }
-        //Append the components from logical view.
-        var lvComps = Lui.parseLV(element);
+        //Append the components from view implementation.
+        var lvComps = Lui.makeConfigFromViewImplementation(element);
         if (lvComps.length) {
             cfg.items = (cfg.items || []).concat(lvComps);
         }

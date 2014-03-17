@@ -43,10 +43,14 @@ Lui.extend('Lui.Component', Li.Observable, {
      * This method gets the template (that is within script tag with data-type=<type of component>)
      * parses it as HTML and stores it as this.tpl.dom and the original tpl as string as this.tpl.text.
      *
-     * Leaf-level components use this for rendering the view of the component.
-     * For higher level components, this template is the logical view.
+     * This template is used during render.
+     *
+     * A component can override this method and use whatever templating engine it wants (by default uses Lui.util.Template - i.e Htmilizer).
+     *
+     * Typically leaf-level components use this for rendering the view of the component with Htmilizer.
+     * For higher level components, this template may use other components and so should be passed through
+     * Lui.makeConfigFromViewImplementation to make use of them.
      */
-    //FIXME: We need this.renderTpl and this.logicalTpl, to solve any component that needs both kind of templates.
     prepareTemplate: function () {
         if (!this.tpl) {
             var tpl = $('script[data-type="' + this.type + '"]')[0];
@@ -57,11 +61,11 @@ Lui.extend('Lui.Component', Li.Observable, {
         }
     },
     /**
-     * Parse Logical View.
-     * @param {HTMLElement} el Component's root element in logical view.
+     * Read a <component> element and return component config.
+     * @param {HTMLElement} el Component's root element in the view.
      * @protected
      */
-    parseLV: function (element) {
+    makeConfigFromViewImplementation: function (element) {
         var cfg = {
             type: this.type,
             id: element.id || undefined,
