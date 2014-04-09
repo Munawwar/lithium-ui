@@ -1,13 +1,16 @@
-<script type="text/template" data-type="Lui.Alert">
-    <div id="{id}" data-type="{type}" class="{cls}" style="{style}">
-       <span class="glyphicon glyphicon-exclamation-sign icon"></span>
+<script type="text/html" data-outer="Lui.Alert">
+    <div data-bind="attr: {id: id, data-type: type, class: cls, style: style}">
+        <span class="fa fa-exclamation-circle icon"></span>
         <button type="button" class="close" aria-hidden="true">&times;</button>
-        <span class="text">{html}</span>
+        <span class="text" data-bind="html: html"></span>
     </div>
 </script>
-<script type="text/html" data-type="Lui.Button">
+<script type="text/html" data-outer="Lui.Button">
     <button data-bind="text: label, attr: {id: id, data-type: type, class: cls, style: style}"></button>
 </script>
-<script type="text/html" data-type="Lui.Text">
+<script type="text/html" data-outer="Lui.Component">
+    <div data-bind="attr: {id: id, data-type: type, class: cls, style: style}"></div>
+</script>
+<script type="text/html" data-outer="Lui.Text">
     <input type="text" data-bind="attr: {id: id, data-type: type, class: cls, style: style, value: value, placeholder: placeholder}" />
 </script>

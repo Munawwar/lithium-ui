@@ -25,24 +25,8 @@ Lui.extend('Lui.Alert', Lui.Component, {
     /**
      * @override
      */
-    prepareTemplate: function () {
-        if (!this.tpl) {
-            var tpl = $('script[data-type="' + this.type + '"]')[0];
-            if (tpl) {
-                this.tpl = tpl.firstChild.nodeValue.trim();
-            }
-        }
-    },
-
-    /**
-     * @override
-     */
-    getHtml: function () {
-        this.prepareTemplate();
-        if (!this.tpl) {
-            throw new Error("Can't find template for " + this.type);
-        }
-        return Li.dom(this.tpl, {
+    getOuterHtml: function () {
+        return this.outerTpl.toDocumentFragment({
             id: this.id,
             type: this.type,
             cls: this.getCssClass(),

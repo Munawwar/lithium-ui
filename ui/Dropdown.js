@@ -9,12 +9,12 @@ Lui.extend('Lui.Dropdown', Lui.Component, {
     /**
      * @override
      */
-    getHtml: function () {
+    getOuterHtml: function () {
         var html = Li.format('<select id="{0}"', this.id),
             cls = this.getCssClass();
         html += cls ? Li.format(' class="{0}"', cls) : '';
         html += '></select>';
-        return html;
+        return Li.dom(html);
     },
     postRender: function (target, childIndex) {
         //Populate options

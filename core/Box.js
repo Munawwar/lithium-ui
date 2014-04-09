@@ -22,24 +22,25 @@ Lui.extend('Lui.Box', Lui.Component, {
     /**
      * Override
      */
-    makeConfigFromViewImplementation: function (element, cfg) {
+    makeConfigFromView: function (element, cfg) {
         if (!cfg) {
-            this.prepareTemplate();
             cfg = this.super(arguments);
-            delete cfg.html;
+            delete cfg.innerTpl;
         }
-        //Load template if any
-        this.prepareTemplate();
-        if (this.tpl) {
-            var tplComps = Lui.makeConfigFromViewImplementation(this.tpl.toDocumentFragment({}));
-            if (tplComps.length) {
-                cfg.items = tplComps;
+
+        //If view implementation has child component markup in it, then use them (effectively this overrides innerTpl of this component)...
+        if (element.children.length) {
+            var lvComps = Lui.makeConfigFromView(element);
+            if (lvComps.length) {
+                cfg.items = (cfg.items || []).concat(lvComps);
             }
-        }
-        //Append the components from view implementation.
-        var lvComps = Lui.makeConfigFromViewImplementation(element);
-        if (lvComps.length) {
-            cfg.items = (cfg.items || []).concat(lvComps);
+        } else { //..else load template if any
+            if (this.innerTpl) {
+                var tplComps = Lui.makeConfigFromView(this.innerTpl.toDocumentFragment({}));
+                if (tplComps.length) {
+                    cfg.items = tplComps;
+                }
+            }
         }
         return cfg;
     },

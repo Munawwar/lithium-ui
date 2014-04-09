@@ -9,7 +9,7 @@ Lui.extend('Lui.Button', Lui.Component, {
     /**
      * @override
      */
-    makeConfigFromViewImplementation: function (target) {
+    makeConfigFromView: function (target) {
         var cfg = this.super(arguments);
         cfg.label = target.firstChild.nodeValue;
         return cfg;
@@ -17,11 +17,8 @@ Lui.extend('Lui.Button', Lui.Component, {
     /**
      * @override
      */
-    getHtml: function () {
-        if (!this.tpl) {
-            throw new Error("Can't find template for " + this.type);
-        }
-        return this.tpl.toDocumentFragment({
+    getOuterHtml: function () {
+        return this.outerTpl.toDocumentFragment({
             id: this.id,
             type: this.type,
             cls: this.getCssClass(),

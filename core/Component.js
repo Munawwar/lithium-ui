@@ -11,9 +11,27 @@ Lui.extend('Lui.Component', Li.Observable, {
      */
     rootEl: null,
     /**
-     * Inner html string
+     * Outer render template
+     * @param {undefined|String|Lui.util.Template} tpl
+     * if undefined, then script tag in document with data-outer="<component type>" is searched.
+     *
+     * If string, it used as selector to find the script tag.
+     *
+     * If instance of Lui.util.Template, then that is used directly.
      */
-    html: '',
+    outerTpl: undefined,
+    /**
+     * Inner render template
+     * @param {undefined|String|Lui.util.Template|null} tpl
+     * if undefined, then script tag in document with data-outer="<component type>" is searched.
+     *
+     * If string, it used as selector to find the script tag.
+     *
+     * If instance of Lui.util.Template, then that is used directly.
+     *
+     * If null, then no template. Some components don't have different "inner" and "outer", (eg component with a single void tag like <input>).
+     */
+    innerTpl: undefined,
     /**
      * CSS class to use on {@link #rootEl}.
      */
@@ -22,12 +40,6 @@ Lui.extend('Lui.Component', Li.Observable, {
      * Inline CSS style to apply on {@link #rootEl}.
      */
     style: '',
-    /**
-     * The component's template that is within script tag with data-type=<type of component>.
-     * Original tpl would be stored as a string as this.tpl.text.
-     * @readonly
-     */
-    tpl: null,
     constructor: function (cfg) {
         this.id = 'cmp-' + Lui.Component.getNewId();
         this.set(cfg);
@@ -40,44 +52,26 @@ Lui.extend('Lui.Component', Li.Observable, {
         $.extend(this, cfg);
     },
     /**
-     * This method gets the template (that is within script tag with data-type=<type of component>)
-     * parses it as HTML and stores it as this.tpl.dom and the original tpl as string as this.tpl.text.
-     *
-     * This template is used during render.
-     *
-     * A component can override this method and use whatever templating engine it wants (by default uses Lui.util.Template - i.e Htmilizer).
-     *
-     * Typically leaf-level components use this for rendering the view of the component with Htmilizer.
-     * For higher level components, this template may use other components and so should be passed through
-     * Lui.makeConfigFromViewImplementation to make use of them.
-     */
-    prepareTemplate: function () {
-        if (!this.tpl) {
-            var tpl = $('script[data-type="' + this.type + '"]')[0];
-            if (tpl) {
-                var text = tpl.firstChild.nodeValue.trim();
-                this.tpl = new Lui.util.Template(text);
-            }
-        }
-    },
-    /**
-     * Read a <component> element and return component config.
-     * @param {HTMLElement} el Component's root element in the view.
+     * Read a <component> HTML element and generate corresponding component config.
+     * @param {HTMLElement} el Component's root element in the static view implementation.
      * @protected
      */
-    makeConfigFromViewImplementation: function (element) {
+    makeConfigFromView: function (element) {
         var cfg = {
             type: this.type,
             id: element.id || undefined,
             cls: element.className || undefined,
             style: element.getAttribute('style') || undefined,
             ref: element.getAttribute('ref') || undefined,
-            html: element.innerHTML
+            innerTpl: element.innerHTML.trim() || undefined
         };
+        if (cfg.innerTpl) {
+            cfg.innerTpl = new Lui.util.Template(cfg.innerTpl);
+        }
         return cfg;
     },
     /**
-     * @returns {String} The html string to be used by {@link #render} method.
+     * @returns {String} The CSS class to be used on rootEl by {@link #render} method.
      * @protected
      */
     getCssClass: function () {
@@ -86,11 +80,11 @@ Lui.extend('Lui.Component', Li.Observable, {
     },
     /**
      * @returns {DocumentFragment}
+     * To be used by {@link #renderOuter} method.
      * @protected
      */
     getOuterHtml: function () {
-        var tpl = new Lui.util.Template('<div data-bind="attr: {id: id, data-type: type, class: cls, style: style}"></div>');
-        return tpl.toDocumentFragment({
+        return this.outerTpl.toDocumentFragment({
             id: this.id,
             type: this.type,
             cls: this.getCssClass() || '',
@@ -99,49 +93,40 @@ Lui.extend('Lui.Component', Li.Observable, {
     },
     /**
      * @returns {DocumentFragment|undefined}
+     * To be used by {@link #renderInner} method.
      * Can be overridden by a derived class.
      * @protected
      */
     getInnerHtml: function () {
-        //FIXME: Something is not right here.
-        this.prepareTemplate();
-        if (this.html) {
-            return Li.dom(this.html);
+        if (this.innerTpl instanceof Lui.util.Template) {
+            return this.innerTpl.toDocumentFragment({});
         }
     },
-    /**
-     * @returns {DocumentFragment} The html markup of this component, to be used by {@link #render} method.
-     * @protected
-     */
-    getHtml: function () {
-        var outer = this.getOuterHtml(),
-            inner = this.getInnerHtml();
-        if (inner) {
-            outer.firstChild.appendChild(inner);
-        }
-        return outer;
-    },
-
     /**
      * @protected
      */
     renderOuter: function (target, childIndex) {
-        this.prepareTemplate();
-        target.insertBefore(this.getHtml(), target.childNodes[childIndex]);
+        target.insertBefore(this.getOuterHtml(), target.childNodes[childIndex]);
         this.rootEl = $('#' + this.id, target)[0];
     },
     /**
-     * Abstract method. To be used by derived classes like Box.
      * @protected
      */
-    renderInner: $.noop,
+    renderInner: function () {
+        if (this.rootEl) {
+            var inner = this.getInnerHtml();
+            if (inner) {
+                $(this.rootEl).empty();
+                this.rootEl.appendChild(inner);
+            }
+        }
+    },
     /**
-     * Render component to target HTMLElement. Uses this.getHtml to render component.
+     * Render component to target HTMLElement.
      * @protected
      */
     render: function (target, childIndex) {
         this.unrender();
-        this.prepareTemplate();
         this.renderOuter(target, childIndex);
         this.renderInner(target, childIndex);
         this.postRender(target);
@@ -177,6 +162,7 @@ Lui.extend('Lui.Component', Li.Observable, {
             if (!Li.isArray(this.listeners)) {
                 this.listeners = [this.listeners];
             }
+            //Temporarily remove from data structure and add them again.
             var allListeners = this.listeners;
             this.listeners = [];
             allListeners.forEach(this.addListeners, this);
@@ -185,6 +171,7 @@ Lui.extend('Lui.Component', Li.Observable, {
     /**
      * Adds listeners.
      */
+    //TODO: Add support for any ref: {}, listeners
     addListeners: function (listeners) {
         //Push to this.listeners
         this.listeners = this.listeners || [];

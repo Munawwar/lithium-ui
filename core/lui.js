@@ -6,7 +6,7 @@ window.Lui = {
      * @param {HTMLElement} target HTMLElement that contains the view. Typically this is document.body.
      * @param {Object} parentCfg Config of parent component. So that this method can be used recursively to establish parent-child relationship.
      */
-    makeConfigFromViewImplementation: function (target) {
+    makeConfigFromView: function (target) {
         var comps = [];
         Li.slice(target.childNodes).forEach(function (el) {
             if (el.nodeType === 1 && (/^(X|L)\-/).test(el.nodeName)) {
@@ -15,8 +15,8 @@ window.Lui = {
                         .replace(/-/g, '.'),
                     classRef = this.getClass(className),
                     cfg;
-                if (classRef.prototype.makeConfigFromViewImplementation) {
-                    cfg = classRef.prototype.makeConfigFromViewImplementation(el, cfg);
+                if (classRef.prototype.makeConfigFromView) {
+                    cfg = classRef.prototype.makeConfigFromView(el, cfg);
                 } else {
                     cfg = {
                         type: classRef.prototype.type
@@ -103,12 +103,41 @@ window.Lui = {
      * @param {Function} baseClass
      * @param {Object} proto Protype to use on new class.
      */
-    extend: function (type, baseClass, proto) {
-        proto.type = type;
+    extend: function (type, baseClass, protoObj) {
+        protoObj.type = type;
         var parts = type.split('.'),
             className = parts.pop(),
             ns = this.getPart(parts.join('.'));
-        ns[className] = Li.extend(baseClass, proto);
+        ns[className] = Li.extend(baseClass, protoObj);
+
+        //Search for outerTpl and innerTpl script tags and initialize them if they exist. And then override prototype.
+        var proto = ns[className].prototype, tpl;
+        if ((proto instanceof Lui.Component) || proto === Lui.Component.prototype) { // if Lui.Component or extends Lui.Component
+            tpl = this.findTemplate(protoObj.outerTpl, 'data-outer', type);
+            if (tpl) { //not to override prototype, if template doesn't exist
+                proto.outerTpl = tpl;
+            }
+            tpl = this.findTemplate(protoObj.innerTpl, 'data-inner', type);
+            if (tpl) {
+                proto.innerTpl = tpl;
+            }
+        }
+    },
+
+    /**
+     * Finds template in script tag.
+     * @private
+     */
+    findTemplate: function (tpl, attr, type) {
+        if (Li.isString(tpl) || !Li.isDefined(tpl)) {
+            var selector = Li.isString(tpl) ? tpl : ('script[' + attr + '="' + type + '"]'),
+                tplTag = $(selector)[0], cmpType;
+            if (tplTag) {
+                var text = tplTag.firstChild.nodeValue.trim();
+                tpl = new Lui.util.Template(text);
+            }
+        }
+        return tpl;
     },
 
     /**
