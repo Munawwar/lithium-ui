@@ -12,12 +12,11 @@ Lui.extend('Lui.Component', Li.Observable, {
     rootEl: null,
     /**
      * Outer render template
-     * @param {undefined|String|Lui.util.Template} tpl
+     * @param {Lui.util.Template|undefined} tpl
      * if undefined, then script tag in document with data-outer="<component type>" is searched.
      *
-     * If string, it used as selector to find the script tag.
-     *
      * If instance of Lui.util.Template, then that is used directly.
+     * Use Lui.findTemplate() to find and load a template (in a script tag) using attribute and type.
      */
     outerTpl: undefined,
     /**
@@ -25,9 +24,8 @@ Lui.extend('Lui.Component', Li.Observable, {
      * @param {undefined|String|Lui.util.Template|null} tpl
      * if undefined, then script tag in document with data-outer="<component type>" is searched.
      *
-     * If string, it used as selector to find the script tag.
-     *
      * If instance of Lui.util.Template, then that is used directly.
+     * Use Lui.findTemplate() to find and load a template (in a script tag) using attribute and type.
      *
      * If null, then no template. Some components don't have different "inner" and "outer", (eg component with a single void tag like <input>).
      */

@@ -113,11 +113,11 @@ window.Lui = {
         //Search for outerTpl and innerTpl script tags and initialize them if they exist. And then override prototype.
         var proto = ns[className].prototype, tpl;
         if ((proto instanceof Lui.Component) || proto === Lui.Component.prototype) { // if Lui.Component or extends Lui.Component
-            tpl = this.findTemplate(protoObj.outerTpl, 'data-outer', type);
+            tpl = this.findTemplate('data-outer', type);
             if (tpl) { //not to override prototype, if template doesn't exist
                 proto.outerTpl = tpl;
             }
-            tpl = this.findTemplate(protoObj.innerTpl, 'data-inner', type);
+            tpl = this.findTemplate('data-inner', type);
             if (tpl) {
                 proto.innerTpl = tpl;
             }
@@ -128,14 +128,13 @@ window.Lui = {
      * Finds template in script tag.
      * @private
      */
-    findTemplate: function (tpl, attr, type) {
-        if (Li.isString(tpl) || !Li.isDefined(tpl)) {
-            var selector = Li.isString(tpl) ? tpl : ('script[' + attr + '="' + type + '"]'),
-                tplTag = $(selector)[0], cmpType;
-            if (tplTag) {
-                var text = tplTag.firstChild.nodeValue.trim();
-                tpl = new Lui.util.Template(text);
-            }
+    findTemplate: function (attr, type) {
+        var tpl = null,
+            selector = 'script[' + attr + '="' + type + '"]',
+            tplTag = $(selector)[0];
+        if (tplTag) {
+            var text = tplTag.firstChild.nodeValue.trim();
+            tpl = new Lui.util.Template(text);
         }
         return tpl;
     },
