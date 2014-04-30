@@ -145,6 +145,17 @@ Lui.extend('Lui.Component', Li.Observable, {
         }
     },
     /**
+     * Refresh component. This method can only be used after rendering.
+     * This method can be overridden to avoid a complete re-render of markup for efficiency.
+     */
+    refresh: function () {
+        var rootEl = this.rootEl;
+        if (rootEl && rootEl.parentNode) {
+            var childIndex = Li.slice(rootEl.parentNode.childNodes).indexOf(rootEl);
+            this.render(rootEl.parentNode, childIndex);
+        }
+    },
+    /**
      * Post render processing. Mainly attaching of listeners.
      * @protected
      */
