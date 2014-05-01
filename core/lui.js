@@ -1,3 +1,5 @@
+/*global $*/
+
 window.Lui = {
     version: '0.1.0',
 
@@ -6,27 +8,67 @@ window.Lui = {
      * @param {HTMLElement} target HTMLElement that contains the view. Typically this is document.body.
      * @param {Object} parentCfg Config of parent component. So that this method can be used recursively to establish parent-child relationship.
      */
-    makeConfigFromView: function (target) {
-        var comps = [];
-        Li.slice(target.childNodes).forEach(function (el) {
-            if (el.nodeType === 1 && (/^(X|L)\-/).test(el.nodeName)) {
-                var className = el.nodeName.replace(/^X\-/, '')
-                        .replace(/^L\-/, 'Lui.')
-                        .replace(/-/g, '.'),
-                    classRef = this.getClass(className),
-                    cfg;
-                if (classRef.prototype.makeConfigFromView) {
-                    cfg = classRef.prototype.makeConfigFromView(el, cfg);
-                } else {
-                    cfg = {
-                        type: classRef.prototype.type
-                    };
+    makeConfigFromView: (function () {
+        function unwrap(str) {
+            var o = {};
+            str.split(',').forEach(function (val) {
+                o[val] = true;
+            });
+            return o;
+        }
+        var voidTags = unwrap('area,base,basefont,br,col,command,embed,frame,hr,img,input,keygen,link,meta,param,source,track,wbr'),
+            componentTagRegex = /^(X|L)\-/;
+
+        return function (target) {
+            var comps = [], html = '';
+            Lui.util.traverse(target, target, function (node, isOpenTag) {
+                if (node === target) {
+                    return;
                 }
-                comps.push(cfg);
+                if (node.nodeType === 1) {
+                    var tag = node.nodeName;
+                    if (isOpenTag) {
+                        if (componentTagRegex.test(tag)) {
+                            if (html) {
+                                comps.push(html);
+                                html = '';
+                            }
+                            var className = tag.replace(/^X\-/, '')
+                                    .replace(/^L\-/, 'Lui.')
+                                    .replace(/-/g, '.'),
+                                classRef = this.getClass(className),
+                                cfg;
+                            if (classRef.prototype.makeConfigFromView) {
+                                cfg = classRef.prototype.makeConfigFromView(node, cfg);
+                            } else {
+                                cfg = {
+                                    type: classRef.prototype.type
+                                };
+                            }
+                            comps.push(cfg);
+                            return 'continue';
+                        } else {
+                            html += '<' + tag;
+                            Li.slice(node.attributes).forEach(function (attr) {
+                                html += ' ' + attr.name + '="' + attr.value + '"';
+                            });
+                            html += (voidTags[tag] ? '/>' : '>');
+                        }
+                    } else if (!componentTagRegex.test(tag) && !voidTags[tag]) {
+                        html += '</' + tag + '>';
+                    }
+                }
+                if (isOpenTag && node.nodeType === 3) {
+                    //escape <,> and &.
+                    html += (node.nodeValue || '').replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").trim();
+                }
+            }, this);
+            if (html) {
+                comps.push(html);
             }
-        }, this);
-        return comps;
-    },
+            return comps;
+        };
+    }()),
 
     /**
      * Pass an array of component configs, to return an array of initialized components.
@@ -55,11 +97,30 @@ window.Lui = {
             }
             return null;
         }
-        ui.forEach(function (o) {
+        var html = '', components = [];
+        ui.forEach(function (o, i) {
+            if (Li.isString(o)) {
+                html += o;
+            }
             if (o instanceof Lui.Component) {
-                o.render(target);
+                html += '<!-- %%% -->';
+                components.push(o);
             }
         });
+
+        var dom = Li.dom(html), placeHolders = [];
+        Lui.util.traverse(dom, dom, function (node, isOpenTag) {
+            if (isOpenTag && node.nodeType === 8 && node.data.trim() === '%%%') { //comment node
+                placeHolders.push(node);
+            }
+        }, this);
+
+        target.appendChild(dom);
+
+        placeHolders.forEach(function (node, i) {
+            components[i].render(node.parentNode, Lui.util.childIndex(node));
+            $(node).remove();
+        }, this);
     },
 
     /**
@@ -140,15 +201,17 @@ window.Lui = {
     },
 
     /**
-     * Recirsively traverses through a given component's instance
+     * Recursively traverses through a given component's instance
      * (or a plain object with type properties) and child items.
      */
     traverse: function (component, callback, context) {
         var classRef = this.getClass(component.type);
         if (classRef === Lui.Box || (classRef.prototype instanceof Lui.Box)) {
             (component.items || []).forEach(function (item) {
-                callback.call(context, item);
-                Lui.traverse(item, callback, context);
+                if (!Li.isString(item)) {
+                    callback.call(context, item);
+                    Lui.traverse(item, callback, context);
+                }
             });
         }
     }

@@ -9,6 +9,7 @@ INCLUDE('Component.js');
 Lui.extend('Lui.Box', Lui.Component, {
     /**
      * Child items
+     * @type Array[Lui.Component|String]
      */
     items: [],
 
@@ -47,6 +48,9 @@ Lui.extend('Lui.Box', Lui.Component, {
 
     init: function () {
         this.items.forEach(function (o, index) {
+            if (Li.isString(o)) {
+                return;
+            }
             o.type = o.type || 'Lui.Box';
             var classRef = Lui.getClass(o.type), cmp;
             if (!(o instanceof Lui.Component)) {
@@ -72,13 +76,13 @@ Lui.extend('Lui.Box', Lui.Component, {
     },
 
     renderInner: function () {
-        this.items.forEach(function(item, i) {
-            item.render(this.rootEl, i);
-        }, this);
+        Lui.render(this.rootEl, this.items);
     },
     unrender: function () {
         this.items.forEach(function(item) {
-            item.unrender();
+            if (item instanceof Lui.Component) {
+                item.unrender();
+            }
         }, this);
         this.super();
     },
@@ -86,7 +90,9 @@ Lui.extend('Lui.Box', Lui.Component, {
         this.removeListeners();
         this.initListeners();
         this.items.forEach(function(item) {
-            item.postRender();
+            if (item instanceof Lui.Component) {
+                item.postRender();
+            }
         }, this);
     }
 });
