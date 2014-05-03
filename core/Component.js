@@ -1,4 +1,5 @@
 INCLUDE('lui.js');
+INCLUDE('../lib/lithium/src/lithium.observable.js');
 INCLUDE('util/Template.js');
 
 /**

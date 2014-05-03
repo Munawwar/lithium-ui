@@ -1,5 +1,8 @@
 /*global $*/
 
+INCLUDE('../lib/lithium/src/lithium.js');
+INCLUDE('../lib/lithium/src/lithium.extras.js');
+
 window.Lui = {
     version: '0.1.0',
 
