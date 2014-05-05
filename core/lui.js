@@ -79,12 +79,14 @@ window.Lui = {
     create: function (ui) {
         var created = [];
         ui.forEach(function (o) {
+            if (Li.isString(o)) {
+                return created.push(o);
+            }
             if (!(o instanceof Lui.Component)) {
                 o.type = o.type || 'Lui.Box';
-                var ClassRef = this.getClass(o.type), cmp;
-                cmp = new ClassRef(o);
-                o = cmp;
-                created.push(o);
+                var ClassRef = this.getClass(o.type),
+                    cmp = new ClassRef(o);
+                created.push(cmp);
             }
         }, this);
         return created;
