@@ -12,9 +12,8 @@ Lui.extend('Lui.Text', Lui.Component, {
      */
     makeConfigFromView: function (target) {
         var cfg = this.super(arguments),
-            node = target.firstChild,
-            placeholder = node.getAttribute('placeholder'),
-            value = node.firstChild.nodeValue;
+            placeholder = target.getAttribute('placeholder'),
+            value = target.textContent;
         if (placeholder) {
             cfg.placeholder = placeholder;
         }
