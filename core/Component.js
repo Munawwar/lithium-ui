@@ -49,6 +49,11 @@ Lui.extend('Lui.Component', Li.Observable, {
     set: function (cfg) {
         this.cfg = this.cfg || {};
         $.extend(this, cfg);
+
+        this.listeners = this.listeners || [];
+        if (!Li.isArray(this.listeners)) {
+            this.listeners = [this.listeners];
+        }
     },
     /**
      * Read a <component> HTML element and generate corresponding component config.
@@ -161,63 +166,143 @@ Lui.extend('Lui.Component', Li.Observable, {
      * @protected
      */
     postRender: function (target) {
-        this.initListeners(target);
+        this.attachListeners();
     },
     /**
      * Rebinds listeners.
      */
-    initListeners: function () {
-        this.removeListeners();
-        if (this.listeners) {
-            if (!Li.isArray(this.listeners)) {
-                this.listeners = [this.listeners];
+    attachListeners: (function () {
+        function bindToDom($el, listeners, scope) {
+            Li.forEach(listeners, function (fn, event) {
+                if (!fn._scoped_) {
+                    fn = listeners[event] = Li.bind(fn, scope);
+                    fn._scoped_ = true;
+                }
+                $el.on(event, fn);
+            });
+        }
+        return function (specificListeners) {
+            this.detachListeners(specificListeners);
+            if (this.listeners) {
+                this.listeners.forEach(function (listeners) {
+                    if (specificListeners && listeners !== specificListeners) {
+                        return;
+                    }
+                    Li.forEach(listeners, function (funcOrObj, prop) {
+                        if (prop === 'scope') {
+                            return;
+                        }
+                        if (prop[0] === '(' && prop.slice(-1) === ')') { //using css selector
+                            if (this.rootEl) {
+                                var $els = $(prop.slice(1, -1), this.rootEl);
+                                bindToDom($els, funcOrObj, listeners.scope || this);
+                            }
+                        } else if (Li.isFunction(funcOrObj)) { //component event
+                            this.on(prop, funcOrObj, listeners.scope || this);
+                        } else if (Li.isObject(funcOrObj)) { //find reference
+                            //Find the property being referenced
+                            var ns = prop, obj = this;
+                            ns.split('.').forEach(function (part) {
+                                if (obj && Li.isDefined(obj[part])) {
+                                    obj = obj[part];
+                                } else {
+                                    obj = null;
+                                }
+                            });
+                            if (obj) {
+                                if (obj instanceof Lui.Component) {
+                                    funcOrObj.scope = listeners.scope || this;
+                                    obj.addListeners(funcOrObj);
+                                } else { //assume HTMLElement
+                                    bindToDom($(obj), funcOrObj, listeners.scope || this);
+                                }
+                            }
+                        }
+                    }, this);
+                }, this);
             }
-            //Temporarily remove from data structure and add them again.
-            var allListeners = this.listeners;
-            this.listeners = [];
-            allListeners.forEach(this.addListeners, this);
+        };
+    }()),
+    /**
+     * Adds listeners.
+     *
+     * @param {Object} listeners
+     * There are two types of events: Component event and DOM events.
+     * There are 3 different syntax to register events:
+     * 1. Component event: Use "event name" => function () {...}, to register event on component. Note that this isn't DOM event.
+     * 2. Reference: Add listeners to a property of this component. Use "propertyName": { <event handlers> }.
+     * Property being referenced could be an instance of a component or a DOM element.
+     * 3. CSS selector: Use a CSS selector to find elements within this component's DOM, and attach events to them.
+     * Place the CSS selector in paranthesis like so "(css selector)" => { <event handlers etc> }.
+     *
+     * Example:
+     * {
+     *   afterrender: function () { //this is a component event },
+     *   "rootEl" : {
+     *      click: function () { //this is a dom event }
+     *   },
+     *   "(.navigation)": {
+     *      click: function () { //this is a dom event }
+     *   }
+     * }
+     */
+    addListeners: function (listeners) {
+        //Push to this.listeners
+        this.listeners.push(listeners);
+        this.attachListeners(listeners);
+    },
+    /**
+     * Removes listenes
+     */
+    removeListeners: function (listeners) {
+        //Push to this.listeners
+        var pos = this.listeners.indexOf(listeners);
+        if (pos > -1) {
+            this.detachListeners(listeners);
+            this.listeners.splice(pos, 1);
         }
     },
     /**
-     * Adds listeners.
+     * @param {Object} [specificListeners] Specific listener object to detach. When not provided, detaches all listeners.
      */
-    //TODO: Add support for any ref: {}, listeners
-    addListeners: function (listeners) {
-        //Push to this.listeners
-        this.listeners = this.listeners || [];
-        if (!Li.isArray(this.listeners)) {
-            this.listeners = [this.listeners];
-        }
-        this.listeners.push(listeners);
-
-        //If rendered, then add dom listeners
-        if (listeners.dom && this.rootEl) {
-            var list = listeners.dom;
-            Li.forEach(list, function bindAndAddListener(fn, event) {
-                if (!fn._scoped_) {
-                    fn = list[event] = Li.bind(fn, listeners.scope || this);
-                    fn._scoped_ = true;
-                }
-                $(this.rootEl).on(event, fn);
-            }, this);
-        }
-        Li.forEach(listeners, function (fn, event) {
-            if (event !== 'dom' && event !== 'scope') {
-                this.on(event, fn, listeners.scope || this);
-            }
-        }, this);
-    },
-    removeListeners: function () {
+    detachListeners: function (specificListeners) {
         if (this.listeners) {
             this.listeners.forEach(function (listeners) {
-                if (listeners.dom && this.rootEl) {
-                    Li.forEach(listeners.dom, function (fn, event) {
-                        $(this.rootEl).off(event, fn);
-                    }, this);
+                if (specificListeners && listeners !== specificListeners) {
+                    return;
                 }
-                Li.forEach(listeners, function (fn, event) {
-                    if (event !== 'dom' && event !== 'scope') {
-                        this.off(event, fn);
+                Li.forEach(listeners, function (funcOrObj, prop) {
+                    if (prop === 'scope') {
+                        return;
+                    }
+                    if (prop[0] === '(' && prop.slice(-1) === ')') { //using css selector
+                        if (this.rootEl) {
+                            var $els = $(prop.slice(1, -1), this.rootEl);
+                            Li.forEach(funcOrObj, function (fn, event) {
+                                $els.off(event, fn);
+                            });
+                        }
+                    } else if (Li.isFunction(funcOrObj)) { //component event
+                        this.off(prop, funcOrObj);
+                    } else if (Li.isObject(funcOrObj)) { //find reference
+                        //Find the property being referenced
+                        var ns = prop, obj = this;
+                        ns.split('.').forEach(function (part) {
+                            if (obj && Li.isDefined(obj[part])) {
+                                obj = obj[part];
+                            } else {
+                                obj = null;
+                            }
+                        });
+                        if (obj) {
+                            if (obj instanceof Lui.Component) {
+                                obj.detachListeners(funcOrObj);
+                            } else { //assume HTMLElement
+                                Li.forEach(funcOrObj, function (fn, event) {
+                                    $(obj).off(event, fn);
+                                });
+                            }
+                        }
                     }
                 }, this);
             }, this);

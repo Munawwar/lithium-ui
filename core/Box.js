@@ -87,8 +87,7 @@ Lui.extend('Lui.Box', Lui.Component, {
         this.super();
     },
     postRender: function () {
-        this.removeListeners();
-        this.initListeners();
+        this.attachListeners();
         this.items.forEach(function(item) {
             if (item instanceof Lui.Component) {
                 item.postRender();
