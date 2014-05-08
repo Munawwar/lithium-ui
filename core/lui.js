@@ -176,17 +176,12 @@ window.Lui = {
             ns = this.getPart(parts.join('.'));
         ns[className] = Li.extend(baseClass, protoObj);
 
-        //Search for outerTpl and innerTpl script tags and initialize them if they exist. And then override prototype.
-        var proto = ns[className].prototype, tpl;
-        if ((proto instanceof Lui.Component) || proto === Lui.Component.prototype) { // if Lui.Component or extends Lui.Component
-            tpl = this.findTemplate('data-outer', type);
-            if (tpl) { //not to override prototype, if template doesn't exist
-                proto.outerTpl = tpl;
-            }
-            tpl = this.findTemplate('data-inner', type);
-            if (tpl) {
-                proto.innerTpl = tpl;
-            }
+        var proto = ns[className].prototype,
+            P = function () {};
+        P.prototype = proto;
+        var inst = new P();
+        if (Li.isFunction(inst.afterExtend)) {
+            inst.afterExtend(proto);
         }
     },
 

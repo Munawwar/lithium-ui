@@ -39,6 +39,24 @@ Lui.extend('Lui.Component', Li.Observable, {
      * Inline CSS style to apply on {@link #rootEl}.
      */
     style: '',
+    /**
+     * Called after Lui.extend() succeeds. Called exactly once for a class.
+     * @param {Object} proto Prototype object of this class.
+     */
+    afterExtend: function (proto) {
+        var tpl;
+        //Search for outerTpl and innerTpl script tags and initialize them if they exist. And then override prototype.
+        if ((proto instanceof Lui.Component) || proto === Lui.Component.prototype) { // if Lui.Component or extends Lui.Component
+            tpl = Lui.findTemplate('data-outer', proto.type);
+            if (tpl) { //not to override prototype, if template doesn't exist
+                proto.outerTpl = tpl;
+            }
+            tpl = Lui.findTemplate('data-inner', proto.type);
+            if (tpl) {
+                proto.innerTpl = tpl;
+            }
+        }
+    },
     constructor: function (cfg) {
         this.id = 'cmp-' + Lui.Component.getNewId();
         this.set(cfg);
