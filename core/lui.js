@@ -76,18 +76,34 @@ window.Lui = {
     /**
      * Pass an array of component configs, to return an array of initialized components.
      */
-    create: function (ui) {
+    create: function (ui, parent) {
         var created = [];
         ui.forEach(function (o) {
             if (Li.isString(o)) {
                 return created.push(o);
             }
+            o.parent = parent;
             if (!(o instanceof Lui.Component)) {
                 o.type = o.type || 'Lui.Box';
                 var ClassRef = this.getClass(o.type),
                     cmp = new ClassRef(o);
-                created.push(cmp);
+                if (o.ref && parent) {
+                    var backsRegEx = /\.\.\//g,
+                        backs = o.ref.match(backsRegEx);
+                    o.ref = o.ref.replace(backsRegEx, '');
+
+                    var rel = parent;
+                    for (backs = (backs ? backs.length : 0); backs > 0; backs -= 1) {
+                        rel = rel.parent;
+                    }
+
+                    rel[o.ref] = cmp;
+                    delete cmp.ref;
+                }
+            } else {
+                cmp = o;
             }
+            created.push(cmp);
         }, this);
         return created;
     },

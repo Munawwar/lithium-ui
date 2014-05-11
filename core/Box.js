@@ -47,32 +47,7 @@ Lui.extend('Lui.Box', Lui.Component, {
     },
 
     init: function () {
-        this.items.forEach(function (o, index) {
-            if (Li.isString(o)) {
-                return;
-            }
-            o.type = o.type || 'Lui.Box';
-            var classRef = Lui.getClass(o.type), cmp;
-            if (!(o instanceof Lui.Component)) {
-                o.parent = this;
-                cmp = this.items[index] = new classRef(o);
-                if (o.ref) {
-                    var backsRegEx = /\.\.\//g,
-                        backs = o.ref.match(backsRegEx);
-                    o.ref = o.ref.replace(backsRegEx, '');
-
-                    var rel = this;
-                    for (backs = (backs ? backs.length : 0); backs > 0; backs -= 1) {
-                        rel = rel.parent;
-                    }
-
-                    rel[o.ref] = cmp;
-                    delete o.ref;
-                }
-            } else {
-                o.parent = this;
-            }
-        }, this);
+        this.items = Lui.create(this.items, this);
     },
 
     renderInner: function () {
