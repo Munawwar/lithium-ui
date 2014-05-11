@@ -36,6 +36,10 @@ Lui.extend('Lui.Component', Li.Observable, {
      */
     cls: '',
     /**
+     * Extra CSS class to be added by view
+     */
+    extraCls: '',
+    /**
      * Inline CSS style to apply on {@link #rootEl}.
      */
     style: '',
@@ -83,6 +87,7 @@ Lui.extend('Lui.Component', Li.Observable, {
             type: this.type,
             id: element.id || undefined,
             cls: element.className || undefined,
+            extraCls: element.getAttribute('extracls') || undefined,
             style: element.getAttribute('style') || undefined,
             ref: element.getAttribute('ref') || undefined,
             innerTpl: element.innerHTML.trim() || undefined
@@ -98,7 +103,7 @@ Lui.extend('Lui.Component', Li.Observable, {
      */
     getCssClass: function () {
         var typeCls = this.type.toLowerCase().replace(/\./g, '-');
-        return (typeCls + ' ' + this.cls).trim();
+        return (typeCls + ' ' + this.cls + ' ' + this.extraCls).trim();
     },
     /**
      * @returns {DocumentFragment}
