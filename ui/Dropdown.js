@@ -6,6 +6,16 @@ INCLUDE('Dropdown.css');
  */
 Lui.extend('Lui.Dropdown', Lui.Component, {
     options: [],
+    getValue: function () {
+        if (this.rootEl) {
+            return this.rootEl.value;
+        }
+    },
+    setValue: function (value) {
+        if (this.rootEl) {
+            this.rootEl.value = value;
+        }
+    },
     /**
      * @override
      */

@@ -7,6 +7,16 @@ Lui.extend('Lui.Text', Lui.Component, {
     cls: 'form-control',
     autocomplete: [],
     placeholder: '',
+    getValue: function () {
+        if (this.rootEl) {
+            return this.rootEl.value;
+        }
+    },
+    setValue: function (value) {
+        if (this.rootEl) {
+            this.rootEl.value = value;
+        }
+    },
     /**
      * @override
      */
