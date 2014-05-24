@@ -12,6 +12,7 @@ Lui.extend('Lui.Button', Lui.Component, {
     makeConfigFromView: function (target) {
         var cfg = this.super(arguments);
         cfg.label = target.firstChild.nodeValue;
+        cfg.disabled = target.hasAttribute('disabled');
         return cfg;
     },
     /**
@@ -24,6 +25,7 @@ Lui.extend('Lui.Button', Lui.Component, {
             cls: this.getCssClass(),
             style: this.style,
             label: this.label,
+            disabled: this.disabled ? '' : false
         });
     }
 });
