@@ -42,7 +42,8 @@ Lui.extend('Lui.Component', Li.Observable, {
     /**
      * Inline CSS style to apply on {@link #rootEl}.
      */
-    style: '',
+    //undefined because, empty string would cause empty style attribute to be rendered by htmlizer.
+    style: undefined,
     /**
      * Called after Lui.extend() succeeds. Called exactly once for a class.
      * @param {Object} proto Prototype object of this class.
