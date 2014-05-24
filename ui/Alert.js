@@ -1,8 +1,6 @@
 /*globla $*/
 
-INCLUDE('Alert.css');
-
-INCLUDE('../core/Component.js');
+define(['../core/Component', 'jquery', 'css!./Alert.css'], function (Lui, $) {
 
 /**
  * Alert.
@@ -69,4 +67,7 @@ Lui.extend('Lui.Alert', Lui.Component, {
     hide: function () {
         $(this.rootEl).hide(150);
     }
+});
+
+return Lui;
 });

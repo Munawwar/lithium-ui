@@ -1,4 +1,4 @@
-INCLUDE('Cards.js');
+define(['./Cards'], function (Lui) {
 
 /**
  * A container that swtiches between different inner components.
@@ -52,4 +52,7 @@ Lui.extend('Lui.Tabs', Lui.Box, {
         this.super(arguments);
         this.items[1].setActiveItem(this.activeItem);
     }
+});
+
+return Lui;
 });

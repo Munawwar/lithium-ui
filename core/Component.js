@@ -1,6 +1,4 @@
-INCLUDE('lui.js');
-INCLUDE('../lib/lithium/src/lithium.observable.js');
-INCLUDE('util/Template.js');
+define(['./lui', 'jquery', '../lib/lithium/src/lithium.observable', './util/Template'], function (Lui, $, Li) {
 
 /**
  * Base class for all components.
@@ -338,4 +336,7 @@ Lui.extend('Lui.Component', Li.Observable, {
             return Lui.Component.id++;
         }
     }
+});
+
+return Lui;
 });

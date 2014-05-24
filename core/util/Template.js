@@ -1,5 +1,5 @@
-INCLUDE('util.js');
-INCLUDE('../../lib/Htmlizer/src/js-object-literal-parse.js');
-INCLUDE('../../lib/Htmlizer/src/Htmlizer.js');
+define(['./util', '../../lib/Htmlizer/src/Htmlizer'], function (Lui, Htmlizer) {
 
 Lui.util.Template = Htmlizer;
+
+});

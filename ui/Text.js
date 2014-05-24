@@ -1,4 +1,4 @@
-INCLUDE('../core/Component.js');
+define(['../core/Component'], function (Lui) {
 
 /**
  * Text field.
@@ -62,4 +62,7 @@ Lui.extend('Lui.Text', Lui.Component, {
             });
         }
     }
+});
+
+return Lui;
 });

@@ -1,4 +1,4 @@
-INCLUDE('../core/Component.js');
+define(['../core/Component'], function (Lui) {
 
 /**
  * Button.
@@ -28,4 +28,7 @@ Lui.extend('Lui.Button', Lui.Component, {
             disabled: this.disabled ? '' : false
         });
     }
+});
+
+return Lui;
 });

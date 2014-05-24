@@ -1,5 +1,4 @@
-INCLUDE('../core/Component.js');
-INCLUDE('Dropdown.css');
+define(['../core/Component', '../lib/lithium/src/lithium', 'css!./Dropdown.css'], function (Lui) {
 
 /**
  * Dropdown.
@@ -36,4 +35,7 @@ Lui.extend('Lui.Dropdown', Lui.Component, {
         }, this);
         this.super(arguments);
     }
+});
+
+return Lui;
 });

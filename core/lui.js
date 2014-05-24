@@ -1,9 +1,8 @@
 /*global $*/
 
-INCLUDE('../lib/lithium/src/lithium.js');
-INCLUDE('../lib/lithium/src/lithium.extras.js');
+define(['jquery', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium.extras'], function ($, Li) {
 
-window.Lui = {
+var Lui = {
     version: '0.1.0',
 
     /**
@@ -232,3 +231,6 @@ window.Lui = {
         }
     }
 };
+
+return Lui;
+});

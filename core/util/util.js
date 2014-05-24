@@ -1,3 +1,4 @@
+define(['../lui'], function (Lui) {
 Lui.util = {
     /**
      * Given a DOM node, this method finds the next tag/node that would appear in the dom.
@@ -65,3 +66,6 @@ Lui.util = {
         return Li.slice(node.parentNode.childNodes).indexOf(node);
     }
 };
+
+return Lui;
+});

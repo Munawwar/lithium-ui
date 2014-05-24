@@ -1,4 +1,4 @@
-INCLUDE('Component.js');
+define(['./Component'], function (Lui) {
 
 /**
  * A container that can have child components.
@@ -69,4 +69,7 @@ Lui.extend('Lui.Box', Lui.Component, {
             }
         }, this);
     }
+});
+
+return Lui;
 });

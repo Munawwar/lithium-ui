@@ -1,4 +1,4 @@
-INCLUDE('../core/Component.js');
+define(['../core/Box'], function (Lui) {
 
 /**
  * A container that swtiches between different inner components.
@@ -31,4 +31,7 @@ Lui.extend('Lui.Cards', Lui.Box, {
             }, this);
         }
     }
+});
+
+return Lui;
 });
