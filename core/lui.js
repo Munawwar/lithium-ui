@@ -19,7 +19,7 @@ define(['jquery', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium.extr
         makeConfigFromView: (function () {
             function unwrap(str) {
                 var o = {};
-                str.split(',').forEach(function (val) {
+                str.toUpperCase().split(',').forEach(function (val) {
                     o[val] = true;
                 });
                 return o;
@@ -82,7 +82,7 @@ define(['jquery', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium.extr
          * Pass an array of component configs, to return an array of initialized components.
          */
         create: function (ui, parent) {
-            var created = [];
+            var created = [], cmp;
             ui.forEach(function (o) {
                 if (Li.isString(o)) {
                     return created.push(o);
@@ -90,8 +90,8 @@ define(['jquery', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium.extr
                 o.parent = parent;
                 if (!(o instanceof Lui.Component)) {
                     o.type = o.type || 'Lui.Box';
-                    var ClassRef = this.getClass(o.type),
-                        cmp = new ClassRef(o);
+                    var ClassRef = this.getClass(o.type);
+                    cmp = new ClassRef(o);
                     if (o.ref && parent) {
                         var backsRegEx = /\.\.\//g,
                             backs = o.ref.match(backsRegEx);
@@ -124,7 +124,7 @@ define(['jquery', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium.extr
                 return null;
             }
             var html = '', components = [];
-            ui.forEach(function (o, i) {
+            ui.forEach(function (o) {
                 if (Li.isString(o)) {
                     html += o;
                 }
