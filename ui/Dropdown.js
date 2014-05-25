@@ -3,7 +3,7 @@ define(['../core/Component', '../lib/lithium/src/lithium', 'css!./Dropdown.css']
 /**
  * Dropdown.
  */
-Lui.extend('Lui.Dropdown', Lui.Component, {
+Lui.Dropdown = Lui.extend('Lui.Dropdown', Lui.Component, {
     options: [],
     getValue: function () {
         if (this.rootEl) {

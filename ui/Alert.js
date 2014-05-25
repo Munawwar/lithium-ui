@@ -5,7 +5,7 @@ define(['../core/Component', 'jquery', 'css!./Alert.css'], function (Lui, $) {
 /**
  * Alert.
  */
-Lui.extend('Lui.Alert', Lui.Component, {
+Lui.Alert = Lui.extend('Lui.Alert', Lui.Component, {
     html: 'Alert!',
     alertType: 'warning',
     cls: 'alert alert-stick-top',

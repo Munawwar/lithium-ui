@@ -3,7 +3,7 @@ define(['../core/Component'], function (Lui) {
 /**
  * Button.
  */
-Lui.extend('Lui.Button', Lui.Component, {
+Lui.Button = Lui.extend('Lui.Button', Lui.Component, {
     label: 'Button',
     cls: 'btn btn-default',
     /**

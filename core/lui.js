@@ -6,6 +6,12 @@ var Lui = {
     version: '0.1.0',
 
     /**
+     * Holds all classes inherited through Lui.extend.
+     * @private
+     */
+    componentClasses: {},
+
+    /**
      * Read a static view implementation and return an array of component configs.
      * @param {HTMLElement} target HTMLElement that contains the view. Typically this is document.body.
      * @param {Object} parentCfg Config of parent component. So that this method can be used recursively to establish parent-child relationship.
@@ -144,11 +150,10 @@ var Lui = {
     },
 
     /**
-     * Get a Class reference from global namespace.
+     * Get a class reference from list of registered classes.
      */
     getClass: function (type) {
-        //TODO: Cache class references to improve performance.
-        var classRef = this.getPart(type);
+        var classRef = this.componentClasses[type.toLowerCase()];
         if (!classRef) {
             throw new Error('Class does not exist');
         }
@@ -156,48 +161,26 @@ var Lui = {
     },
 
     /**
-     * Gets any global namespace/Class reference from a given string.
-     * @private
-     */
-    getPart: function (ns) {
-        var obj = window;
-        ns.split('.').some(function (part) {
-            if (!obj[part]) {
-                Object.keys(obj).some(function (n) {
-                    if (n.toLowerCase() === part.toLowerCase()) {
-                        obj = obj[n];
-                        return true;
-                    }
-                });
-            } else {
-                obj = obj[part];
-            }
-            return !obj;
-        });
-        return obj;
-    },
-
-    /**
-     * Uses Li.extend to create a new global Class of 'type' using a base Class and prototype.
-     * This automatically adds type string to class (which Lui.Component uses to add data-type and class name to the rendered rool element).
-     * @param {String} type Full namespace to be used for the new class. eg 'Lui.Box'.
+     * Uses Li.extend() to create the class using baseClass and proto, and at the same time
+     * register the class type with Lui so that it can be used in HTML views parsed by Lui.
+     * This automatically also adds the 'type' as a string to prototype of class (which Lui.Component uses in rendered markup).
+     * @param {String} type Unique name (including namespace) to be used for the new class. eg 'Lui.Box'.
      * @param {Function} baseClass
-     * @param {Object} proto Protype to use on new class.
+     * @param {Object} proto Prototype to use for creating the new class.
      */
     extend: function (type, baseClass, protoObj) {
         protoObj.type = type;
-        var parts = type.split('.'),
-            className = parts.pop(),
-            ns = this.getPart(parts.join('.'));
-        ns[className] = Li.extend(baseClass, protoObj);
+        var typeLowerCase = type.toLowerCase();
+        this.componentClasses[typeLowerCase] = Li.extend(baseClass, protoObj);
 
-        var proto = ns[className].prototype,
+        var proto = this.getClass(typeLowerCase).prototype,
             P = function () {};
         P.prototype = proto;
         var inst = new P();
         if (Li.isFunction(inst.afterExtend)) {
             inst.afterExtend(proto);
         }
+        return this.getClass(typeLowerCase);
     },
 
     /**

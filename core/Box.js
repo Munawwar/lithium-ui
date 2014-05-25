@@ -6,7 +6,7 @@ define(['./Component'], function (Lui) {
  *
  * Note that postRender() method is called after renderOuter (i.e doesn't wait for child items to be rendered).
  */
-Lui.extend('Lui.Box', Lui.Component, {
+Lui.Box = Lui.extend('Lui.Box', Lui.Component, {
     /**
      * Child items
      * @type Array[Lui.Component|String]

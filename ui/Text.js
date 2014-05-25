@@ -3,7 +3,7 @@ define(['../core/Component'], function (Lui) {
 /**
  * Text field.
  */
-Lui.extend('Lui.Text', Lui.Component, {
+Lui.Text = Lui.extend('Lui.Text', Lui.Component, {
     cls: 'form-control',
     autocomplete: [],
     placeholder: '',

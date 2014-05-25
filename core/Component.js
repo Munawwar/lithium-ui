@@ -3,7 +3,7 @@ define(['./lui', 'jquery', '../lib/lithium/src/lithium.observable', './util/Temp
 /**
  * Base class for all components.
  */
-Lui.extend('Lui.Component', Li.Observable, {
+Lui.Component = Lui.extend('Lui.Component', Li.Observable, {
     /**
      * Top most element of this component
      * @readonly
@@ -49,7 +49,10 @@ Lui.extend('Lui.Component', Li.Observable, {
     afterExtend: function (proto) {
         var tpl;
         //Search for outerTpl and innerTpl script tags and initialize them if they exist. And then override prototype.
-        if ((proto instanceof Lui.Component) || proto === Lui.Component.prototype) { // if Lui.Component or extends Lui.Component
+        // if Lui.Component or extends Lui.Component.
+        //Note: When Lui.Component is being created, it's afterExtend method is called before Lui.Component is available in the Lui namespace.
+        //Therefore, use the Lui.getClass() method.
+        if (proto === Lui.getClass('Lui.Component').prototype || (proto instanceof Lui.Component)) {
             tpl = Lui.findTemplate('data-outer', proto.type);
             if (tpl) { //not to override prototype, if template doesn't exist
                 proto.outerTpl = tpl;

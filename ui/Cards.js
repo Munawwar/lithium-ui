@@ -4,7 +4,7 @@ define(['../core/Box'], function (Lui) {
  * A container that swtiches between different inner components.
  * You can use Box to achieve layouts.
  */
-Lui.extend('Lui.Cards', Lui.Box, {
+Lui.Cards = Lui.extend('Lui.Cards', Lui.Box, {
     /**
      * Active item
      */

@@ -4,7 +4,7 @@ define(['./Cards'], function (Lui) {
  * A container that swtiches between different inner components.
  * You can use Box to achieve layouts.
  */
-Lui.extend('Lui.Tabs', Lui.Box, {
+Lui.Tabs = Lui.extend('Lui.Tabs', Lui.Box, {
     /**
      * @protected
      */
