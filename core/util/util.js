@@ -1,4 +1,4 @@
-define(['../lui'], function (Lui) {
+define(['../lui', '../../lib/lithium/src/lithium'], function (Lui, Li) {
     Lui.util = {
         /**
          * Given a DOM node, this method finds the next tag/node that would appear in the dom.
