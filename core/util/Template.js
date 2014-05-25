@@ -1,5 +1,4 @@
 define(['./util', '../../lib/Htmlizer/src/Htmlizer'], function (Lui, Htmlizer) {
-
-Lui.util.Template = Htmlizer;
-
+    Lui.util.Template = Htmlizer;
+    return Lui;
 });
