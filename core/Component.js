@@ -1,4 +1,10 @@
-define(['./lui', 'jquery', '../lib/lithium/src/lithium.observable', './util/Template'], function (Lui, $, Li) {
+define([
+    './lui',
+    'jquery',
+    '../lib/lithium/src/lithium.observable',
+    './util/Template',
+    'tpl!./Component.html'
+], function (Lui, $, Li) {
 
     /**
      * Base class for all components.

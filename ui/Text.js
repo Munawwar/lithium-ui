@@ -1,4 +1,4 @@
-define(['../core/Component'], function (Lui) {
+define(['../core/Component', 'tpl!./Text.html'], function (Lui) {
     /**
      * Text field.
      */
@@ -41,7 +41,7 @@ define(['../core/Component'], function (Lui) {
                 cls: this.getCssClass(),
                 style: this.style,
                 value: this.value,
-                placeholder: this.placeholder,
+                placeholder: this.placeholder
             });
         },
         /**

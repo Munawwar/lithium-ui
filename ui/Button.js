@@ -1,4 +1,4 @@
-define(['../core/Component'], function (Lui) {
+define(['../core/Component', 'tpl!./Button.html'], function (Lui) {
 
     /**
      * Button.

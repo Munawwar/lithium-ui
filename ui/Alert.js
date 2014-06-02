@@ -1,7 +1,11 @@
 /*globla $*/
 
-define(['../core/Component', 'jquery', 'css!./Alert.css'], function (Lui, $) {
-
+define([
+    '../core/Component',
+    'jquery',
+    'css!./Alert.css',
+    'tpl!./Alert.html'
+], function (Lui, $) {
     /**
      * Alert.
      */
