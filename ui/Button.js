@@ -7,6 +7,10 @@ define(['../core/Component', 'tpl!./Button.html'], function (Lui) {
         label: 'Button',
         cls: 'btn btn-default',
         /**
+         * Disabled when true.
+         */
+        disabled: false,
+        /**
          * @override
          */
         makeConfigFromView: function (target) {
@@ -27,6 +31,16 @@ define(['../core/Component', 'tpl!./Button.html'], function (Lui) {
                 label: this.label,
                 disabled: this.disabled ? '' : false
             });
+        },
+
+        enable: function () {
+            this.disabled = false;
+            this.rootEl.disabled = false;
+        },
+
+        disable: function () {
+            this.disabled = true;
+            this.rootEl.disabled = true;
         }
     });
 
