@@ -23,12 +23,7 @@ define(['../core/Component', '../lib/lithium/src/lithium', 'css!./Dropdown.css']
          */
         setValue: function (value) {
             if (this.rootEl) {
-                Li.slice($('option', this.rootEl)).some(function (item, index) {
-                    if (item.value === value) {
-                        this.rootEl.selectedIndex = index;
-                        return true;
-                    }
-                }.bind(this));
+                this.rootEl.value = value;
             }
         },
         clear: function () {
