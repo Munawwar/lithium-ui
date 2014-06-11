@@ -190,7 +190,8 @@ define(['jquery', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium.extr
         findTemplate: function (attr, type) {
             var tpl = null,
                 selector = 'script[' + attr + '="' + type + '"]',
-                tplTag = $(selector)[0];
+                tplTag = $(selector);
+            tplTag = tplTag[tplTag.length - 1];
             if (tplTag) {
                 var text = tplTag.firstChild.nodeValue.trim();
                 tpl = new Lui.util.Template(text);

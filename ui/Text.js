@@ -16,6 +16,11 @@ define(['../core/Component', 'tpl!./Text.html'], function (Lui) {
                 this.rootEl.value = value;
             }
         },
+        clear: function () {
+            if (this.rootEl) {
+                this.rootEl.value = '';
+            }
+        },
         /**
          * @override
          */

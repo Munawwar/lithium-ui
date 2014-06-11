@@ -4,15 +4,36 @@ define(['../core/Component', '../lib/lithium/src/lithium', 'css!./Dropdown.css']
      * Dropdown.
      */
     Lui.Dropdown = Lui.extend('Lui.Dropdown', Lui.Component, {
+        /**
+         * @cfg {Array[]} options Array of [value, display text] arrays.
+         * Used only for first render.
+         */
         options: [],
+        /**
+         * @cfg {Number} [defaultOption=0]
+         */
+        defaultOption: 0,
         getValue: function () {
             if (this.rootEl) {
                 return this.rootEl.value;
             }
         },
+        /**
+         * Searches for the option with given value and sets it
+         */
         setValue: function (value) {
             if (this.rootEl) {
-                this.rootEl.value = value;
+                Li.slice($('option', this.rootEl)).some(function (item, index) {
+                    if (item.value === value) {
+                        this.rootEl.selectedIndex = index;
+                        return true;
+                    }
+                }.bind(this));
+            }
+        },
+        clear: function () {
+            if (this.rootEl) {
+                this.rootEl.selectedIndex = this.defaultOption;
             }
         },
         /**
