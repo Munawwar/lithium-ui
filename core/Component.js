@@ -51,6 +51,7 @@ define([
         /**
          * Called after Lui.extend() succeeds. Called exactly once for a class.
          * @param {Object} proto Prototype object of this class.
+         * @protected
          */
         afterExtend: function (proto) {
             var tpl;
@@ -67,8 +68,23 @@ define([
                 if (tpl) {
                     proto.innerTpl = tpl;
                 }
+                this.stitchTpl(proto, {outer: proto.outerTpl, inner: proto.innerTpl});
             }
         },
+        /**
+         * @protected
+         */
+        stitchTpl: function (target, templates) {
+            if (templates.outer && templates.inner) {
+                var tpl = templates.outer.frag.cloneNode(true),
+                    innerTpl = templates.inner.frag.cloneNode(true);
+                tpl.firstChild.appendChild(innerTpl);
+                target.tpl = new Lui.util.Template(tpl);
+            } else if (templates.outer) {
+                target.tpl = templates.outer;
+            }
+        },
+
         constructor: function (cfg) {
             this.id = 'cmp-' + Lui.Component.getNewId();
             this.set(cfg);
@@ -79,6 +95,13 @@ define([
         set: function (cfg) {
             this.cfg = this.cfg || {};
             $.extend(this, cfg);
+            //TODO: Handle more overridden outerTpl. Or think about removing the ability to override templates.
+            if (cfg.innerTpl) {
+                this.stitchTpl(this, {outer: this.outerTpl, inner: this.innerTpl});
+            } else if (this.hasOwnProperty('innerTpl')) {
+                delete this.innerTpl;
+                this.stitchTpl(this, {outer: this.outerTpl, inner: this.innerTpl});
+            }
 
             this.listeners = this.listeners || [];
             if (!Li.isArray(this.listeners)) {
@@ -114,47 +137,41 @@ define([
             return (typeCls + ' ' + this.cls + ' ' + this.extraCls).trim();
         },
         /**
-         * @returns {DocumentFragment}
-         * To be used by {@link #renderOuter} method.
+         * @returns {Object}
+         * To be used by {@link #getHtml} method.
          * @protected
          */
-        getOuterHtml: function () {
-            return this.outerTpl.toDocumentFragment({
+        getTemplateData: function () {
+            return {
                 id: this.id,
                 type: this.type,
                 cls: this.getCssClass() || '',
-                style: this.style || ''
-            });
+                style: this.style || '',
+                inner: this.getInnerTemplateData()
+            };
         },
         /**
-         * @returns {DocumentFragment|undefined}
-         * To be used by {@link #renderInner} method.
-         * Can be overridden by a derived class.
+         * @returns {Object}
+         * To be used by {@link #getTemplateData} method.
          * @protected
          */
-        getInnerHtml: function () {
-            if (this.innerTpl instanceof Lui.util.Template) {
-                return this.innerTpl.toDocumentFragment({});
-            }
+        getInnerTemplateData: function () {
+            return {};
+        },
+        /**
+         * @returns {DocumentFragment}
+         * To be used by {@link #render} method.
+         * @protected
+         */
+        getHtml: function () {
+            return this.tpl.toDocumentFragment(this.getTemplateData());
         },
         /**
          * @protected
          */
-        renderOuter: function (target, childIndex) {
-            target.insertBefore(this.getOuterHtml(), target.childNodes[childIndex]);
+        renderSelf: function (target, childIndex) {
+            target.insertBefore(this.getHtml(), target.childNodes[childIndex]);
             this.rootEl = $('#' + this.id, target)[0];
-        },
-        /**
-         * @protected
-         */
-        renderInner: function () {
-            if (this.rootEl) {
-                var inner = this.getInnerHtml();
-                if (inner) {
-                    $(this.rootEl).empty();
-                    this.rootEl.appendChild(inner);
-                }
-            }
         },
         /**
          * Render component to target HTMLElement.
@@ -162,8 +179,7 @@ define([
          */
         render: function (target, childIndex) {
             this.unrender();
-            this.renderOuter(target, childIndex);
-            this.renderInner(target, childIndex);
+            this.renderSelf(target, childIndex);
             this.postRender(target);
             this.trigger('afterrender', this);
         },
@@ -190,6 +206,18 @@ define([
             if (rootEl && rootEl.parentNode) {
                 var childIndex = Li.slice(rootEl.parentNode.childNodes).indexOf(rootEl);
                 this.render(rootEl.parentNode, childIndex);
+            }
+        },
+        /**
+         * @protected
+         */
+        refreshInner: function () {
+            if (this.rootEl) {
+                var inner = this.getInnerHtml();
+                if (inner) {
+                    $(this.rootEl).empty();
+                    this.rootEl.appendChild(inner);
+                }
             }
         },
         /**
@@ -283,7 +311,7 @@ define([
             this.attachListeners(listeners);
         },
         /**
-         * Removes listenes
+         * Removes listeners
          */
         removeListeners: function (listeners) {
             //Push to this.listeners

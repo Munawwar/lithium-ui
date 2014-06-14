@@ -27,14 +27,14 @@ define([
         /**
          * @override
          */
-        getOuterHtml: function () {
-            return this.outerTpl.toDocumentFragment({
+        getTemplateData: function () {
+            return {
                 id: this.id,
                 type: this.type,
                 cls: this.getCssClass(),
                 style: this.style,
                 html: this.html
-            });
+            };
         },
 
         render: function () {

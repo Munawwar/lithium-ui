@@ -50,7 +50,11 @@ define(['./Component'], function (Lui) {
             this.items = Lui.create(this.items, this);
         },
 
-        renderInner: function () {
+        getHtml: function () {
+            return this.outerTpl.toDocumentFragment(this.getTemplateData());
+        },
+        renderSelf: function () {
+            this.super(arguments);
             Lui.render(this.items, this.rootEl);
         },
         unrender: function () {
@@ -62,7 +66,7 @@ define(['./Component'], function (Lui) {
             this.super();
         },
         postRender: function () {
-            this.attachListeners();
+            this.super(arguments);
             this.items.forEach(function(item) {
                 if (item instanceof Lui.Component) {
                     item.postRender();

@@ -1,4 +1,9 @@
-define(['../core/Component', '../lib/lithium/src/lithium', 'css!./Dropdown.css'], function (Lui) {
+define([
+    '../core/Component',
+    '../lib/lithium/src/lithium',
+    'tpl!./Dropdown.html',
+    'css!./Dropdown.css'
+], function (Lui) {
 
     /**
      * Dropdown.
@@ -30,16 +35,6 @@ define(['../core/Component', '../lib/lithium/src/lithium', 'css!./Dropdown.css']
             if (this.rootEl) {
                 this.rootEl.selectedIndex = this.defaultOption;
             }
-        },
-        /**
-         * @override
-         */
-        getOuterHtml: function () {
-            var html = Li.format('<select id="{0}"', this.id),
-                cls = this.getCssClass();
-            html += cls ? Li.format(' class="{0}"', cls) : '';
-            html += '></select>';
-            return Li.dom(html);
         },
         postRender: function (target, childIndex) {
             //Populate options

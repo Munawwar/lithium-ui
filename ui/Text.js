@@ -39,15 +39,15 @@ define(['../core/Component', 'tpl!./Text.ko'], function (Lui) {
         /**
          * @override
          */
-        getOuterHtml: function () {
-            return this.outerTpl.toDocumentFragment({
+        getTemplateData: function () {
+            return {
                 id: this.id,
                 type: this.type,
                 cls: this.getCssClass(),
                 style: this.style,
                 value: this.value,
                 placeholder: this.placeholder
-            });
+            };
         },
         /**
          * @override
