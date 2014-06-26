@@ -116,7 +116,7 @@ define(['jquery', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium.extr
         /**
          * Render an array of components to a render target element.
          */
-        render: function (target, ui) {
+        render: function (ui, target, index) {
             if (!target) {
                 if (console) {
                     console.error('Called Lui.render with undefined/null as target');
@@ -141,7 +141,7 @@ define(['jquery', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium.extr
                 }
             }, this);
 
-            target.appendChild(dom);
+            target.insertBefore(dom, target.childNodes[index]);
 
             placeHolders.forEach(function (node, i) {
                 components[i].render(node.parentNode, Lui.util.childIndex(node));

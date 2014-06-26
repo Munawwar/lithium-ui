@@ -51,7 +51,7 @@ define(['./Component'], function (Lui) {
         },
 
         renderInner: function () {
-            Lui.render(this.rootEl, this.items);
+            Lui.render(this.items, this.rootEl);
         },
         unrender: function () {
             this.items.forEach(function(item) {
