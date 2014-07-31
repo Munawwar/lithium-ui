@@ -3,7 +3,7 @@ define([
     'jquery',
     '../lib/lithium/src/lithium.observable',
     './util/Template',
-    'tpl!./Component.html'
+    'tpl!./Component.ko'
 ], function (Lui, $, Li) {
 
     /**

@@ -1,4 +1,4 @@
-define(['../core/Component', 'tpl!./Text.html'], function (Lui) {
+define(['../core/Component', 'tpl!./Text.ko'], function (Lui) {
     /**
      * Text field.
      */

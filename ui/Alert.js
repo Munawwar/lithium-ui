@@ -4,7 +4,7 @@ define([
     '../core/Component',
     'jquery',
     'css!./Alert.css',
-    'tpl!./Alert.html'
+    'tpl!./Alert.ko'
 ], function (Lui, $) {
     /**
      * Alert.
