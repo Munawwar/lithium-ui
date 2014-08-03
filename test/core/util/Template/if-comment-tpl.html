@@ -1,0 +1,11 @@
+<div>
+    <!-- ko if: btnText[0] -->
+        <!-- ko if: btnText.length > 0 -->
+        <button data-bind="text: btnText, attr: {class: cls}"></button>
+        <!-- /ko -->
+    <!-- /ko -->
+    <!-- ko if: btnText.length < 0 -->
+        <button data-bind="text: btnText, attr: {class: cls}"></button>
+    <!-- /ko -->
+    <p>Test</p>
+</div>

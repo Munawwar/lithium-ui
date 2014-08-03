@@ -1,9 +1,3 @@
-[submodule "Htmlizer"]
-	path = Htmlizer
-	url = git@github.com:Munawwar/Htmlizer.git
-[submodule "lib/Htmlizer"]
-	path = lib/Htmlizer
-	url = git@github.com:Munawwar/Htmlizer.git
 [submodule "lib/lithium"]
 	path = lib/lithium
 	url = git://github.com/Munawwar/Lithium.git
