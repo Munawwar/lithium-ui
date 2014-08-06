@@ -76,12 +76,12 @@ define([
          */
         stitchTpl: function (target, templates) {
             if (templates.outer && templates.inner) {
-                var tpl = templates.outer.frag.cloneNode(true),
-                    innerTpl = templates.inner.frag.cloneNode(true);
+                var tpl = templates.outer.cloneNode(true),
+                    innerTpl = templates.inner.cloneNode(true);
                 tpl.firstChild.appendChild(innerTpl);
                 target.tpl = new Lui.util.Template(tpl);
             } else if (templates.outer) {
-                target.tpl = templates.outer;
+                target.tpl = new Lui.util.Template(templates.outer.cloneNode(true));
             }
         },
 
@@ -124,7 +124,7 @@ define([
                 innerTpl: element.innerHTML.trim() || undefined
             };
             if (cfg.innerTpl) {
-                cfg.innerTpl = new Lui.util.Template(cfg.innerTpl);
+                cfg.innerTpl = Li.dom(cfg.innerTpl);
             }
             return cfg;
         },

@@ -37,7 +37,7 @@ define(['./Component'], function (Lui) {
                 }
             } else { //..else load template if any
                 if (this.innerTpl) {
-                    var tplComps = Lui.makeConfigFromView(this.innerTpl.toDocumentFragment({}));
+                    var tplComps = Lui.makeConfigFromView(this.innerTpl);
                     if (tplComps.length) {
                         cfg.items = tplComps;
                     }
@@ -51,7 +51,7 @@ define(['./Component'], function (Lui) {
         },
 
         getHtml: function () {
-            return this.outerTpl.toDocumentFragment(this.getTemplateData());
+            return (new Lui.util.Template(this.outerTpl)).toDocumentFragment(this.getTemplateData());
         },
         renderSelf: function () {
             this.super(arguments);
