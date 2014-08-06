@@ -66,7 +66,7 @@
         $.extend(this, cfg);
         if (typeof template === 'string') {
             this.origTplStr = template;
-            this.frag = this.moveToNewFragment(this.parseHTML(template));
+            this.frag = util.moveToNewFragment(util.parseHTML(template));
         } else { //assuming DocumentFragment
             this.frag = template;
         }
@@ -74,12 +74,6 @@
         this.bindingMap = {};
         this.prepare();
     }
-
-    Htmlizer.View = function (htmlizerInstance, data, context) {
-        this.tpl = htmlizerInstance;
-        this.data = data;
-        this.context = context;
-    };
 
     Htmlizer.prototype = {
         /**
@@ -102,12 +96,12 @@
                         var bindOpts = node.getAttribute(this.noConflict ? 'data-htmlizer' : 'data-bind');
                         if (bindOpts) {
                             this.checkForConflictingBindings(bindOpts);
-                            bindings = this.parseObjectLiteral(bindOpts);
+                            bindings = util.parseObjectLiteral(bindOpts);
                             node._id = getId();
                             nodeInfo.node = node;
                             nodeInfo.binding = bindOpts;
                             if (bindings.foreach || bindings['with']) {
-                                tempFrag = this.moveToNewFragment(this.slice(node.childNodes));
+                                tempFrag = util.moveToNewFragment(util.slice(node.childNodes));
                                 nodeInfo.subTpl = new Htmlizer(tempFrag, this.cfg);
                             }
                             this.bindingList.push(nodeInfo);
@@ -124,14 +118,14 @@
                             return;
                         }
 
-                        var block = this.findBlockFromStartNode(blocks, node);
+                        var block = util.findBlockFromStartNode(blocks, node);
                         if (block) {
                             node._id = getId();
                             nodeInfo.node = node;
                             nodeInfo.block = block;
                             if (block.key === 'foreach' || block.key === 'with') {
-                                blockNodes = this.getImmediateNodes(frag, block.start, block.end);
-                                tempFrag = this.moveToNewFragment(blockNodes);
+                                blockNodes = util.getImmediateNodes(frag, block.start, block.end);
+                                tempFrag = util.moveToNewFragment(blockNodes);
                                 nodeInfo.subTpl = new Htmlizer(tempFrag, this.cfg);
                             }
                             this.bindingList.push(nodeInfo);
@@ -141,273 +135,26 @@
                 }
             }, this);
         },
+
+        /**
+         * Get binding information for a given node in template DocumentFragment.
+         */
+        getBindingInfo: function (node) {
+            return this.bindingMap[node._id];
+        },
+
         /**
          * @param {Object} data
          */
         toDocumentFragment: function (data, context) {
-            var frag = this.frag,
-                output = document.createDocumentFragment();
-            if (!context) {
-                context = {
-                    $parents: [],
-                    $root: data,
-                    $data: data,
-                    $rawData: data
-                };
-            }
-
-            //Evaluate
-            var blocks = this.getVirtualBlocks(frag),
-                //two stacks - one to keep track of ancestors while inserting content
-                //to output fragment, and the other to keep track of ancestors on template.
-                stack = [output],
-                tStack = [frag],
-                ignoreTillNode = null,
-                tpl, block;
-            traverse(frag, frag, function (tNode, isOpenTag) {
-                if (!ignoreTillNode && isOpenTag) {
-                    var node = tNode.cloneNode(false);
-                    stack[stack.length - 1].appendChild(node);
-
-                    var val, match, tempFrag, inner;
-                    if (node.nodeType === 1) { //element
-                        stack.push(node);
-                        tStack.push(tNode);
-                        var bindOpts = node.getAttribute(this.noConflict ? 'data-htmlizer' : 'data-bind');
-
-                        if (bindOpts) {
-                            node.removeAttribute(this.noConflict ? 'data-htmlizer' : 'data-bind');
-                        }
-
-                        var ret;
-                        this.forEachObjectLiteral(bindOpts, function (binding, value) {
-                            //Convert ifnot: (...) to if: !(...)
-                            if (binding === 'ifnot') {
-                                value = '!(' + value + ')';
-                            }
-
-                            //First evaluate if
-                            if (binding === 'if') {
-                                val = saferEval(value, context, data, node);
-                                if (!val) {
-                                    ret = 'continue';
-                                    return true;
-                                }
-                            }
-
-                            if (binding === 'foreach') {
-                                if (value[0] === '{') {
-                                    inner = this.parseObjectLiteral(value);
-                                    val = {
-                                        items: saferEval(inner.data, context, data, node),
-                                        as: inner.as.slice(1, -1) //strip string quote
-                                    };
-                                } else {
-                                    val = {items: saferEval(value, context, data, node)};
-                                }
-                                tpl = this.bindingMap[tNode._id].subTpl;
-                                if (tpl.frag.firstChild && val.items instanceof Array) {
-                                    tempFrag = this.executeForEach(tpl, context, data, val.items, val.as);
-                                    node.appendChild(tempFrag);
-                                }
-                            }
-
-                            if (binding === 'with') {
-                                val = saferEval(value, context, data, node);
-
-                                tpl = this.bindingMap[tNode._id].subTpl;
-                                if (tpl.frag.firstChild && val !== null && val !== undefined) {
-                                    var newContext = this.getNewContext(context, val);
-                                    node.appendChild(tpl.toDocumentFragment(val, newContext));
-                                }
-                            }
-
-                            if (binding === 'text' && regexMap.DotNotation.test(value)) {
-                                val = saferEval(value, context, data, node);
-                                if (val !== undefined) {
-                                    node.appendChild(document.createTextNode(val));
-                                    ret = 'continue'; //KO ignores the inner content.
-                                }
-                            }
-
-                            if (binding === 'html') {
-                                $(node).empty();
-                                val = saferEval(value, context, data, node);
-                                if (val) {
-                                    tempFrag = this.moveToNewFragment(this.parseHTML(val));
-                                    node.appendChild(tempFrag);
-                                }
-                            }
-
-                            if (binding === 'attr') {
-                                this.forEachObjectLiteral(value.slice(1, -1), function (attr, value) {
-                                    if (regexMap.DotNotation.test(value)) {
-                                        val = saferEval(value, context, data, node);
-                                        if (typeof val === 'string' || typeof val === 'number') {
-                                            node.setAttribute(attr, val);
-                                        }
-                                    }
-                                });
-                            }
-
-                            if (binding === 'css') {
-                                this.forEachObjectLiteral(value.slice(1, -1), function (className, expr) {
-                                    val = saferEval(expr, context, data, node);
-                                    if (val) {
-                                        $(node).addClass(className);
-                                    }
-                                });
-                            }
-
-                            if (binding === 'style') {
-                                this.forEachObjectLiteral(value.slice(1, -1), function (prop, value) {
-                                    val = saferEval(value, context, data, node) || null;
-                                    node.style.setProperty(prop.replace(/[A-Z]/g, replaceJsCssPropWithCssProp), val);
-                                });
-                            }
-
-                            //Some of the following aren't treated as attributes by Knockout, but this is here to keep compatibility with Knockout.
-
-                            if (binding === 'disable' || binding === 'enable') {
-                                var disable = (binding === 'disable' ? value : !value);
-                                if (disable) {
-                                    node.setAttribute('disabled', 'disabled');
-                                } else {
-                                    node.removeAttribute('disabled');
-                                }
-                            }
-
-                            if (binding === 'checked') {
-                                if (value) {
-                                    node.setAttribute('checked', 'checked');
-                                } else {
-                                    node.removeAttribute('checked');
-                                }
-                            }
-
-                            if (binding === 'value') {
-                                node.setAttribute('value', value);
-                            }
-
-                            if (binding === 'visible') {
-                                if (value) {
-                                    node.style.removeProperty('display');
-                                } else {
-                                    node.style.setProperty('display', 'none');
-                                }
-                            }
-                        }, this);
-                        if (ret) {
-                            return ret;
-                        }
-                    }
-
-                    //HTML comment node
-                    if (node.nodeType === 8) {
-                        var stmt = node.data.trim();
-
-                        //Ignore all containerless statements beginning with "ko" if noConflict = true.
-                        if (this.noConflict && (/^(ko |\/ko$)/).test(stmt)) {
-                            return;
-                        }
-                        if ((/^\/(?:ko|hz)$/).test(stmt)) { //remove end of statement
-                            stack[stack.length - 1].removeChild(node);
-                        }
-
-                        //Convert ifnot: (...) to if: !(...)
-                        if ((match = stmt.match(syntaxRegex.ifnot))) {
-                            stmt = match[1].replace('ifnot', 'if') + ': !(' + match[2] + ')';
-                        }
-
-                        //Process if statement
-                        if ((match = stmt.match(syntaxRegex['if']))) {
-                            val = saferEval(match[2], context, data, node);
-
-                            block = this.findBlockFromStartNode(blocks, tNode);
-                            if (!val) {
-                                ignoreTillNode = block.end;
-                            }
-                        } else if ((match = stmt.match(syntaxRegex.foreach))) {
-                            inner = match[2].trim();
-                            if (inner[0] === '{') {
-                                inner = this.parseObjectLiteral(inner);
-                                val = {
-                                    items: saferEval(inner.data, context, data, node),
-                                    as: inner.as.slice(1, -1) //strip string quote
-                                };
-                            } else {
-                                val = {items: saferEval(inner, context, data, node)};
-                            }
-
-                            //Render inner template and insert berfore this node.
-                            tpl = this.bindingMap[tNode._id].subTpl;
-                            if (tpl.frag.firstChild && val.items instanceof Array) {
-                                tempFrag = this.executeForEach(tpl, context, data, val.items, val.as);
-                                node.parentNode.insertBefore(tempFrag, node);
-                            }
-                        } else if ((match = stmt.match(syntaxRegex['with']))) {
-                            val = saferEval(match[2], context, data, node);
-
-                            tpl = this.bindingMap[tNode._id].subTpl;
-                            if (tpl.frag.firstChild && val !== null && val !== undefined) {
-                                var newContext = this.getNewContext(context, val);
-                                node.parentNode.insertBefore(tpl.toDocumentFragment(val, newContext), node);
-                            }
-                        } else if ((match = stmt.match(syntaxRegex.text))) {
-                            val = saferEval(match[2], context, data, node);
-
-                            block = this.findBlockFromStartNode(blocks, tNode);
-                            if (val !== null && val !== undefined) {
-                                ignoreTillNode = block.end;
-                                node.parentNode.insertBefore(document.createTextNode(val), node);
-                            }
-                        }
-
-                        if ((/^(?:ko|hz) /).test(stmt)) { //remove start of statement
-                            stack[stack.length - 1].removeChild(node);
-                        }
-                    }
-                } else if (!isOpenTag) {
-                    if (tNode.nodeType === 1 && tStack[tStack.length - 1] === tNode) {
-                        stack.pop();
-                        tStack.pop();
-                    }
-                    if (tNode === ignoreTillNode) {
-                        ignoreTillNode = null;
-                    }
-                }
-            }, this);
-            return output;
+            return (new Htmlizer.View(this, data, context)).toDocumentFragment();
         },
 
-        toString: function (data) {
-            var frag = this.toDocumentFragment(data), html = '';
-            traverse(frag, frag, function (node, isOpenTag) {
-                if (node.nodeType === 1) {
-                    var tag = node.nodeName.toLowerCase();
-                    if (isOpenTag) {
-                        html += '<' + tag;
-                        this.slice(node.attributes).forEach(function (attr) {
-                            html += ' ' + attr.name + '="' + attr.value.replace(/"/g, '&quot;') + '"';
-                        });
-                        html += (voidTags[tag] ? '/>' : '>');
-                    } else if (!voidTags[tag]) {
-                        html += '</' + tag + '>';
-                    }
-                }
-                if (isOpenTag && node.nodeType === 3) {
-                    var text = node.nodeValue || '';
-                    //escape <,> and &. Except text node inside script or style tag.
-                    if (!(/^(?:script|style)$/i).test(node.parentNode.nodeName)) {
-                        text = text.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;");
-                    }
-                    html += text;
-                }
-                if (isOpenTag && node.nodeType === 8) {
-                    html += '<!-- ' + node.data.trim() + ' -->';
-                }
-            }, this);
-            return html;
+        /**
+         * @param {Object} data
+         */
+        toString: function (data, context) {
+            return (new Htmlizer.View(this, data, context)).toString();
         },
 
         /**
@@ -474,6 +221,303 @@
         },
 
         /**
+         * @param {String} bindOpts Bindings as string
+         * @private
+         */
+        checkForConflictingBindings: function (bindOpts) {
+            var conflict = [];
+            util.forEachObjectLiteral(bindOpts, function (binding) {
+                if (binding in conflictingBindings) {
+                    conflict.push(binding);
+                }
+            });
+            if (conflict.length > 1) {
+                throw new Error('Multiple bindings (' + conflict[0] + ' and ' + conflict[1] + ') are trying to control descendant bindings of the same element.' +
+                    'You cannot use these bindings together on the same element.');
+            }
+        }
+
+    };
+
+    Htmlizer.View = function (htmlizerInstance, data, context) {
+        this.tpl = htmlizerInstance;
+        this.data = data;
+        this.context = context;
+    };
+
+    Htmlizer.View.prototype = {
+        /**
+         * @param {Object} data
+         */
+        toDocumentFragment: function () {
+            var frag = this.tpl.frag,
+                data = this.data,
+                context = this.context,
+                output = document.createDocumentFragment();
+            if (!context) {
+                context = {
+                    $parents: [],
+                    $root: data,
+                    $data: data,
+                    $rawData: data
+                };
+            }
+
+            //Evaluate
+            var blocks = this.tpl.getVirtualBlocks(frag),
+                //two stacks - one to keep track of ancestors while inserting content
+                //to output fragment, and the other to keep track of ancestors on template.
+                stack = [output],
+                tStack = [frag],
+                ignoreTillNode = null,
+                tpl, block;
+            traverse(frag, frag, function (tNode, isOpenTag) {
+                if (!ignoreTillNode && isOpenTag) {
+                    var node = tNode.cloneNode(false);
+                    stack[stack.length - 1].appendChild(node);
+
+                    var val, match, tempFrag, inner;
+                    if (node.nodeType === 1) { //element
+                        stack.push(node);
+                        tStack.push(tNode);
+
+                        var bindOpts = node.getAttribute(this.tpl.noConflict ? 'data-htmlizer' : 'data-bind');
+                        if (bindOpts) {
+                            node.removeAttribute(this.tpl.noConflict ? 'data-htmlizer' : 'data-bind');
+                        }
+
+                        var ret;
+                        util.forEachObjectLiteral(bindOpts, function (binding, value) {
+                            //Convert ifnot: (...) to if: !(...)
+                            if (binding === 'ifnot') {
+                                value = '!(' + value + ')';
+                            }
+
+                            //First evaluate if
+                            if (binding === 'if') {
+                                val = saferEval(value, context, data, node);
+                                if (!val) {
+                                    ret = 'continue';
+                                    return true;
+                                }
+                            }
+
+                            if (binding === 'foreach') {
+                                if (value[0] === '{') {
+                                    inner = util.parseObjectLiteral(value);
+                                    val = {
+                                        items: saferEval(inner.data, context, data, node),
+                                        as: inner.as.slice(1, -1) //strip string quote
+                                    };
+                                } else {
+                                    val = {items: saferEval(value, context, data, node)};
+                                }
+                                tpl = this.tpl.getBindingInfo(tNode).subTpl;
+                                if (tpl.frag.firstChild && val.items instanceof Array) {
+                                    tempFrag = this.executeForEach(tpl, context, data, val.items, val.as);
+                                    node.appendChild(tempFrag);
+                                }
+                            }
+
+                            if (binding === 'with') {
+                                val = saferEval(value, context, data, node);
+
+                                tpl = this.tpl.getBindingInfo(tNode).subTpl;
+                                if (tpl.frag.firstChild && val !== null && val !== undefined) {
+                                    var newContext = this.getNewContext(context, val);
+                                    node.appendChild(tpl.toDocumentFragment(val, newContext));
+                                }
+                            }
+
+                            if (binding === 'text' && regexMap.DotNotation.test(value)) {
+                                val = saferEval(value, context, data, node);
+                                if (val !== undefined) {
+                                    node.appendChild(document.createTextNode(val));
+                                    ret = 'continue'; //KO ignores the inner content.
+                                }
+                            }
+
+                            if (binding === 'html') {
+                                $(node).empty();
+                                val = saferEval(value, context, data, node);
+                                if (val) {
+                                    tempFrag = util.moveToNewFragment(util.parseHTML(val));
+                                    node.appendChild(tempFrag);
+                                }
+                            }
+
+                            if (binding === 'attr') {
+                                util.forEachObjectLiteral(value.slice(1, -1), function (attr, value) {
+                                    if (regexMap.DotNotation.test(value)) {
+                                        val = saferEval(value, context, data, node);
+                                        if (typeof val === 'string' || typeof val === 'number') {
+                                            node.setAttribute(attr, val);
+                                        }
+                                    }
+                                });
+                            }
+
+                            if (binding === 'css') {
+                                util.forEachObjectLiteral(value.slice(1, -1), function (className, expr) {
+                                    val = saferEval(expr, context, data, node);
+                                    if (val) {
+                                        $(node).addClass(className);
+                                    }
+                                });
+                            }
+
+                            if (binding === 'style') {
+                                util.forEachObjectLiteral(value.slice(1, -1), function (prop, value) {
+                                    val = saferEval(value, context, data, node) || null;
+                                    node.style.setProperty(prop.replace(/[A-Z]/g, replaceJsCssPropWithCssProp), val);
+                                });
+                            }
+
+                            //Some of the following aren't treated as attributes by Knockout, but this is here to keep compatibility with Knockout.
+
+                            if (binding === 'disable' || binding === 'enable') {
+                                var disable = (binding === 'disable' ? value : !value);
+                                if (disable) {
+                                    node.setAttribute('disabled', 'disabled');
+                                } else {
+                                    node.removeAttribute('disabled');
+                                }
+                            }
+
+                            if (binding === 'checked') {
+                                if (value) {
+                                    node.setAttribute('checked', 'checked');
+                                } else {
+                                    node.removeAttribute('checked');
+                                }
+                            }
+
+                            if (binding === 'value') {
+                                node.setAttribute('value', value);
+                            }
+
+                            if (binding === 'visible') {
+                                if (value) {
+                                    node.style.removeProperty('display');
+                                } else {
+                                    node.style.setProperty('display', 'none');
+                                }
+                            }
+                        }, this);
+                        if (ret) {
+                            return ret;
+                        }
+                    }
+
+                    //HTML comment node
+                    if (node.nodeType === 8) {
+                        var stmt = node.data.trim();
+
+                        //Ignore all containerless statements beginning with "ko" if noConflict = true.
+                        if (this.tpl.noConflict && (/^(ko |\/ko$)/).test(stmt)) {
+                            return;
+                        }
+                        if ((/^\/(?:ko|hz)$/).test(stmt)) { //remove end of statement
+                            stack[stack.length - 1].removeChild(node);
+                        }
+
+                        //Convert ifnot: (...) to if: !(...)
+                        if ((match = stmt.match(syntaxRegex.ifnot))) {
+                            stmt = match[1].replace('ifnot', 'if') + ': !(' + match[2] + ')';
+                        }
+
+                        //Process if statement
+                        if ((match = stmt.match(syntaxRegex['if']))) {
+                            val = saferEval(match[2], context, data, node);
+
+                            block = util.findBlockFromStartNode(blocks, tNode);
+                            if (!val) {
+                                ignoreTillNode = block.end;
+                            }
+                        } else if ((match = stmt.match(syntaxRegex.foreach))) {
+                            inner = match[2].trim();
+                            if (inner[0] === '{') {
+                                inner = util.parseObjectLiteral(inner);
+                                val = {
+                                    items: saferEval(inner.data, context, data, node),
+                                    as: inner.as.slice(1, -1) //strip string quote
+                                };
+                            } else {
+                                val = {items: saferEval(inner, context, data, node)};
+                            }
+
+                            //Render inner template and insert berfore this node.
+                            tpl = this.tpl.getBindingInfo(tNode).subTpl;
+                            if (tpl.frag.firstChild && val.items instanceof Array) {
+                                tempFrag = this.executeForEach(tpl, context, data, val.items, val.as);
+                                node.parentNode.insertBefore(tempFrag, node);
+                            }
+                        } else if ((match = stmt.match(syntaxRegex['with']))) {
+                            val = saferEval(match[2], context, data, node);
+
+                            tpl = this.tpl.getBindingInfo(tNode).subTpl;
+                            if (tpl.frag.firstChild && val !== null && val !== undefined) {
+                                var newContext = this.getNewContext(context, val);
+                                node.parentNode.insertBefore(tpl.toDocumentFragment(val, newContext), node);
+                            }
+                        } else if ((match = stmt.match(syntaxRegex.text))) {
+                            val = saferEval(match[2], context, data, node);
+
+                            block = util.findBlockFromStartNode(blocks, tNode);
+                            if (val !== null && val !== undefined) {
+                                ignoreTillNode = block.end;
+                                node.parentNode.insertBefore(document.createTextNode(val), node);
+                            }
+                        }
+
+                        if ((/^(?:ko|hz) /).test(stmt)) { //remove start of statement
+                            stack[stack.length - 1].removeChild(node);
+                        }
+                    }
+                } else if (!isOpenTag) {
+                    if (tNode.nodeType === 1 && tStack[tStack.length - 1] === tNode) {
+                        stack.pop();
+                        tStack.pop();
+                    }
+                    if (tNode === ignoreTillNode) {
+                        ignoreTillNode = null;
+                    }
+                }
+            }, this);
+            return output;
+        },
+
+        toString: function () {
+            var frag = this.toDocumentFragment(), html = '';
+            traverse(frag, frag, function (node, isOpenTag) {
+                if (node.nodeType === 1) {
+                    var tag = node.nodeName.toLowerCase();
+                    if (isOpenTag) {
+                        html += '<' + tag;
+                        util.slice(node.attributes).forEach(function (attr) {
+                            html += ' ' + attr.name + '="' + attr.value.replace(/"/g, '&quot;') + '"';
+                        });
+                        html += (voidTags[tag] ? '/>' : '>');
+                    } else if (!voidTags[tag]) {
+                        html += '</' + tag + '>';
+                    }
+                }
+                if (isOpenTag && node.nodeType === 3) {
+                    var text = node.nodeValue || '';
+                    //escape <,> and &. Except text node inside script or style tag.
+                    if (!(/^(?:script|style)$/i).test(node.parentNode.nodeName)) {
+                        text = text.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;");
+                    }
+                    html += text;
+                }
+                if (isOpenTag && node.nodeType === 8) {
+                    html += '<!-- ' + node.data.trim() + ' -->';
+                }
+            }, this);
+            return html;
+        },
+
+        /**
          * @private
          * @param {Htmlizer} template Htmlizer instance that contains the body of the foreach statement
          * @param {Object} context
@@ -522,25 +566,10 @@
                 });
             }
             return newContext;
-        },
+        }
+    };
 
-        /**
-         * @param {String} bindOpts Bindings as string
-         * @private
-         */
-        checkForConflictingBindings: function (bindOpts) {
-            var conflict = [];
-            this.forEachObjectLiteral(bindOpts, function (binding) {
-                if (binding in conflictingBindings) {
-                    conflict.push(binding);
-                }
-            });
-            if (conflict.length > 1) {
-                throw new Error('Multiple bindings (' + conflict[0] + ' and ' + conflict[1] + ') are trying to control descendant bindings of the same element.' +
-                    'You cannot use these bindings together on the same element.');
-            }
-        },
-
+    var util = Htmlizer.util = {
         /**
          * Parse html string using jQuery.parseHTML and also make sure script tags aren't removed.
          * @param {String} html
