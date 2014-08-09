@@ -44,15 +44,6 @@
         DotNotation: new RegExp(regexString.DotNotation)
     };
 
-    //Valid statements.
-    var syntaxRegex = {
-        "if": new RegExp("((?:ko|hz)[ ]+if):(.+)"),
-        "ifnot": new RegExp("((?:ko|hz)[ ]+ifnot):(.+)"),
-        "foreach": new RegExp("((?:ko|hz)[ ]+foreach):(.+)"),
-        "with": new RegExp("((?:ko|hz)[ ]+with):(.+)"),
-        "text": new RegExp("((?:ko|hz)[ ]+text):(.+)")
-    };
-
     var conflictingBindings = unwrap('if,ifnot,foreach,text,html');
 
     /**
@@ -63,6 +54,9 @@
      */
     function Htmlizer(template, cfg) {
         this.cfg = cfg;
+        //The depth at which this template is in within another template.
+        //depth = number of ancestor nodes to parent template. 0 for root template.
+        this.depth = 0;
         $.extend(this, cfg);
         if (typeof template === 'string') {
             this.origTplStr = template;
@@ -70,19 +64,20 @@
         } else { //assuming DocumentFragment
             this.frag = template;
         }
-        this.bindingList = [];
-        this.bindingMap = {};
+        this.nodeInfoList = []; //list of nodes along with it's binding, depth, sub template etc.
+        this.nodeMap = {}; //used to quickly map a node to it's nodeInfo.
         this.prepare();
     }
 
     Htmlizer.prototype = {
         /**
-         * Identifies sub-templates, comment statement blocks and populates bindingList and bindingMap.
+         * Identifies sub-templates, comment statement blocks and populates nodeInfoList and nodeMap.
          * @private
          */
         prepare: function () {
             var frag = this.frag,
                 blocks = this.getVirtualBlocks(frag),
+                depth = this.depth,
                 id = 1,
                 getId = function () {
                     return 'hz-' + id++;
@@ -90,6 +85,7 @@
                 blockNodes, tempFrag;
             traverse(frag, frag, function (node, isOpenTag) {
                 if (isOpenTag) {
+                    depth += 1;
                     var nodeInfo = {},
                         bindings;
                     if (node.nodeType === 1) { //element
@@ -99,13 +95,14 @@
                             bindings = util.parseObjectLiteral(bindOpts);
                             node._id = getId();
                             nodeInfo.node = node;
+                            nodeInfo.depth = depth;
                             nodeInfo.binding = bindOpts;
                             if (bindings.foreach || bindings['with']) {
                                 tempFrag = util.moveToNewFragment(util.slice(node.childNodes));
-                                nodeInfo.subTpl = new Htmlizer(tempFrag, this.cfg);
+                                nodeInfo.subTpl = new Htmlizer(tempFrag, $.extend({depth: depth}, this.cfg));
                             }
-                            this.bindingList.push(nodeInfo);
-                            this.bindingMap[node._id] = nodeInfo;
+                            this.nodeInfoList.push(nodeInfo);
+                            this.nodeMap[node._id] = nodeInfo;
                         }
                     }
 
@@ -122,25 +119,28 @@
                         if (block) {
                             node._id = getId();
                             nodeInfo.node = node;
+                            nodeInfo.depth = depth;
                             nodeInfo.block = block;
                             if (block.key === 'foreach' || block.key === 'with') {
                                 blockNodes = util.getImmediateNodes(frag, block.start, block.end);
                                 tempFrag = util.moveToNewFragment(blockNodes);
-                                nodeInfo.subTpl = new Htmlizer(tempFrag, this.cfg);
+                                nodeInfo.subTpl = new Htmlizer(tempFrag, $.extend({depth: depth}, this.cfg));
                             }
-                            this.bindingList.push(nodeInfo);
-                            this.bindingMap[node._id] = nodeInfo;
+                            this.nodeInfoList.push(nodeInfo);
+                            this.nodeMap[node._id] = nodeInfo;
                         }
                     }
+                } else {
+                    depth -= 1;
                 }
             }, this);
         },
 
         /**
-         * Get binding information for a given node in template DocumentFragment.
+         * Get binding and other information for a given node in template DocumentFragment.
          */
         getBindingInfo: function (node) {
-            return this.bindingMap[node._id];
+            return this.nodeMap[node._id];
         },
 
         /**
@@ -178,27 +178,27 @@
                     }
 
                     //Convert ifnot: (...) to if: !(...)
-                    if ((match = stmt.match(syntaxRegex.ifnot))) {
+                    if ((match = stmt.match(util.syntaxRegex.ifnot))) {
                         stmt = match[1].replace('ifnot', 'if') + ': !(' + match[2] + ')';
                     }
 
                     //Process if statement
-                    if ((match = stmt.match(syntaxRegex['if']))) {
+                    if ((match = stmt.match(util.syntaxRegex['if']))) {
                         stack.unshift({
                             key: 'if',
                             start: node
                         });
-                    } else if ((match = stmt.match(syntaxRegex.foreach))) {
+                    } else if ((match = stmt.match(util.syntaxRegex.foreach))) {
                         stack.unshift({
                             key: 'foreach',
                             start: node
                         });
-                    } else if ((match = stmt.match(syntaxRegex['with']))) {
+                    } else if ((match = stmt.match(util.syntaxRegex['with']))) {
                         stack.unshift({
                             key: 'with',
                             start: node
                         });
-                    } else if ((match = stmt.match(syntaxRegex.text))) {
+                    } else if ((match = stmt.match(util.syntaxRegex.text))) {
                         stack.unshift({
                             key: 'text',
                             start: node
@@ -243,6 +243,15 @@
         this.tpl = htmlizerInstance;
         this.data = data;
         this.context = context;
+        this.nodeInfoList = []; //will contain the binding information for each node.
+        this.nodeMap = {}; //used to quickly map a node to it's nodeInfo.
+    };
+
+    Htmlizer.View.uid = function () {
+        var id = 1;
+        return function () {
+            return '' + id++;
+        };
     };
 
     Htmlizer.View.prototype = {
@@ -254,6 +263,9 @@
                 data = this.data,
                 context = this.context,
                 output = document.createDocumentFragment();
+
+            this.nodeInfoList = []; //clear previous node info. View instance can only bind to one document fragment.
+
             if (!context) {
                 context = {
                     $parents: [],
@@ -284,6 +296,7 @@
                         var bindOpts = node.getAttribute(this.tpl.noConflict ? 'data-htmlizer' : 'data-bind');
                         if (bindOpts) {
                             node.removeAttribute(this.tpl.noConflict ? 'data-htmlizer' : 'data-bind');
+                            this.addNodeInfo(node, tNode);
                         }
 
                         var ret;
@@ -417,24 +430,28 @@
                         if (this.tpl.noConflict && (/^(ko |\/ko$)/).test(stmt)) {
                             return;
                         }
+                        //Add node to this.nodeInfoList[].
+                        if ((/^(?:ko|hz) /).test(stmt)) {
+                            this.addNodeInfo(node, tNode);
+                        }
                         if ((/^\/(?:ko|hz)$/).test(stmt)) { //remove end of statement
                             stack[stack.length - 1].removeChild(node);
                         }
 
                         //Convert ifnot: (...) to if: !(...)
-                        if ((match = stmt.match(syntaxRegex.ifnot))) {
+                        if ((match = stmt.match(util.syntaxRegex.ifnot))) {
                             stmt = match[1].replace('ifnot', 'if') + ': !(' + match[2] + ')';
                         }
 
                         //Process if statement
-                        if ((match = stmt.match(syntaxRegex['if']))) {
+                        if ((match = stmt.match(util.syntaxRegex['if']))) {
                             val = saferEval(match[2], context, data, node);
 
                             block = util.findBlockFromStartNode(blocks, tNode);
                             if (!val) {
                                 ignoreTillNode = block.end;
                             }
-                        } else if ((match = stmt.match(syntaxRegex.foreach))) {
+                        } else if ((match = stmt.match(util.syntaxRegex.foreach))) {
                             inner = match[2].trim();
                             if (inner[0] === '{') {
                                 inner = util.parseObjectLiteral(inner);
@@ -452,7 +469,7 @@
                                 tempFrag = this.executeForEach(tpl, context, data, val.items, val.as);
                                 node.parentNode.insertBefore(tempFrag, node);
                             }
-                        } else if ((match = stmt.match(syntaxRegex['with']))) {
+                        } else if ((match = stmt.match(util.syntaxRegex['with']))) {
                             val = saferEval(match[2], context, data, node);
 
                             tpl = this.tpl.getBindingInfo(tNode).subTpl;
@@ -460,7 +477,7 @@
                                 var newContext = this.getNewContext(context, val);
                                 node.parentNode.insertBefore(tpl.toDocumentFragment(val, newContext), node);
                             }
-                        } else if ((match = stmt.match(syntaxRegex.text))) {
+                        } else if ((match = stmt.match(util.syntaxRegex.text))) {
                             val = saferEval(match[2], context, data, node);
 
                             block = util.findBlockFromStartNode(blocks, tNode);
@@ -519,6 +536,23 @@
 
         /**
          * @private
+         * @param {Node} node Node in View
+         * @param {Node} tNode Corresponding Node in Template
+         */
+        addNodeInfo: function (node, tNode) {
+            var nodeInfo = {
+                node: node,
+                tNode: tNode,
+                bindingInfo: this.tpl.getBindingInfo(tNode)
+            };
+            this.nodeInfoList.push(nodeInfo);
+
+            node._uid = Htmlizer.View.uid();
+            this.nodeMap[node._uid] = nodeInfo;
+        },
+
+        /**
+         * @private
          * @param {Htmlizer} template Htmlizer instance that contains the body of the foreach statement
          * @param {Object} context
          * @param {Object} data Data object
@@ -570,6 +604,15 @@
     };
 
     var util = Htmlizer.util = {
+        //Valid statements.
+        syntaxRegex: {
+            "if": new RegExp("((?:ko|hz)[ ]+if):(.+)"),
+            "ifnot": new RegExp("((?:ko|hz)[ ]+ifnot):(.+)"),
+            "foreach": new RegExp("((?:ko|hz)[ ]+foreach):(.+)"),
+            "with": new RegExp("((?:ko|hz)[ ]+with):(.+)"),
+            "text": new RegExp("((?:ko|hz)[ ]+text):(.+)")
+        },
+
         /**
          * Parse html string using jQuery.parseHTML and also make sure script tags aren't removed.
          * @param {String} html
