@@ -239,10 +239,11 @@
 
     };
 
-    Htmlizer.View = function (htmlizerInstance, data, context) {
+    Htmlizer.View = function (htmlizerInstance, data, context, parentView) {
         this.tpl = htmlizerInstance;
         this.data = data;
         this.context = context;
+        this.parentView = parentView || null;
         this.nodeInfoList = []; //will contain the binding information for each node.
         this.nodeMap = {}; //used to quickly map a node to it's nodeInfo.
     };
@@ -253,6 +254,7 @@
             return '' + id++;
         };
     };
+    Htmlizer.View.saferEval = saferEval;
 
     Htmlizer.View.prototype = {
         /**
@@ -308,7 +310,7 @@
 
                             //First evaluate if
                             if (binding === 'if') {
-                                val = saferEval(value, context, data, node);
+                                val = this.evaluate(binding, value, context, data, node);
                                 if (!val) {
                                     ret = 'continue';
                                     return true;
@@ -319,31 +321,31 @@
                                 if (value[0] === '{') {
                                     inner = util.parseObjectLiteral(value);
                                     val = {
-                                        items: saferEval(inner.data, context, data, node),
+                                        items: this.evaluate(binding, inner.data, context, data, node),
                                         as: inner.as.slice(1, -1) //strip string quote
                                     };
                                 } else {
-                                    val = {items: saferEval(value, context, data, node)};
+                                    val = {items: this.evaluate(binding, value, context, data, node)};
                                 }
                                 tpl = this.tpl.getBindingInfo(tNode).subTpl;
                                 if (tpl.frag.firstChild && val.items instanceof Array) {
-                                    tempFrag = this.executeForEach(tpl, context, data, val.items, val.as);
+                                    tempFrag = this.executeForEach(tpl, node, context, data, val.items, val.as);
                                     node.appendChild(tempFrag);
                                 }
                             }
 
                             if (binding === 'with') {
-                                val = saferEval(value, context, data, node);
+                                val = this.evaluate(binding, value, context, data, node);
 
                                 tpl = this.tpl.getBindingInfo(tNode).subTpl;
                                 if (tpl.frag.firstChild && val !== null && val !== undefined) {
                                     var newContext = this.getNewContext(context, val);
-                                    node.appendChild(tpl.toDocumentFragment(val, newContext));
+                                    node.appendChild(this.makeView(tpl, newContext, val, node));
                                 }
                             }
 
                             if (binding === 'text' && regexMap.DotNotation.test(value)) {
-                                val = saferEval(value, context, data, node);
+                                val = this.evaluate(binding, value, context, data, node);
                                 if (val !== undefined) {
                                     node.appendChild(document.createTextNode(val));
                                     ret = 'continue'; //KO ignores the inner content.
@@ -352,7 +354,7 @@
 
                             if (binding === 'html') {
                                 $(node).empty();
-                                val = saferEval(value, context, data, node);
+                                val = this.evaluate(binding, value, context, data, node);
                                 if (val) {
                                     tempFrag = util.moveToNewFragment(util.parseHTML(val));
                                     node.appendChild(tempFrag);
@@ -362,34 +364,35 @@
                             if (binding === 'attr') {
                                 util.forEachObjectLiteral(value.slice(1, -1), function (attr, value) {
                                     if (regexMap.DotNotation.test(value)) {
-                                        val = saferEval(value, context, data, node);
+                                        val = this.evaluate({binding: binding, attr: attr}, value, context, data, node);
                                         if (typeof val === 'string' || typeof val === 'number') {
                                             node.setAttribute(attr, val);
                                         }
                                     }
-                                });
+                                }, this);
                             }
 
                             if (binding === 'css') {
                                 util.forEachObjectLiteral(value.slice(1, -1), function (className, expr) {
-                                    val = saferEval(expr, context, data, node);
+                                    val = this.evaluate(binding, expr, context, data, node);
                                     if (val) {
                                         $(node).addClass(className);
                                     }
-                                });
+                                }, this);
                             }
 
                             if (binding === 'style') {
                                 util.forEachObjectLiteral(value.slice(1, -1), function (prop, value) {
-                                    val = saferEval(value, context, data, node) || null;
+                                    val = this.evaluate(binding, value, context, data, node) || null;
                                     node.style.setProperty(prop.replace(/[A-Z]/g, replaceJsCssPropWithCssProp), val);
-                                });
+                                }, this);
                             }
 
                             //Some of the following aren't treated as attributes by Knockout, but this is here to keep compatibility with Knockout.
 
                             if (binding === 'disable' || binding === 'enable') {
-                                var disable = (binding === 'disable' ? value : !value);
+                                val = this.evaluate(binding, value, context, data, node);
+                                var disable = (binding === 'disable' ? val : !val);
                                 if (disable) {
                                     node.setAttribute('disabled', 'disabled');
                                 } else {
@@ -398,7 +401,8 @@
                             }
 
                             if (binding === 'checked') {
-                                if (value) {
+                                val = this.evaluate(binding, value, context, data, node);
+                                if (val) {
                                     node.setAttribute('checked', 'checked');
                                 } else {
                                     node.removeAttribute('checked');
@@ -406,11 +410,13 @@
                             }
 
                             if (binding === 'value') {
-                                node.setAttribute('value', value);
+                                val = this.evaluate(binding, value, context, data, node);
+                                node.setAttribute('value', val);
                             }
 
                             if (binding === 'visible') {
-                                if (value) {
+                                val = this.evaluate(binding, value, context, data, node);
+                                if (val) {
                                     node.style.removeProperty('display');
                                 } else {
                                     node.style.setProperty('display', 'none');
@@ -445,7 +451,7 @@
 
                         //Process if statement
                         if ((match = stmt.match(util.syntaxRegex['if']))) {
-                            val = saferEval(match[2], context, data, node);
+                            val = this.evaluate('if', match[2], context, data, node);
 
                             block = util.findBlockFromStartNode(blocks, tNode);
                             if (!val) {
@@ -456,29 +462,29 @@
                             if (inner[0] === '{') {
                                 inner = util.parseObjectLiteral(inner);
                                 val = {
-                                    items: saferEval(inner.data, context, data, node),
+                                    items: this.evaluate('foreach', inner.data, context, data, node),
                                     as: inner.as.slice(1, -1) //strip string quote
                                 };
                             } else {
-                                val = {items: saferEval(inner, context, data, node)};
+                                val = {items: this.evaluate('foreach', inner, context, data, node)};
                             }
 
                             //Render inner template and insert berfore this node.
                             tpl = this.tpl.getBindingInfo(tNode).subTpl;
                             if (tpl.frag.firstChild && val.items instanceof Array) {
-                                tempFrag = this.executeForEach(tpl, context, data, val.items, val.as);
+                                tempFrag = this.executeForEach(tpl, node, context, data, val.items, val.as);
                                 node.parentNode.insertBefore(tempFrag, node);
                             }
                         } else if ((match = stmt.match(util.syntaxRegex['with']))) {
-                            val = saferEval(match[2], context, data, node);
+                            val = this.evaluate('with', match[2], context, data, node);
 
                             tpl = this.tpl.getBindingInfo(tNode).subTpl;
                             if (tpl.frag.firstChild && val !== null && val !== undefined) {
                                 var newContext = this.getNewContext(context, val);
-                                node.parentNode.insertBefore(tpl.toDocumentFragment(val, newContext), node);
+                                node.parentNode.insertBefore(this.makeView(tpl, newContext, val, node), node);
                             }
                         } else if ((match = stmt.match(util.syntaxRegex.text))) {
-                            val = saferEval(match[2], context, data, node);
+                            val = this.evaluate('text', match[2], context, data, node);
 
                             block = util.findBlockFromStartNode(blocks, tNode);
                             if (val !== null && val !== undefined) {
@@ -542,8 +548,7 @@
         addNodeInfo: function (node, tNode) {
             var nodeInfo = {
                 node: node,
-                tNode: tNode,
-                bindingInfo: this.tpl.getBindingInfo(tNode)
+                tNodeInfo: this.tpl.getBindingInfo(tNode)
             };
             this.nodeInfoList.push(nodeInfo);
 
@@ -553,12 +558,21 @@
 
         /**
          * @private
+         * @param {Node} node Node in View
+         */
+        getNodeInfo: function (node) {
+            return this.nodeMap[node._uid];
+        },
+
+        /**
+         * @private
          * @param {Htmlizer} template Htmlizer instance that contains the body of the foreach statement
+         * @param {Node} node
          * @param {Object} context
          * @param {Object} data Data object
          * @param {Array} items The array to iterate through
          */
-        executeForEach: function (template, context, data, items, as) {
+        executeForEach: function (template, node, context, data, items, as) {
             var output = document.createDocumentFragment();
             items.forEach(function (item, index) {
                 var newContext = this.getNewContext(context, data);
@@ -574,9 +588,26 @@
                 }
 
                 //..finally execute
-                output.appendChild(template.toDocumentFragment(item, newContext));
+                output.appendChild(this.makeView(template, newContext, item, node));
             }, this);
             return output;
+        },
+
+        /**
+         * @private
+         */
+        evaluate: function (binding, expr, context, data, node) {
+            var old = Htmlizer.View.currentlyExecuting;
+            Htmlizer.View.currentlyEvaluating = this;
+            this.currentlyEvaluating = typeof binding === 'string' ? {binding: binding} : binding;
+            $.extend(this.currentlyEvaluating, this.getNodeInfo(node));
+
+            var value = saferEval.apply(null, util.slice(arguments, 1));
+
+            Htmlizer.View.currentlyEvaluating = old;
+            this.currentlyEvaluating = null;
+
+            return value;
         },
 
         /**
@@ -600,6 +631,25 @@
                 });
             }
             return newContext;
+        },
+
+        /**
+         * Used for making views with new context.
+         * @private
+         */
+        makeView: function (template, newContext, data, node) {
+            var view = new Htmlizer.View(template, data, newContext, this),
+                info = this.getNodeInfo(node),
+                df = view.toDocumentFragment();
+
+            view.parentNode = node;
+            view.firstChild = df.firstChild;
+            view.lastChild = df.lastChild;
+
+            info.views = info.views || [];
+            info.views.push(view);
+
+            return df;
         }
     };
 
