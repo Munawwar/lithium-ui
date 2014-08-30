@@ -351,6 +351,9 @@
                             node.appendChild(tempFrag);
                         }
                     }
+                },
+                update: function () {
+                    return this.bindingHandler.html.init.apply(this, arguments);
                 }
             },
             attr: {
@@ -386,6 +389,16 @@
                             }
                         }, this);
                     }
+                },
+                update: function (node, binding, expr, extraInfo) {
+                    if (node.nodeType === 1) {
+                        var val = saferEval(expr, this.context, this.data, node);
+                        if (val) {
+                            $(node).addClass(extraInfo.className);
+                        } else {
+                            $(node).removeClass(extraInfo.className);
+                        }
+                    }
                 }
             },
             style: {
@@ -396,6 +409,16 @@
                             node.style.setProperty(prop.replace(/[A-Z]/g, replaceJsCssPropWithCssProp), val);
                         }, this);
                     }
+                },
+                update: function (node, binding, expr, extraInfo) {
+                    if (node.nodeType === 1) {
+                        var val = saferEval(expr, this.context, this.data, node);
+                        if (val !== null) {
+                            node.style.setProperty(extraInfo.prop.replace(/[A-Z]/g, replaceJsCssPropWithCssProp), val);
+                        } else {
+                            node.style.removeProperty(extraInfo.prop.replace(/[A-Z]/g, replaceJsCssPropWithCssProp));
+                        }
+                    }
                 }
             },
 
@@ -403,7 +426,8 @@
 
             enable: {
                 init: function (node, binding, expr) {
-                    if (node.nodeType === 1 && (binding === 'disable' || binding === 'enable')) {
+                    //binding could be 'disable' or 'enable'
+                    if (node.nodeType === 1) {
                         var val = this.evaluate(binding, expr, node),
                             disable = (binding === 'disable' ? val : !val);
                         if (disable) {
@@ -412,11 +436,17 @@
                             node.removeAttribute('disabled');
                         }
                     }
+                },
+                update: function () {
+                    return this.bindingHandler.enable.init.apply(this, arguments);
                 }
             },
             disable: {
                 init: function () {
-                    return this.bindingHandler.enable.apply(this, arguments);
+                    return this.bindingHandler.enable.init.apply(this, arguments);
+                },
+                update: function () {
+                    return this.bindingHandler.enable.update.apply(this, arguments);
                 }
             },
             checked: {
@@ -429,6 +459,9 @@
                             node.removeAttribute('checked');
                         }
                     }
+                },
+                update: function () {
+                    return this.bindingHandler.checked.init.apply(this, arguments);
                 }
             },
             value: {
@@ -437,6 +470,9 @@
                         var val = this.evaluate(binding, expr, node);
                         node.setAttribute('value', val);
                     }
+                },
+                update: function () {
+                    return this.bindingHandler.checked.init.apply(this, arguments);
                 }
             },
             visible: {
@@ -449,6 +485,9 @@
                             node.style.setProperty('display', 'none');
                         }
                     }
+                },
+                update: function () {
+                    return this.bindingHandler.visible.init.apply(this, arguments);
                 }
             }
         },
