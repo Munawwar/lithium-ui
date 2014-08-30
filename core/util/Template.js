@@ -268,8 +268,8 @@
     Htmlizer.View.prototype = {
         bindingHandler: {
             "if": {
-                init: function (node, binding, expr, context, data, tNode, blocks) {
-                    var val = this.evaluate(binding, expr, context, data, node);
+                init: function (node, binding, expr, tNode, blocks) {
+                    var val = this.evaluate(binding, expr, node);
                     if (!val) {
                         if (node.nodeType === 1) {
                             return {domTraverse: 'continue', skipOtherbindings: true};
@@ -281,16 +281,16 @@
                 }
             },
             ifnot: {
-                init: function (node, binding, expr, context, data, tNode, blocks) {
+                init: function (node, binding, expr, tNode, blocks) {
                     //Convert ifnot: (...) to if: !(...)
                     binding = 'if';
                     expr = '!(' + expr + ')';
                     return this.bindingHandler[binding].init.call(this,
-                        node, binding, expr, context, data, tNode, blocks);
+                        node, binding, expr, tNode, blocks);
                 }
             },
             foreach: {
-                init: function (node, binding, expr, context, data, tNode) {
+                init: function (node, binding, expr, tNode) {
                     var tpl = this.tpl.getBindingInfo(tNode).subTpl,
                         val, tempFrag;
 
@@ -298,15 +298,15 @@
                     if (expr[0] === '{') {
                         var inner = util.parseObjectLiteral(expr);
                         val = {
-                            items: this.evaluate(binding, inner.data, context, data, node),
+                            items: this.evaluate(binding, inner.data, node),
                             as: inner.as.slice(1, -1) //strip string quote
                         };
                     } else {
-                        val = {items: this.evaluate(binding, expr, context, data, node)};
+                        val = {items: this.evaluate(binding, expr, node)};
                     }
 
                     if (tpl.frag.firstChild && val.items instanceof Array) {
-                        tempFrag = this.executeForEach(tpl, node, context, data, val.items, val.as);
+                        tempFrag = this.executeForEach(tpl, node, val.items, val.as);
                         if (node.nodeType === 1) {
                             node.appendChild(tempFrag);
                         } else if (node.nodeType === 8) {
@@ -317,10 +317,10 @@
                 }
             },
             "with": {
-                init: function (node, binding, expr, context, data, tNode) {
-                    var val = this.evaluate(binding, expr, context, data, node),
+                init: function (node, binding, expr, tNode) {
+                    var val = this.evaluate(binding, expr, node),
                         tpl = this.tpl.getBindingInfo(tNode).subTpl,
-                        newContext = this.getNewContext(context, val);
+                        newContext = this.getNewContext(this.context, val);
                     if (tpl.frag.firstChild && val !== null && val !== undefined) {
                         if (node.nodeType === 1) {
                             node.appendChild(this.makeView(tpl, newContext, val, node));
@@ -331,8 +331,8 @@
                 }
             },
             text: {
-                init: function (node, binding, expr, context, data, tNode, blocks) {
-                    var val = this.evaluate(binding, expr, context, data, node);
+                init: function (node, binding, expr, tNode, blocks) {
+                    var val = this.evaluate(binding, expr, node);
                     if (val !== null && val !== undefined) {
                         if (node.nodeType === 1) {
                             node.appendChild(document.createTextNode(val));
@@ -346,10 +346,10 @@
                 }
             },
             html: {
-                init: function (node, binding, expr, context, data) {
+                init: function (node, binding, expr) {
                     if (node.nodeType === 1) {
                         $(node).empty();
-                        var val = this.evaluate(binding, expr, context, data, node);
+                        var val = this.evaluate(binding, expr, node);
                         if (val) {
                             var tempFrag = util.moveToNewFragment(util.parseHTML(val));
                             node.appendChild(tempFrag);
@@ -358,11 +358,11 @@
                 }
             },
             attr: {
-                init: function (node, binding, expr, context, data) {
+                init: function (node, binding, expr) {
                     if (node.nodeType === 1) {
                         util.forEachObjectLiteral(expr.slice(1, -1), function (attr, value) {
                             if (regexMap.DotNotation.test(value)) {
-                                var val = this.evaluate({binding: binding, attr: attr}, value, context, data, node);
+                                var val = this.evaluate({binding: binding, attr: attr}, value, node);
                                 if (typeof val === 'string' || typeof val === 'number') {
                                     node.setAttribute(attr, val);
                                 }
@@ -372,10 +372,10 @@
                 }
             },
             css: {
-                init: function (node, binding, expr, context, data) {
+                init: function (node, binding, expr) {
                     if (node.nodeType === 1) {
                         util.forEachObjectLiteral(expr.slice(1, -1), function (className, expr) {
-                            var val = this.evaluate(binding, expr, context, data, node);
+                            var val = this.evaluate(binding, expr, node);
                             if (val) {
                                 $(node).addClass(className);
                             }
@@ -384,10 +384,10 @@
                 }
             },
             style: {
-                init: function (node, binding, expr, context, data) {
+                init: function (node, binding, expr) {
                     if (node.nodeType === 1) {
                         util.forEachObjectLiteral(expr.slice(1, -1), function (prop, expr) {
-                            var val = this.evaluate(binding, expr, context, data, node) || null;
+                            var val = this.evaluate(binding, expr, node) || null;
                             node.style.setProperty(prop.replace(/[A-Z]/g, replaceJsCssPropWithCssProp), val);
                         }, this);
                     }
@@ -397,9 +397,9 @@
             //Some of the following aren't treated as attributes by Knockout, but this is here to keep compatibility with Knockout.
 
             enable: {
-                init: function (node, binding, expr, context, data) {
+                init: function (node, binding, expr) {
                     if (node.nodeType === 1 && (binding === 'disable' || binding === 'enable')) {
-                        var val = this.evaluate(binding, expr, context, data, node),
+                        var val = this.evaluate(binding, expr, node),
                             disable = (binding === 'disable' ? val : !val);
                         if (disable) {
                             node.setAttribute('disabled', 'disabled');
@@ -415,9 +415,9 @@
                 }
             },
             checked: {
-                init: function (node, binding, expr, context, data) {
+                init: function (node, binding, expr) {
                     if (node.nodeType === 1) {
-                        var val = this.evaluate(binding, expr, context, data, node);
+                        var val = this.evaluate(binding, expr, node);
                         if (val) {
                             node.setAttribute('checked', 'checked');
                         } else {
@@ -427,17 +427,17 @@
                 }
             },
             value: {
-                init: function (node, binding, expr, context, data) {
+                init: function (node, binding, expr) {
                     if (node.nodeType === 1) {
-                        var val = this.evaluate(binding, expr, context, data, node);
+                        var val = this.evaluate(binding, expr, node);
                         node.setAttribute('value', val);
                     }
                 }
             },
             visible: {
-                init: function (node, binding, expr, context, data) {
+                init: function (node, binding, expr) {
                     if (node.nodeType === 1) {
-                        var val = this.evaluate(binding, expr, context, data, node);
+                        var val = this.evaluate(binding, expr, node);
                         if (val) {
                             node.style.removeProperty('display');
                         } else {
@@ -485,7 +485,7 @@
                         util.forEachObjectLiteral(bindOpts, function (binding, value) {
                             if (this.bindingHandler[binding]) {
                                 var control = this.bindingHandler[binding].init.call(this,
-                                    node, binding, value, context, data, tNode, blocks) || {};
+                                    node, binding, value, tNode, blocks) || {};
                                 if (control.domTraverse) {
                                     ret = control.domTraverse;
                                 }
@@ -522,7 +522,7 @@
                         if (match && this.bindingHandler[match[1].trim()]) {
                             binding = match[1].trim();
                             var control = this.bindingHandler[binding].init.call(this,
-                                node, binding, match[2], context, data, tNode, blocks) || {};
+                                node, binding, match[2], tNode, blocks) || {};
                             if (control.skipOtherbindings) {
                                 return true;
                             }
@@ -610,10 +610,10 @@
          * @param {Object} data Data object
          * @param {Array} items The array to iterate through
          */
-        executeForEach: function (template, node, context, data, items, as) {
+        executeForEach: function (template, node, items, as) {
             var output = document.createDocumentFragment();
             items.forEach(function (item, index) {
-                var newContext = this.getNewContext(context, data);
+                var newContext = this.getNewContext(this.context, this.data);
                 //foreach special properties
                 newContext.$data = newContext.$rawData = item;
                 newContext.$index = index;
@@ -634,13 +634,13 @@
         /**
          * @private
          */
-        evaluate: function (binding, expr, context, data, node) {
+        evaluate: function (binding, expr, node) {
             var old = Htmlizer.View.currentlyExecuting;
             Htmlizer.View.currentlyEvaluating = this;
             this.currentlyEvaluating = typeof binding === 'string' ? {binding: binding} : binding;
             $.extend(this.currentlyEvaluating, this.getNodeInfo(node));
 
-            var value = saferEval.apply(null, util.slice(arguments, 1));
+            var value = saferEval(expr, this.context, this.data, node);
 
             Htmlizer.View.currentlyEvaluating = old;
             this.currentlyEvaluating = null;
