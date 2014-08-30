@@ -76,7 +76,7 @@
          */
         prepare: function () {
             var frag = this.frag,
-                blocks = this.getVirtualBlocks(frag),
+                blocks = this.getVirtualBlocks(),
                 depth = this.depth,
                 id = 1,
                 getId = function () {
@@ -161,13 +161,16 @@
          * Go through HTML comment statements and determine the start and end node of each statement.
          * @private
          */
-        getVirtualBlocks: function (frag) {
+        getVirtualBlocks: function () {
+            if (this.blocks) { //return cached copy
+                return this.blocks;
+            }
             var stack = [], //Keep track of ifs and fors
                 blocks = [],
                 block;
 
             //Before evaluating, determine the nesting structure for containerless statements.
-            traverse(frag, frag, function (node, isOpenTag) {
+            traverse(this.frag, this.frag, function (node, isOpenTag) {
                 //HTML comment node
                 if (isOpenTag && node.nodeType === 8) {
                     var stmt = node.data.trim(), match;
@@ -217,6 +220,7 @@
             if (stack.length) {
                 throw new Error('Missing end tag for ' + stack[0].start.data.trim());
             }
+            this.blocks = blocks; //cache blocks.
             return blocks;
         },
 
@@ -242,7 +246,12 @@
     Htmlizer.View = function (htmlizerInstance, data, context, parentView) {
         this.tpl = htmlizerInstance;
         this.data = data;
-        this.context = context;
+        this.context = context || {
+            $parents: [],
+            $root: data,
+            $data: data,
+            $rawData: data
+        };
         this.parentView = parentView || null;
         this.nodeInfoList = []; //will contain the binding information for each node.
         this.nodeMap = {}; //used to quickly map a node to it's nodeInfo.
@@ -449,17 +458,8 @@
 
             this.nodeInfoList = []; //clear previous node info. View instance can only bind to one document fragment.
 
-            if (!context) {
-                context = {
-                    $parents: [],
-                    $root: data,
-                    $data: data,
-                    $rawData: data
-                };
-            }
-
             //Evaluate
-            var blocks = this.tpl.getVirtualBlocks(frag),
+            var blocks = this.tpl.getVirtualBlocks(),
                 //two stacks - one to keep track of ancestors while inserting content
                 //to output fragment, and the other to keep track of ancestors on template.
                 stack = [output],
