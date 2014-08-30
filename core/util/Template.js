@@ -257,6 +257,187 @@
     Htmlizer.View.saferEval = saferEval;
 
     Htmlizer.View.prototype = {
+        bindingHandler: {
+            "if": {
+                init: function (node, binding, expr, context, data, tNode, blocks) {
+                    var val = this.evaluate(binding, expr, context, data, node);
+                    if (!val) {
+                        if (node.nodeType === 1) {
+                            return {domTraverse: 'continue', skipOtherbindings: true};
+                        } else if (node.nodeType === 8) {
+                            var block = util.findBlockFromStartNode(blocks, tNode);
+                            return {ignoreTillNode: block.end};
+                        }
+                    }
+                }
+            },
+            ifnot: {
+                init: function (node, binding, expr, context, data, tNode, blocks) {
+                    //Convert ifnot: (...) to if: !(...)
+                    binding = 'if';
+                    expr = '!(' + expr + ')';
+                    return this.bindingHandler[binding].init.call(this,
+                        node, binding, expr, context, data, tNode, blocks);
+                }
+            },
+            foreach: {
+                init: function (node, binding, expr, context, data, tNode) {
+                    var tpl = this.tpl.getBindingInfo(tNode).subTpl,
+                        val, tempFrag;
+
+                    expr = expr.trim();
+                    if (expr[0] === '{') {
+                        var inner = util.parseObjectLiteral(expr);
+                        val = {
+                            items: this.evaluate(binding, inner.data, context, data, node),
+                            as: inner.as.slice(1, -1) //strip string quote
+                        };
+                    } else {
+                        val = {items: this.evaluate(binding, expr, context, data, node)};
+                    }
+
+                    if (tpl.frag.firstChild && val.items instanceof Array) {
+                        tempFrag = this.executeForEach(tpl, node, context, data, val.items, val.as);
+                        if (node.nodeType === 1) {
+                            node.appendChild(tempFrag);
+                        } else if (node.nodeType === 8) {
+                            //Render inner template and insert berfore this node.
+                            node.parentNode.insertBefore(tempFrag, node);
+                        }
+                    }
+                }
+            },
+            "with": {
+                init: function (node, binding, expr, context, data, tNode) {
+                    var val = this.evaluate(binding, expr, context, data, node),
+                        tpl = this.tpl.getBindingInfo(tNode).subTpl,
+                        newContext = this.getNewContext(context, val);
+                    if (tpl.frag.firstChild && val !== null && val !== undefined) {
+                        if (node.nodeType === 1) {
+                            node.appendChild(this.makeView(tpl, newContext, val, node));
+                        } else if (node.nodeType === 8) {
+                            node.parentNode.insertBefore(this.makeView(tpl, newContext, val, node), node);
+                        }
+                    }
+                }
+            },
+            text: {
+                init: function (node, binding, expr, context, data, tNode, blocks) {
+                    var val = this.evaluate(binding, expr, context, data, node);
+                    if (val !== null && val !== undefined) {
+                        if (node.nodeType === 1) {
+                            node.appendChild(document.createTextNode(val));
+                            return {domTraverse: 'continue'}; //KO ignores the inner content.
+                        } else if (node.nodeType === 8) {
+                            var block = util.findBlockFromStartNode(blocks, tNode);
+                            node.parentNode.insertBefore(document.createTextNode(val), node);
+                            return {ignoreTillNode: block.end};
+                        }
+                    }
+                }
+            },
+            html: {
+                init: function (node, binding, expr, context, data) {
+                    if (node.nodeType === 1) {
+                        $(node).empty();
+                        var val = this.evaluate(binding, expr, context, data, node);
+                        if (val) {
+                            var tempFrag = util.moveToNewFragment(util.parseHTML(val));
+                            node.appendChild(tempFrag);
+                        }
+                    }
+                }
+            },
+            attr: {
+                init: function (node, binding, expr, context, data) {
+                    if (node.nodeType === 1) {
+                        util.forEachObjectLiteral(expr.slice(1, -1), function (attr, value) {
+                            if (regexMap.DotNotation.test(value)) {
+                                var val = this.evaluate({binding: binding, attr: attr}, value, context, data, node);
+                                if (typeof val === 'string' || typeof val === 'number') {
+                                    node.setAttribute(attr, val);
+                                }
+                            }
+                        }, this);
+                    }
+                }
+            },
+            css: {
+                init: function (node, binding, expr, context, data) {
+                    if (node.nodeType === 1) {
+                        util.forEachObjectLiteral(expr.slice(1, -1), function (className, expr) {
+                            var val = this.evaluate(binding, expr, context, data, node);
+                            if (val) {
+                                $(node).addClass(className);
+                            }
+                        }, this);
+                    }
+                }
+            },
+            style: {
+                init: function (node, binding, expr, context, data) {
+                    if (node.nodeType === 1) {
+                        util.forEachObjectLiteral(expr.slice(1, -1), function (prop, expr) {
+                            var val = this.evaluate(binding, expr, context, data, node) || null;
+                            node.style.setProperty(prop.replace(/[A-Z]/g, replaceJsCssPropWithCssProp), val);
+                        }, this);
+                    }
+                }
+            },
+
+            //Some of the following aren't treated as attributes by Knockout, but this is here to keep compatibility with Knockout.
+
+            enable: {
+                init: function (node, binding, expr, context, data) {
+                    if (node.nodeType === 1 && (binding === 'disable' || binding === 'enable')) {
+                        var val = this.evaluate(binding, expr, context, data, node),
+                            disable = (binding === 'disable' ? val : !val);
+                        if (disable) {
+                            node.setAttribute('disabled', 'disabled');
+                        } else {
+                            node.removeAttribute('disabled');
+                        }
+                    }
+                }
+            },
+            disable: {
+                init: function () {
+                    return this.bindingHandler.enable.apply(this, arguments);
+                }
+            },
+            checked: {
+                init: function (node, binding, expr, context, data) {
+                    if (node.nodeType === 1) {
+                        var val = this.evaluate(binding, expr, context, data, node);
+                        if (val) {
+                            node.setAttribute('checked', 'checked');
+                        } else {
+                            node.removeAttribute('checked');
+                        }
+                    }
+                }
+            },
+            value: {
+                init: function (node, binding, expr, context, data) {
+                    if (node.nodeType === 1) {
+                        var val = this.evaluate(binding, expr, context, data, node);
+                        node.setAttribute('value', val);
+                    }
+                }
+            },
+            visible: {
+                init: function (node, binding, expr, context, data) {
+                    if (node.nodeType === 1) {
+                        var val = this.evaluate(binding, expr, context, data, node);
+                        if (val) {
+                            node.style.removeProperty('display');
+                        } else {
+                            node.style.setProperty('display', 'none');
+                        }
+                    }
+                }
+            }
+        },
         /**
          * @param {Object} data
          */
@@ -283,14 +464,13 @@
                 //to output fragment, and the other to keep track of ancestors on template.
                 stack = [output],
                 tStack = [frag],
-                ignoreTillNode = null,
-                tpl, block;
+                ignoreTillNode = null;
             traverse(frag, frag, function (tNode, isOpenTag) {
                 if (!ignoreTillNode && isOpenTag) {
                     var node = tNode.cloneNode(false);
                     stack[stack.length - 1].appendChild(node);
 
-                    var val, match, tempFrag, inner;
+                    var match, binding;
                     if (node.nodeType === 1) { //element
                         stack.push(node);
                         tStack.push(tNode);
@@ -303,123 +483,17 @@
 
                         var ret;
                         util.forEachObjectLiteral(bindOpts, function (binding, value) {
-                            //Convert ifnot: (...) to if: !(...)
-                            if (binding === 'ifnot') {
-                                value = '!(' + value + ')';
-                            }
-
-                            //First evaluate if
-                            if (binding === 'if') {
-                                val = this.evaluate(binding, value, context, data, node);
-                                if (!val) {
-                                    ret = 'continue';
+                            if (this.bindingHandler[binding]) {
+                                var control = this.bindingHandler[binding].init.call(this,
+                                    node, binding, value, context, data, tNode, blocks) || {};
+                                if (control.domTraverse) {
+                                    ret = control.domTraverse;
+                                }
+                                if (control.skipOtherbindings) {
                                     return true;
                                 }
-                            }
-
-                            if (binding === 'foreach') {
-                                if (value[0] === '{') {
-                                    inner = util.parseObjectLiteral(value);
-                                    val = {
-                                        items: this.evaluate(binding, inner.data, context, data, node),
-                                        as: inner.as.slice(1, -1) //strip string quote
-                                    };
-                                } else {
-                                    val = {items: this.evaluate(binding, value, context, data, node)};
-                                }
-                                tpl = this.tpl.getBindingInfo(tNode).subTpl;
-                                if (tpl.frag.firstChild && val.items instanceof Array) {
-                                    tempFrag = this.executeForEach(tpl, node, context, data, val.items, val.as);
-                                    node.appendChild(tempFrag);
-                                }
-                            }
-
-                            if (binding === 'with') {
-                                val = this.evaluate(binding, value, context, data, node);
-
-                                tpl = this.tpl.getBindingInfo(tNode).subTpl;
-                                if (tpl.frag.firstChild && val !== null && val !== undefined) {
-                                    var newContext = this.getNewContext(context, val);
-                                    node.appendChild(this.makeView(tpl, newContext, val, node));
-                                }
-                            }
-
-                            if (binding === 'text' && regexMap.DotNotation.test(value)) {
-                                val = this.evaluate(binding, value, context, data, node);
-                                if (val !== undefined) {
-                                    node.appendChild(document.createTextNode(val));
-                                    ret = 'continue'; //KO ignores the inner content.
-                                }
-                            }
-
-                            if (binding === 'html') {
-                                $(node).empty();
-                                val = this.evaluate(binding, value, context, data, node);
-                                if (val) {
-                                    tempFrag = util.moveToNewFragment(util.parseHTML(val));
-                                    node.appendChild(tempFrag);
-                                }
-                            }
-
-                            if (binding === 'attr') {
-                                util.forEachObjectLiteral(value.slice(1, -1), function (attr, value) {
-                                    if (regexMap.DotNotation.test(value)) {
-                                        val = this.evaluate({binding: binding, attr: attr}, value, context, data, node);
-                                        if (typeof val === 'string' || typeof val === 'number') {
-                                            node.setAttribute(attr, val);
-                                        }
-                                    }
-                                }, this);
-                            }
-
-                            if (binding === 'css') {
-                                util.forEachObjectLiteral(value.slice(1, -1), function (className, expr) {
-                                    val = this.evaluate(binding, expr, context, data, node);
-                                    if (val) {
-                                        $(node).addClass(className);
-                                    }
-                                }, this);
-                            }
-
-                            if (binding === 'style') {
-                                util.forEachObjectLiteral(value.slice(1, -1), function (prop, value) {
-                                    val = this.evaluate(binding, value, context, data, node) || null;
-                                    node.style.setProperty(prop.replace(/[A-Z]/g, replaceJsCssPropWithCssProp), val);
-                                }, this);
-                            }
-
-                            //Some of the following aren't treated as attributes by Knockout, but this is here to keep compatibility with Knockout.
-
-                            if (binding === 'disable' || binding === 'enable') {
-                                val = this.evaluate(binding, value, context, data, node);
-                                var disable = (binding === 'disable' ? val : !val);
-                                if (disable) {
-                                    node.setAttribute('disabled', 'disabled');
-                                } else {
-                                    node.removeAttribute('disabled');
-                                }
-                            }
-
-                            if (binding === 'checked') {
-                                val = this.evaluate(binding, value, context, data, node);
-                                if (val) {
-                                    node.setAttribute('checked', 'checked');
-                                } else {
-                                    node.removeAttribute('checked');
-                                }
-                            }
-
-                            if (binding === 'value') {
-                                val = this.evaluate(binding, value, context, data, node);
-                                node.setAttribute('value', val);
-                            }
-
-                            if (binding === 'visible') {
-                                val = this.evaluate(binding, value, context, data, node);
-                                if (val) {
-                                    node.style.removeProperty('display');
-                                } else {
-                                    node.style.setProperty('display', 'none');
+                                if (control.ignoreTillNode) {
+                                    ignoreTillNode = control.ignoreTillNode;
                                 }
                             }
                         }, this);
@@ -444,52 +518,16 @@
                             stack[stack.length - 1].removeChild(node);
                         }
 
-                        //Convert ifnot: (...) to if: !(...)
-                        if ((match = stmt.match(util.syntaxRegex.ifnot))) {
-                            stmt = match[1].replace('ifnot', 'if') + ': !(' + match[2] + ')';
-                        }
-
-                        //Process if statement
-                        if ((match = stmt.match(util.syntaxRegex['if']))) {
-                            val = this.evaluate('if', match[2], context, data, node);
-
-                            block = util.findBlockFromStartNode(blocks, tNode);
-                            if (!val) {
-                                ignoreTillNode = block.end;
+                        match = stmt.match(/(?:ko|hz)[ ]+([^:]+):(.+)/);
+                        if (match && this.bindingHandler[match[1].trim()]) {
+                            binding = match[1].trim();
+                            var control = this.bindingHandler[binding].init.call(this,
+                                node, binding, match[2], context, data, tNode, blocks) || {};
+                            if (control.skipOtherbindings) {
+                                return true;
                             }
-                        } else if ((match = stmt.match(util.syntaxRegex.foreach))) {
-                            inner = match[2].trim();
-                            if (inner[0] === '{') {
-                                inner = util.parseObjectLiteral(inner);
-                                val = {
-                                    items: this.evaluate('foreach', inner.data, context, data, node),
-                                    as: inner.as.slice(1, -1) //strip string quote
-                                };
-                            } else {
-                                val = {items: this.evaluate('foreach', inner, context, data, node)};
-                            }
-
-                            //Render inner template and insert berfore this node.
-                            tpl = this.tpl.getBindingInfo(tNode).subTpl;
-                            if (tpl.frag.firstChild && val.items instanceof Array) {
-                                tempFrag = this.executeForEach(tpl, node, context, data, val.items, val.as);
-                                node.parentNode.insertBefore(tempFrag, node);
-                            }
-                        } else if ((match = stmt.match(util.syntaxRegex['with']))) {
-                            val = this.evaluate('with', match[2], context, data, node);
-
-                            tpl = this.tpl.getBindingInfo(tNode).subTpl;
-                            if (tpl.frag.firstChild && val !== null && val !== undefined) {
-                                var newContext = this.getNewContext(context, val);
-                                node.parentNode.insertBefore(this.makeView(tpl, newContext, val, node), node);
-                            }
-                        } else if ((match = stmt.match(util.syntaxRegex.text))) {
-                            val = this.evaluate('text', match[2], context, data, node);
-
-                            block = util.findBlockFromStartNode(blocks, tNode);
-                            if (val !== null && val !== undefined) {
-                                ignoreTillNode = block.end;
-                                node.parentNode.insertBefore(document.createTextNode(val), node);
+                            if (control.ignoreTillNode) {
+                                ignoreTillNode = control.ignoreTillNode;
                             }
                         }
 
