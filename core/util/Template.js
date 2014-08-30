@@ -248,12 +248,12 @@
         this.nodeMap = {}; //used to quickly map a node to it's nodeInfo.
     };
 
-    Htmlizer.View.uid = function () {
+    Htmlizer.View.uid = (function () {
         var id = 1;
         return function () {
             return '' + id++;
         };
-    };
+    }());
     Htmlizer.View.saferEval = saferEval;
 
     Htmlizer.View.prototype = {
