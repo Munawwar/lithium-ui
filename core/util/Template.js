@@ -40,10 +40,6 @@
         };
     regexString.DotNotation = '(' + regexString.JSVar + '(?:\\.' + regexString.JSVar + ')*)';
 
-    var regexMap = {
-        DotNotation: new RegExp(regexString.DotNotation)
-    };
-
     var conflictingBindings = unwrap('if,ifnot,foreach,text,html');
 
     /**
@@ -361,13 +357,22 @@
                 init: function (node, binding, expr) {
                     if (node.nodeType === 1) {
                         util.forEachObjectLiteral(expr.slice(1, -1), function (attr, value) {
-                            if (regexMap.DotNotation.test(value)) {
-                                var val = this.evaluate({binding: binding, attr: attr}, value, node);
-                                if (typeof val === 'string' || typeof val === 'number') {
-                                    node.setAttribute(attr, val);
-                                }
+                            var val = this.evaluate({binding: binding, attr: attr}, value, node);
+                            if (typeof val === 'string' || typeof val === 'number') {
+                                node.setAttribute(attr, val);
                             }
                         }, this);
+                    }
+                },
+                update: function (node, binding, expr, extraInfo) {
+                    if (node.nodeType === 1) {
+                        var val = saferEval(expr, this.context, this.data, node);
+                        if (typeof val === 'string' || typeof val === 'number') {
+                            node.setAttribute(extraInfo.attr, val);
+                        }
+                        if (val === null) {
+                            node.removeAttribute(extraInfo.attr);
+                        }
                     }
                 }
             },
@@ -375,7 +380,7 @@
                 init: function (node, binding, expr) {
                     if (node.nodeType === 1) {
                         util.forEachObjectLiteral(expr.slice(1, -1), function (className, expr) {
-                            var val = this.evaluate(binding, expr, node);
+                            var val = this.evaluate({binding: binding, className: className}, expr, node);
                             if (val) {
                                 $(node).addClass(className);
                             }
@@ -387,7 +392,7 @@
                 init: function (node, binding, expr) {
                     if (node.nodeType === 1) {
                         util.forEachObjectLiteral(expr.slice(1, -1), function (prop, expr) {
-                            var val = this.evaluate(binding, expr, node) || null;
+                            var val = this.evaluate({binding: binding, prop: prop}, expr, node) || null;
                             node.style.setProperty(prop.replace(/[A-Z]/g, replaceJsCssPropWithCssProp), val);
                         }, this);
                     }
@@ -586,7 +591,7 @@
         addNodeInfo: function (node, tNode) {
             var nodeInfo = {
                 node: node,
-                tNodeInfo: this.tpl.getBindingInfo(tNode)
+                tNode: tNode
             };
             this.nodeInfoList.push(nodeInfo);
 
@@ -637,10 +642,22 @@
         evaluate: function (binding, expr, node) {
             var old = Htmlizer.View.currentlyExecuting;
             Htmlizer.View.currentlyEvaluating = this;
-            this.currentlyEvaluating = typeof binding === 'string' ? {binding: binding} : binding;
-            $.extend(this.currentlyEvaluating, this.getNodeInfo(node));
 
-            var value = saferEval(expr, this.context, this.data, node);
+            var extraInfo;
+            if (typeof binding !== 'string') {
+                extraInfo = binding;
+                binding = extraInfo.binding;
+                delete extraInfo.binding;
+            }
+            this.currentlyEvaluating = {
+                view: this,
+                node: node,
+                binding: binding,
+                expr: expr,
+                extraInfo: extraInfo
+            };
+
+            var value = saferEval.call(null, expr, this.context, this.data, node);
 
             Htmlizer.View.currentlyEvaluating = old;
             this.currentlyEvaluating = null;
