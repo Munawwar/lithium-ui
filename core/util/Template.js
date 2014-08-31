@@ -307,7 +307,7 @@
                             node.appendChild(tempFrag);
                         } else if (node.nodeType === 8) {
                             //Render inner template and insert berfore this node.
-                            node.parentNode.insertBefore(tempFrag, node);
+                            node.parentNode.insertBefore(tempFrag, node.nextSibling);
                         }
                     }
                 }
@@ -321,7 +321,7 @@
                         if (node.nodeType === 1) {
                             node.appendChild(this.makeView(tpl, newContext, val, node));
                         } else if (node.nodeType === 8) {
-                            node.parentNode.insertBefore(this.makeView(tpl, newContext, val, node), node);
+                            node.parentNode.insertBefore(this.makeView(tpl, newContext, val, node), node.nextSibling);
                         }
                     }
                 }
@@ -335,8 +335,8 @@
                             return {domTraverse: 'continue'}; //KO ignores the inner content.
                         } else if (node.nodeType === 8) {
                             var block = util.findBlockFromStartNode(blocks, tNode);
-                            node.parentNode.insertBefore(document.createTextNode(val), node);
-                            return {ignoreTillNode: block.end};
+                            node.parentNode.insertBefore(document.createTextNode(val), node.nextSibling);
+                            return {ignoreTillNode: block.end.previousSibling || block.end.parentNode};
                         }
                     }
                 }
@@ -496,8 +496,6 @@
          */
         toDocumentFragment: function () {
             var frag = this.tpl.frag,
-                data = this.data,
-                context = this.context,
                 output = document.createDocumentFragment();
 
             this.nodeInfoList = []; //clear previous node info. View instance can only bind to one document fragment.
@@ -558,9 +556,6 @@
                         if ((/^(?:ko|hz) /).test(stmt)) {
                             this.addNodeInfo(node, tNode);
                         }
-                        if ((/^\/(?:ko|hz)$/).test(stmt)) { //remove end of statement
-                            stack[stack.length - 1].removeChild(node);
-                        }
 
                         match = stmt.match(/(?:ko|hz)[ ]+([^:]+):(.+)/);
                         if (match && this.bindingHandler[match[1].trim()]) {
@@ -573,10 +568,6 @@
                             if (control.ignoreTillNode) {
                                 ignoreTillNode = control.ignoreTillNode;
                             }
-                        }
-
-                        if ((/^(?:ko|hz) /).test(stmt)) { //remove start of statement
-                            stack[stack.length - 1].removeChild(node);
                         }
                     }
                 } else if (!isOpenTag) {

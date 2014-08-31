@@ -32,8 +32,8 @@ describe('run container-less text binding test', function () {
             btnText: 'Click here'
         }),
         df = htmlToDocumentFragment(outputHtml);
-    it('button element should only have one child', function () {
-        assert.equal(1, df.firstChild.childNodes.length);
+    it('button element should have 3 child nodes', function () {
+        assert.equal(3, df.firstChild.childNodes.length);
     });
     it('and it should be a text node with text = "Click here"', function () {
         assert.equal('Click here', df.firstChild.textContent.trim());
@@ -243,14 +243,8 @@ describe('run no conflict test', function () {
         }),
         df = htmlToDocumentFragment(outputHtml);
 
-    var countComments = 0, commentIsKOStmt = true, btnCount = 0, firstBtnHasNoDataHtmlizer = true, secondBtnHasDataBind = true;
+    var btnCount = 0, firstBtnHasNoDataHtmlizer = true, secondBtnHasDataBind = true;
     traverse(df, df, function (node, isOpenTag) {
-        if (isOpenTag && node.nodeType === 8) {
-            countComments += 1;
-            if (!((/^(ko |\/ko$)/).test(node.data.trim()))) {
-                commentIsKOStmt = false;
-            }
-        }
         if (isOpenTag && node.nodeType === 1 && node.nodeName === "BUTTON") {
             btnCount += 1;
             if (btnCount === 1 && node.getAttribute('data-htmlizer')) {
@@ -262,12 +256,6 @@ describe('run no conflict test', function () {
         }
     });
 
-    it('it should have 2 comment statements', function () {
-        assert.equal(true, countComments === 2);
-    });
-    it('both having "ko" prefix', function () {
-        assert.equal(true, commentIsKOStmt);
-    });
     it('it should have 2 buttons', function () {
         assert.equal(2, btnCount);
     });
