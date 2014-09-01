@@ -84,7 +84,7 @@
                             nodeInfo.node = node;
                             nodeInfo.depth = depth;
                             nodeInfo.binding = bindOpts;
-                            if (bindings.foreach || bindings['with']) {
+                            if (bindings.foreach || bindings['with'] || bindings['if'] || bindings.ifnot) {
                                 tempFrag = util.moveToNewFragment(util.slice(node.childNodes));
                                 nodeInfo.subTpl = new Htmlizer(tempFrag, $.extend({depth: depth}, this.cfg));
                             }
@@ -108,7 +108,7 @@
                             nodeInfo.node = node;
                             nodeInfo.depth = depth;
                             nodeInfo.block = block;
-                            if (block.key === 'foreach' || block.key === 'with') {
+                            if (block.key === 'foreach' || block.key === 'with' || block.key === 'if' || block.key === 'ifnot') {
                                 blockNodes = util.getImmediateNodes(frag, block.start, block.end);
                                 tempFrag = util.moveToNewFragment(blockNodes);
                                 nodeInfo.subTpl = new Htmlizer(tempFrag, $.extend({depth: depth}, this.cfg));
@@ -219,6 +219,11 @@
             $rawData: data
         };
         this.parentView = parentView || null;
+
+        //Track first and last child after render.
+        this.firstChild = null;
+        this.lastChild = null;
+
         this.nodeInfoList = []; //will contain the binding information for each node.
         this.nodeMap = {}; //used to quickly map a node to it's nodeInfo.
     };
@@ -234,14 +239,29 @@
     Htmlizer.View.prototype = {
         bindingHandler: {
             "if": {
-                init: function (node, binding, expr, tNode, blocks) {
-                    var val = this.evaluate(binding, expr, node);
-                    if (!val) {
+                init: function (node, binding, expr, tNode) {
+                    var val = this.evaluate(binding, expr, node),
+                        tpl = this.tpl.getBindingInfo(tNode).subTpl,
+                        view = this.makeView(tpl, this.context, val, node);
+                    if (val) {
+                        var tempFrag = view.toDocumentFragment();
                         if (node.nodeType === 1) {
-                            return {domTraverse: 'continue', skipOtherbindings: true};
+                            node.appendChild(tempFrag);
                         } else if (node.nodeType === 8) {
-                            var block = util.findBlockFromStartNode(blocks, tNode);
-                            return {ignoreTillNode: block.end};
+                            node.parentNode.insertBefore(tempFrag, node.nextSibling);
+                        }
+                    }
+                },
+                update: function (node, binding, expr) {
+                    var val = this.evaluate(binding, expr, node),
+                        view = this.getNodeInfo(node).views[0],
+                        tempFrag = view.toDocumentFragment(); //if rendered, move nodes from document to DocumentFragment
+
+                    if (val) {
+                        if (node.nodeType === 1) {
+                            node.appendChild(tempFrag);
+                        } else if (node.nodeType === 8) {
+                            node.parentNode.insertBefore(tempFrag, node.nextSibling);
                         }
                     }
                 }
@@ -288,10 +308,11 @@
                         tpl = this.tpl.getBindingInfo(tNode).subTpl,
                         newContext = this.getNewContext(this.context, val);
                     if (tpl.frag.firstChild && val !== null && val !== undefined) {
+                        var tempFrag = this.makeView(tpl, newContext, val, node).toDocumentFragment();
                         if (node.nodeType === 1) {
-                            node.appendChild(this.makeView(tpl, newContext, val, node));
+                            node.appendChild(tempFrag);
                         } else if (node.nodeType === 8) {
-                            node.parentNode.insertBefore(this.makeView(tpl, newContext, val, node), node.nextSibling);
+                            node.parentNode.insertBefore(tempFrag, node.nextSibling);
                         }
                     }
                 }
@@ -486,6 +507,16 @@
          * @param {Object} data
          */
         toDocumentFragment: function () {
+            if (this.firstChild) { //if already rendered,
+                //then remove from document, add to new DocumentFragment and return it.
+                var nodes = util.getImmediateNodes(this.firstChild.ownerDocument, this.firstChild, this.lastChild);
+                if (this.firstChild !== this.lastChild) {
+                    nodes.unshift(this.firstChild);
+                }
+                nodes.push(this.lastChild);
+                return util.moveToNewFragment(nodes);
+            }
+
             var frag = this.tpl.frag,
                 output = document.createDocumentFragment();
 
@@ -579,6 +610,10 @@
                     }
                 }
             }, this);
+
+            //Keep track of first and last child
+            this.firstChild = output.firstChild;
+            this.lastChild = output.lastChild;
             return output;
         },
 
@@ -660,7 +695,7 @@
                 }
 
                 //..finally execute
-                output.appendChild(this.makeView(template, newContext, item, node));
+                output.appendChild(this.makeView(template, newContext, item, node).toDocumentFragment());
             }, this);
             return output;
         },
@@ -723,17 +758,12 @@
          */
         makeView: function (template, newContext, data, node) {
             var view = new Htmlizer.View(template, data, newContext, this),
-                info = this.getNodeInfo(node),
-                df = view.toDocumentFragment();
-
-            view.parentNode = node;
-            view.firstChild = df.firstChild;
-            view.lastChild = df.lastChild;
+                info = this.getNodeInfo(node);
 
             info.views = info.views || [];
             info.views.push(view);
 
-            return df;
+            return view;
         }
     };
 
@@ -796,6 +826,9 @@
          */
         getImmediateNodes: function (frag, startNode, endNode) {
             var nodes = [];
+            if (startNode === endNode) {
+                return nodes;
+            }
             traverse(startNode, frag, function (node, isOpenTag) {
                 if (isOpenTag) {
                     if (node === endNode) {
