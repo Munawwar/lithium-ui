@@ -29,18 +29,9 @@
         return o;
     }
 
-    function replaceJsCssPropWithCssProp(m) {
-        return '-' + m.toLowerCase();
-    }
-
     //HTML 4 and 5 void tags
     var voidTags = unwrap('area,base,basefont,br,col,command,embed,frame,hr,img,input,keygen,link,meta,param,source,track,wbr'),
-        regexString = {
-            JSVar: "[$_A-Za-z][$_A-Za-z0-9]*"
-        };
-    regexString.DotNotation = '(' + regexString.JSVar + '(?:\\.' + regexString.JSVar + ')*)';
-
-    var conflictingBindings = unwrap('if,ifnot,foreach,text,html');
+        conflictingBindings = unwrap('if,ifnot,foreach,text,html');
 
     /**
      * @param {String|DocumentFragment} template If string, then it is better if the HTML is balanced, else it probably won't be correctly converted to DOM.
@@ -176,30 +167,9 @@
                         return;
                     }
 
-                    //Convert ifnot: (...) to if: !(...)
-                    if ((match = stmt.match(util.syntaxRegex.ifnot))) {
-                        stmt = match[1].replace('ifnot', 'if') + ': !(' + match[2] + ')';
-                    }
-
-                    //TODO: Use a general more regex to match comment statements rather than having one regex for each of them.
-                    if ((match = stmt.match(util.syntaxRegex['if']))) {
+                    if ((match = stmt.match(/^(?:ko|hz)[ ]+([^:]+):/))) {
                         stack.unshift({
-                            key: 'if',
-                            start: node
-                        });
-                    } else if ((match = stmt.match(util.syntaxRegex.foreach))) {
-                        stack.unshift({
-                            key: 'foreach',
-                            start: node
-                        });
-                    } else if ((match = stmt.match(util.syntaxRegex['with']))) {
-                        stack.unshift({
-                            key: 'with',
-                            start: node
-                        });
-                    } else if ((match = stmt.match(util.syntaxRegex.text))) {
-                        stack.unshift({
-                            key: 'text',
+                            key: match[1],
                             start: node
                         });
                     } else if ((match = stmt.match(/^\/(ko|hz)$/))) {
@@ -417,26 +387,31 @@
                     }
                 }
             },
-            style: {
-                init: function (node, binding, expr) {
-                    if (node.nodeType === 1) {
-                        util.forEachObjectLiteral(expr.slice(1, -1), function (prop, expr) {
-                            var val = this.evaluate({binding: binding, prop: prop}, expr, node) || null;
-                            node.style.setProperty(prop.replace(/[A-Z]/g, replaceJsCssPropWithCssProp), val);
-                        }, this);
-                    }
-                },
-                update: function (node, binding, expr, extraInfo) {
-                    if (node.nodeType === 1) {
-                        var val = saferEval(expr, this.context, this.data, node);
-                        if (val !== null) {
-                            node.style.setProperty(extraInfo.prop.replace(/[A-Z]/g, replaceJsCssPropWithCssProp), val);
-                        } else {
-                            node.style.removeProperty(extraInfo.prop.replace(/[A-Z]/g, replaceJsCssPropWithCssProp));
+            style: (function () {
+                function toCssProp(m) {
+                    return '-' + m.toLowerCase();
+                }
+                return {
+                    init: function (node, binding, expr) {
+                        if (node.nodeType === 1) {
+                            util.forEachObjectLiteral(expr.slice(1, -1), function (prop, expr) {
+                                var val = this.evaluate({binding: binding, prop: prop}, expr, node) || null;
+                                node.style.setProperty(prop.replace(/[A-Z]/g, toCssProp), val);
+                            }, this);
+                        }
+                    },
+                    update: function (node, binding, expr, extraInfo) {
+                        if (node.nodeType === 1) {
+                            var val = saferEval(expr, this.context, this.data, node);
+                            if (val !== null) {
+                                node.style.setProperty(extraInfo.prop.replace(/[A-Z]/g, toCssProp), val);
+                            } else {
+                                node.style.removeProperty(extraInfo.prop.replace(/[A-Z]/g, toCssProp));
+                            }
                         }
                     }
-                }
-            },
+                };
+            }()),
 
             //Some of the following aren't treated as attributes by Knockout, but this is here to keep compatibility with Knockout.
 
@@ -763,15 +738,6 @@
     };
 
     var util = Htmlizer.util = {
-        //Valid statements.
-        syntaxRegex: {
-            "if": new RegExp("((?:ko|hz)[ ]+if):(.+)"),
-            "ifnot": new RegExp("((?:ko|hz)[ ]+ifnot):(.+)"),
-            "foreach": new RegExp("((?:ko|hz)[ ]+foreach):(.+)"),
-            "with": new RegExp("((?:ko|hz)[ ]+with):(.+)"),
-            "text": new RegExp("((?:ko|hz)[ ]+text):(.+)")
-        },
-
         /**
          * Parse html string using jQuery.parseHTML and also make sure script tags aren't removed.
          * @param {String} html
