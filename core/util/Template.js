@@ -181,7 +181,7 @@
                         stmt = match[1].replace('ifnot', 'if') + ': !(' + match[2] + ')';
                     }
 
-                    //Process if statement
+                    //TODO: Use a general more regex to match comment statements rather than having one regex for each of them.
                     if ((match = stmt.match(util.syntaxRegex['if']))) {
                         stack.unshift({
                             key: 'if',
@@ -337,6 +337,22 @@
                             var block = util.findBlockFromStartNode(blocks, tNode);
                             node.parentNode.insertBefore(document.createTextNode(val), node.nextSibling);
                             return {ignoreTillNode: block.end.previousSibling || block.end.parentNode};
+                        }
+                    }
+                },
+                update: function (node, binding, expr) {
+                    var val = this.evaluate(binding, expr, node);
+                    if (val !== null && val !== undefined) {
+                        if (node.nodeType === 1) {
+                            $(node).empty();
+                            node.appendChild(document.createTextNode(val));
+                            return {domTraverse: 'continue'}; //KO ignores the inner content.
+                        } else if (node.nodeType === 8) {
+                            var nodeInfo = this.getNodeInfo(node),
+                                startNode = nodeInfo.node,
+                                endNode = nodeInfo.blockEndNode;
+                            util.moveToNewFragment(util.getImmediateNodes(node.ownerDocument, startNode, endNode)); // discard content
+                            node.parentNode.insertBefore(document.createTextNode(val), node.nextSibling);
                         }
                     }
                 }
@@ -506,6 +522,7 @@
                 //to output fragment, and the other to keep track of ancestors on template.
                 stack = [output],
                 tStack = [frag],
+                commentStack = [],
                 ignoreTillNode = null;
             traverse(frag, frag, function (tNode, isOpenTag) {
                 if (!ignoreTillNode && isOpenTag) {
@@ -552,9 +569,16 @@
                         if (this.tpl.noConflict && (/^(ko |\/ko$)/).test(stmt)) {
                             return;
                         }
+
                         //Add node to this.nodeInfoList[].
+                        this.addNodeInfo(node, tNode);
+
                         if ((/^(?:ko|hz) /).test(stmt)) {
-                            this.addNodeInfo(node, tNode);
+                            commentStack.push(node);
+                        } else if ((/^\/(?:ko|hz)$/).test(stmt)) {
+                            var startNode = commentStack.pop();
+                            this.getNodeInfo(startNode).blockEndNode = node;
+                            this.getNodeInfo(node).blockStartNode = startNode;
                         }
 
                         match = stmt.match(/(?:ko|hz)[ ]+([^:]+):(.+)/);
