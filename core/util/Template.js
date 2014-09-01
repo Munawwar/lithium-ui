@@ -273,6 +273,12 @@
                     expr = '!(' + expr + ')';
                     return this.bindingHandler[binding].init.call(this,
                         node, binding, expr, tNode, blocks);
+                },
+                update: function (node, binding, expr) {
+                    //Convert ifnot: (...) to if: !(...)
+                    binding = 'if';
+                    expr = '!(' + expr + ')';
+                    return this.bindingHandler[binding].update.call(this, node, binding, expr);
                 }
             },
             foreach: {
