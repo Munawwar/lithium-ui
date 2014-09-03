@@ -3,7 +3,7 @@
 (function (factory, saferEval) {
     if (typeof define === 'function' && define.amd) {
         define(['./util', 'jquery', './js-object-literal-parse'], function (Lui, $, parseObjectLiteral) {
-            Lui.util.Template = factory.call(this, saferEval, $, parseObjectLiteral);
+            Lui.util.Template = factory.call(this, saferEval, $, parseObjectLiteral, Lui);
             return Lui;
         }.bind(this));
     } else if (typeof exports === 'object') { //for unit tests
@@ -13,10 +13,11 @@
             saferEval,
             require('./jquery')(window),
             require('./js-object-literal-parse.js'),
+            undefined,
             window
         );
     }
-}(function (saferEval, $, parseObjectLiteral, window) {
+}(function (saferEval, $, parseObjectLiteral, Lui, window) {
     //browser and jsdom compatibility
     window = window || this;
     var document = window.document;
@@ -282,9 +283,11 @@
                 }
             },
             foreach: {
-                init: function (node, binding, expr, tNode) {
-                    var tpl = this.tpl.getBindingInfo(tNode).subTpl,
-                        val, tempFrag;
+                init: function (node, binding, expr) {
+                    var info = this.getNodeInfo(node),
+                        tNode = info.tNode,
+                        tpl = this.tpl.getBindingInfo(tNode).subTpl,
+                        val;
 
                     expr = expr.trim();
                     if (expr[0] === '{') {
@@ -298,13 +301,24 @@
                     }
 
                     if (tpl.frag.firstChild && val.items instanceof Array) {
-                        tempFrag = this.executeForEach(tpl, node, val.items, val.as);
-                        if (node.nodeType === 1) {
-                            node.appendChild(tempFrag);
-                        } else if (node.nodeType === 8) {
-                            //Render inner template and insert berfore this node.
-                            node.parentNode.insertBefore(tempFrag, node.nextSibling);
-                        }
+                        this.spliceForEachItems(tpl, node, 0, info.views ? info.views.length : 0, val.items, val.as);
+                    }
+                },
+                update: function () {
+                    this.bindingHandler.foreach.init.apply(this, arguments);
+                },
+                splice: function (node, binding, expr, index, removeLength, newItems) {
+                    var tNode = this.getNodeInfo(node).tNode,
+                        tpl = this.tpl.getBindingInfo(tNode).subTpl,
+                        as;
+
+                    expr = expr.trim();
+                    if (expr[0] === '{') {
+                        as = util.parseObjectLiteral(expr).as.slice(1, -1);
+                    }
+
+                    if (tpl.frag.firstChild) {
+                        this.spliceForEachItems(tpl, node, index, removeLength, newItems || [], as);
                     }
                 }
             },
@@ -682,16 +696,29 @@
          * @param {Htmlizer} template Htmlizer instance that contains the body of the foreach statement
          * @param {Node} node
          * @param {Object} context
-         * @param {Object} data Data object
-         * @param {Array} items The array to iterate through
+         * @param {Number} index Index at which items are to be inserted/removed.
+         * @param {Number} removeLength Number of items to remove
+         * @param {Array} items Array of items to insert to index
+         * @param {String} as Name reference for item
          */
-        executeForEach: function (template, node, items, as) {
-            var output = document.createDocumentFragment();
+        spliceForEachItems: function (template, node, startIndex, removeLength, items, as) {
+            var output = document.createDocumentFragment(),
+                info = this.getNodeInfo(node);
+            info.views = info.views || [];
+
+            if (removeLength) {
+                info.views.splice(startIndex, removeLength).forEach(function (view) {
+                    view.toDocumentFragment(); //move nodes from document to DocumentFragment, and discard DocumentFragment.
+                }, this);
+            }
+
+            var viewAtStartIndex = info.views[startIndex];
+
             items.forEach(function (item, index) {
                 var newContext = this.getNewContext(this.context, this.data);
                 //foreach special properties
                 newContext.$data = newContext.$rawData = item;
-                newContext.$index = index;
+                newContext.$index = Lui ? Lui.util.Observable(index + startIndex) : (index + startIndex); //Lui is undefined when running tests with NodeJS
 
                 if (as) {
                     newContext[as] = item;
@@ -700,10 +727,31 @@
                     newContext._as.push([as, item]);
                 }
 
+                var view = new Htmlizer.View(template, this.data, newContext, this);
+
+                info.views.splice(index + startIndex, 0, view);
+
                 //..finally execute
-                output.appendChild(this.makeView(template, newContext, item, node).toDocumentFragment());
+                output.appendChild(view.toDocumentFragment());
             }, this);
-            return output;
+
+            //Update index of items that come after last inserted/removed value.
+            if (Lui) { //No need to do anython on NodeJS
+                for (var i = startIndex + items.length; i < info.views.length; i += 1) {
+                    info.views[i].$index(i);
+                }
+            }
+
+            if (viewAtStartIndex) {
+                viewAtStartIndex.firstChild.parentNode.insertBefore(output, viewAtStartIndex.firstChild);
+            } else {
+                if (node.nodeType === 1) {
+                    node.appendChild(output);
+                } else if (node.nodeType === 8) {
+                    //Render inner template and insert berfore this node.
+                    node.parentNode.insertBefore(output, info.blockEndNode);
+                }
+            }
         },
 
         /**
