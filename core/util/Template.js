@@ -396,7 +396,7 @@
                 },
                 update: function (node, binding, expr, extraInfo) {
                     if (node.nodeType === 1) {
-                        var val = saferEval(expr, this.context, this.data, node);
+                        var val = this.evaluate(binding, expr, node);
                         if (typeof val === 'string' || typeof val === 'number') {
                             node.setAttribute(extraInfo.attr, val);
                         }
@@ -419,7 +419,7 @@
                 },
                 update: function (node, binding, expr, extraInfo) {
                     if (node.nodeType === 1) {
-                        var val = saferEval(expr, this.context, this.data, node);
+                        var val = this.evaluate(binding, expr, node);
                         if (val) {
                             $(node).addClass(extraInfo.className);
                         } else {
@@ -443,7 +443,7 @@
                     },
                     update: function (node, binding, expr, extraInfo) {
                         if (node.nodeType === 1) {
-                            var val = saferEval(expr, this.context, this.data, node);
+                            var val = this.evaluate(binding, expr, node);
                             if (val !== null) {
                                 node.style.setProperty(extraInfo.prop.replace(/[A-Z]/g, toCssProp), val);
                             } else {
@@ -776,6 +776,10 @@
             };
 
             var value = saferEval.call(null, expr, this.context, this.data, node);
+
+            if (value && value.isLuiObservable) {
+                value = value();
+            }
 
             Htmlizer.View.currentlyEvaluating = old;
             this.currentlyEvaluating = null;

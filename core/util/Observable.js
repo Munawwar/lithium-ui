@@ -36,6 +36,8 @@ define(['./util', '../../lib/lithium/src/lithium', 'jquery'], function (Lui, Li,
                 }
             };
 
+        observable.isLuiObservable = true;
+
         observable(initVal);
         return observable;
     };
@@ -46,7 +48,8 @@ define(['./util', '../../lib/lithium/src/lithium', 'jquery'], function (Lui, Li,
             uniqueNodes = {},
             observable = function me(val) {
                 //Check whether value is called from a template or not.
-                if (me.caller && me.caller.caller === Lui.util.Template.View.saferEval) {
+                if (me.caller && (me.caller === Lui.util.Template.View.prototype.evaluate ||
+                    me.caller.caller === Lui.util.Template.View.saferEval)) {
                     var view = Lui.util.Template.View.currentlyEvaluating;
                     if (view) {
                         var node = view.currentlyEvaluating.node;
@@ -128,6 +131,9 @@ define(['./util', '../../lib/lithium/src/lithium', 'jquery'], function (Lui, Li,
             }
             //TODO: Implement reverse, sort, remove(item), remove(function (item) {}), removeAll(), removeAll([items...]) like KO
         });
+
+        observable.isLuiObservable = true;
+        observable.isLuiObservableArray = true;
 
         observable(initVal);
         return observable;
