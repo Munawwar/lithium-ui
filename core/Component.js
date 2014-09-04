@@ -1,7 +1,7 @@
 define([
     './lui',
     'jquery',
-    '../lib/lithium/src/lithium.observable',
+    '../lib/lithium/src/lithium.pubsub',
     './util/Template',
     'tpl!./Component.ko'
 ], function (Lui, $, Li) {
@@ -9,7 +9,7 @@ define([
     /**
      * Base class for all components.
      */
-    Lui.Component = Lui.extend('Lui.Component', Li.Observable, {
+    Lui.Component = Lui.extend('Lui.Component', Li.Publisher, {
         /**
          * Top most element of this component
          * @readonly
