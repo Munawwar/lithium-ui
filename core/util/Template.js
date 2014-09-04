@@ -527,6 +527,8 @@
          * @param {Object} data
          */
         toDocumentFragment: function () {
+            this.retired = false;
+
             if (this.firstChild) { //if already rendered,
                 //then remove from document, add to new DocumentFragment and return it.
                 var nodes = util.getImmediateNodes(this.firstChild.ownerDocument, this.firstChild, this.lastChild);
@@ -668,6 +670,16 @@
         },
 
         /**
+         * Removs view from document and marks this view as unused.
+         */
+        retire: function () {
+            if (this.firstChild) {
+                this.toDocumentFragment(); //if rendered, move nodes from document to DocumentFragment
+            }
+            this.retired = false;
+        },
+
+        /**
          * @private
          * @param {Node} node Node in View
          * @param {Node} tNode Corresponding Node in Template
@@ -708,7 +720,7 @@
 
             if (removeLength) {
                 info.views.splice(startIndex, removeLength).forEach(function (view) {
-                    view.toDocumentFragment(); //move nodes from document to DocumentFragment, and discard DocumentFragment.
+                    view.retire();
                 }, this);
             }
 

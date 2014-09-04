@@ -9,7 +9,7 @@ define(['./util', '../../lib/lithium/src/lithium', 'jquery'], function (Lui, Li,
                     var view = Lui.util.Template.View.currentlyEvaluating;
                     if (view) {
                         var node = view.currentlyEvaluating.node;
-                        if (!uniqueNodes[node._uid]) {
+                        if (!uniqueNodes[node._uid] && !view.retired) {
                             uniqueNodes[node._uid] = view.currentlyEvaluating;
                             nodeBindings.push(view.currentlyEvaluating);
                         }
@@ -24,7 +24,7 @@ define(['./util', '../../lib/lithium/src/lithium', 'jquery'], function (Lui, Li,
                     //TODO: For objects, use oldValue.isEqual(val);
                     if (oldValue !== val) {
                         //Refresh UI
-                        nodeBindings.forEach(function (info) {
+                        removeUnusedAndIterate(nodeBindings, uniqueNodes, function (info) {
                             var bindingHandler = info.view.bindingHandler[info.binding];
                             if (bindingHandler && bindingHandler.update) {
                                 bindingHandler.update.call(info.view, info.node, info.binding, info.expr, info.extraInfo);
@@ -53,7 +53,7 @@ define(['./util', '../../lib/lithium/src/lithium', 'jquery'], function (Lui, Li,
                     var view = Lui.util.Template.View.currentlyEvaluating;
                     if (view) {
                         var node = view.currentlyEvaluating.node;
-                        if (!uniqueNodes[node._uid]) {
+                        if (!uniqueNodes[node._uid] && !view.retired) {
                             uniqueNodes[node._uid] = view.currentlyEvaluating;
                             nodeBindings.push(view.currentlyEvaluating);
                         }
@@ -65,7 +65,7 @@ define(['./util', '../../lib/lithium/src/lithium', 'jquery'], function (Lui, Li,
                     if (Li.isArray(val)) {
                         value = val;
                         //Refresh UI
-                        nodeBindings.forEach(function (info) {
+                        removeUnusedAndIterate(nodeBindings, uniqueNodes, function (info) {
                             var bindingHandler = info.view.bindingHandler[info.binding];
                             if (bindingHandler && bindingHandler.update) {
                                 bindingHandler.update.call(info.view, info.node, info.binding, info.expr, info.extraInfo);
@@ -93,7 +93,7 @@ define(['./util', '../../lib/lithium/src/lithium', 'jquery'], function (Lui, Li,
                 var removedItems = value.splice.apply(value, [index, removeLength].concat(items));
 
                 //Refresh UI
-                nodeBindings.forEach(function (info) {
+                removeUnusedAndIterate(nodeBindings, uniqueNodes, function (info) {
                     var bindingHandler = info.view.bindingHandler[info.binding];
                     if (info.binding !== 'foreach') {
                         if (bindingHandler && bindingHandler.update) {
@@ -104,9 +104,10 @@ define(['./util', '../../lib/lithium/src/lithium', 'jquery'], function (Lui, Li,
                         bindingHandler.splice.call(info.view, info.node, info.binding, info.expr, index, removeLength, items);
                     }
                 }, this);
+
                 return removedItems;
             },
-            push: function (val) {
+            push: function () {
                 var items = Li.slice(arguments);
                 if (items.length) {
                     this.splice.apply(this, ([value.length, 0]).concat(items));
@@ -138,6 +139,27 @@ define(['./util', '../../lib/lithium/src/lithium', 'jquery'], function (Lui, Li,
         observable(initVal);
         return observable;
     };
+
+    function removeUnusedAndIterate(nodeBindings, uniqueNodes, callback, scope) {
+        var bindingsToRemove;
+        //Refresh UI
+        nodeBindings.forEach(function (info, index) {
+            if (!info.view.retired) {
+                callback.call(scope, info, index);
+            } else {
+                bindingsToRemove = bindingsToRemove || [];
+                bindingsToRemove.push(index);
+                delete uniqueNodes[info.node._uid];
+            }
+        }, this);
+
+        if (bindingsToRemove) {
+            bindingsToRemove.reverse(); //remove from back, because removal from start would affect index of other items
+            bindingsToRemove.forEach(function (pos) {
+                nodeBindings.splice(pos, 1);
+            });
+        }
+    }
 
     return Lui;
 });
