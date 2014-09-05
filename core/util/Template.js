@@ -340,31 +340,32 @@
             text: {
                 init: function (node, binding, expr, tNode, blocks) {
                     var val = this.evaluate(binding, expr, node);
-                    if (val !== null && val !== undefined) {
-                        if (node.nodeType === 1) {
-                            node.appendChild(document.createTextNode(val));
-                            return {domTraverse: 'continue'}; //KO ignores the inner content.
-                        } else if (node.nodeType === 8) {
-                            var block = util.findBlockFromStartNode(blocks, tNode);
-                            node.parentNode.insertBefore(document.createTextNode(val), node.nextSibling);
-                            return {ignoreTillNode: block.end.previousSibling || block.end.parentNode};
-                        }
+                    if (val === null || val === undefined) {
+                        val = '';
+                    }
+                    if (node.nodeType === 1) {
+                        node.appendChild(document.createTextNode(val));
+                        return {domTraverse: 'continue'}; //KO ignores the inner content.
+                    } else if (node.nodeType === 8) {
+                        var block = util.findBlockFromStartNode(blocks, tNode);
+                        node.parentNode.insertBefore(document.createTextNode(val), node.nextSibling);
+                        return {ignoreTillNode: block.end.previousSibling || block.end.parentNode};
                     }
                 },
                 update: function (node, binding, expr) {
                     var val = this.evaluate(binding, expr, node);
-                    if (val !== null && val !== undefined) {
-                        if (node.nodeType === 1) {
-                            $(node).empty();
-                            node.appendChild(document.createTextNode(val));
-                            return {domTraverse: 'continue'}; //KO ignores the inner content.
-                        } else if (node.nodeType === 8) {
-                            var nodeInfo = this.getNodeInfo(node),
-                                startNode = nodeInfo.node,
-                                endNode = nodeInfo.blockEndNode;
-                            util.moveToNewFragment(util.getImmediateNodes(node.ownerDocument, startNode, endNode)); // discard content
-                            node.parentNode.insertBefore(document.createTextNode(val), node.nextSibling);
-                        }
+                    if (val === null || val === undefined) {
+                        val = '';
+                    }
+                    if (node.nodeType === 1) {
+                        $(node).empty();
+                        node.appendChild(document.createTextNode(val));
+                    } else if (node.nodeType === 8) {
+                        var nodeInfo = this.getNodeInfo(node),
+                            startNode = nodeInfo.node,
+                            endNode = nodeInfo.blockEndNode;
+                        util.moveToNewFragment(util.getImmediateNodes(node.ownerDocument, startNode, endNode)); // discard content
+                        node.parentNode.insertBefore(document.createTextNode(val), node.nextSibling);
                     }
                 }
             },
@@ -373,9 +374,12 @@
                     if (node.nodeType === 1) {
                         $(node).empty();
                         var val = this.evaluate(binding, expr, node);
-                        if (val) {
-                            var tempFrag = util.moveToNewFragment(util.parseHTML(val));
-                            node.appendChild(tempFrag);
+                        if (val !== undefined && val !== null && val !== '') {
+                            var nodes = this.parseHTML(val + '');
+                            if (nodes) {
+                                var tempFrag = this.moveToNewFragment(nodes);
+                                node.appendChild(tempFrag);
+                            }
                         }
                     }
                 },
@@ -397,10 +401,9 @@
                 update: function (node, binding, expr, extraInfo) {
                     if (node.nodeType === 1) {
                         var val = this.evaluate(binding, expr, node);
-                        if (typeof val === 'string' || typeof val === 'number') {
+                        if (val || typeof val === 'string' || typeof val === 'number') {
                             node.setAttribute(extraInfo.attr, val);
-                        }
-                        if (val === null) {
+                        } else { //undefined, null, false
                             node.removeAttribute(extraInfo.attr);
                         }
                     }
@@ -444,9 +447,9 @@
                     update: function (node, binding, expr, extraInfo) {
                         if (node.nodeType === 1) {
                             var val = this.evaluate(binding, expr, node);
-                            if (val !== null) {
+                            if (val || typeof val === 'string' || typeof val === 'number') {
                                 node.style.setProperty(extraInfo.prop.replace(/[A-Z]/g, toCssProp), val);
-                            } else {
+                            } else { //undefined, null, false
                                 node.style.removeProperty(extraInfo.prop.replace(/[A-Z]/g, toCssProp));
                             }
                         }
@@ -500,7 +503,11 @@
                 init: function (node, binding, expr) {
                     if (node.nodeType === 1) {
                         var val = this.evaluate(binding, expr, node);
-                        node.setAttribute('value', val);
+                        if (val === null || val === undefined) {
+                            node.removeAttribute('value');
+                        } else {
+                            node.setAttribute('value', val);
+                        }
                     }
                 },
                 update: function () {
@@ -512,7 +519,9 @@
                     if (node.nodeType === 1) {
                         var val = this.evaluate(binding, expr, node);
                         if (val) {
-                            node.style.removeProperty('display');
+                            if (node.style.display === 'none') {
+                                node.style.removeProperty('display');
+                            }
                         } else {
                             node.style.setProperty('display', 'none');
                         }
