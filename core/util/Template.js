@@ -1,26 +1,16 @@
 /*jslint evil: true*/
 
+if (typeof define !== 'function') {
+    var define = require('amdefine')(module);
+}
+
 (function (factory, saferEval) {
-    if (typeof define === 'function' && define.amd) {
-        define(['./util', 'jquery', './js-object-literal-parse'], function (Lui, $, parseObjectLiteral) {
-            Lui.util.Template = factory.call(this, saferEval, $, parseObjectLiteral, Lui);
-            return Lui;
-        }.bind(this));
-    } else if (typeof exports === 'object') { //for unit tests
-        var jsdom = require('jsdom').jsdom,
-            window = jsdom('').parentWindow;
-        module.exports = factory(
-            saferEval,
-            require('./jquery')(window),
-            require('./js-object-literal-parse.js'),
-            undefined,
-            window
-        );
-    }
-}(function (saferEval, $, parseObjectLiteral, Lui, window) {
-    //browser and jsdom compatibility
-    window = window || this;
-    var document = window.document;
+    define(['jquery-node', './js-object-literal-parse', './Observable'], function ($, parseObjectLiteral, Lui) {
+        Lui.util.Template = factory.call(this, saferEval, $, parseObjectLiteral, Lui);
+        return Lui;
+    }.bind(this));
+}(function (saferEval, $, parseObjectLiteral, Lui) {
+    //var window = document.defaultView;
 
     function unwrap(str) {
         var o = {};

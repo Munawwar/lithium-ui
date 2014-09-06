@@ -2,7 +2,8 @@
 
 var assert = require("assert"),
     fs = require('fs'),
-    Htmlizer = require('../../../../core/util/Template.js'),
+    Lui = require('../../../../core/util/Template.js'),
+    Htmlizer = Lui.util.Template,
     jsdom = require('jsdom').jsdom,
     jqueryFactory = require('../../../../core/util/jquery.js'),
     path = require('path');

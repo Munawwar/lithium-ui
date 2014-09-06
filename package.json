@@ -5,10 +5,11 @@
     "version": "0.0.1",
     "main": "core/util/Template.js",
     "dependencies": {
-        "jsdom": "0.10.3"
+        "jquery-node": "0.0.1"
     },
     "devDependencies": {
-        "mocha": "1.18.2"
+        "mocha": "1.18.2",
+        "amdefine": "0.1.0"
     },
     "directories": {
         "test": "test"

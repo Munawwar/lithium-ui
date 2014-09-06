@@ -1,4 +1,8 @@
-define(['./util', '../../lib/lithium/src/lithium', 'jquery'], function (Lui, Li, $) {
+if (typeof define !== 'function') {
+    var define = require('amdefine')(module);
+}
+
+define(['./util', '../../lib/lithium/src/lithium', 'jquery-node'], function (Lui, Li, $) {
     Lui.util.Observable = function (initVal) {
         var value,
             nodeBindings = [],

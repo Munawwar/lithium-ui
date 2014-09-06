@@ -1,3 +1,7 @@
+if (typeof define !== 'function') {
+    var define = require('amdefine')(module);
+}
+
 define(['../lui', '../../lib/lithium/src/lithium'], function (Lui, Li) {
     Lui.util = {
         /**

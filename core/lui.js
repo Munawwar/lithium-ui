@@ -1,6 +1,8 @@
-/*global $*/
+if (typeof define !== 'function') {
+    var define = require('amdefine')(module);
+}
 
-define(['jquery', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium.extras'], function ($, Li) {
+define(['jquery-node', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium.extras'], function ($, Li) {
 
     var Lui = {
         version: '0.1.0',
