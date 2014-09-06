@@ -63,12 +63,18 @@ define(['./util', '../../lib/lithium/src/lithium', 'jquery'], function (Lui, Li,
                 //Set if not undefined
                 if (val !== undefined) {
                     if (Li.isArray(val)) {
+                        var oldValue = value;
                         value = val;
+
                         //Refresh UI
                         removeUnusedAndIterate(nodeBindings, uniqueNodes, function (info) {
                             var bindingHandler = info.view.bindingHandler[info.binding];
-                            if (bindingHandler && bindingHandler.update) {
-                                bindingHandler.update.call(info.view, info.node, info.binding, info.expr, info.extraInfo);
+                            if (info.binding !== 'foreach') {
+                                if (bindingHandler && bindingHandler.update) {
+                                    bindingHandler.update.call(info.view, info.node, info.binding, info.expr, info.extraInfo);
+                                }
+                            } else {
+                                bindingHandler.splice.apply(info.view, ([info.node, info.binding, info.expr, 0, oldValue.length]).concat(val));
                             }
                         }, this);
                     }
@@ -129,8 +135,61 @@ define(['./util', '../../lib/lithium/src/lithium', 'jquery'], function (Lui, Li,
             },
             indexOf: function (o) {
                 return value.indexOf(o);
+            },
+            reverse: function () {
+                value.reverse();
+                //Refresh UI
+                removeUnusedAndIterate(nodeBindings, uniqueNodes, function (info) {
+                    var bindingHandler = info.view.bindingHandler[info.binding];
+                    if (info.binding !== 'foreach') {
+                        if (bindingHandler && bindingHandler.update) {
+                            //TODO: Hmm..how to efficiently update?
+                            bindingHandler.update.call(info.view, info.node, info.binding, info.expr, info.extraInfo);
+                        }
+                    } else {
+                        bindingHandler.reverse.call(info.view, info.node, info.binding, info.expr);
+                    }
+                }, this);
+            },
+            sort: function (comparator) {
+                var indexes = value.map(function (item, i) {
+                        return i;
+                    }),
+                    hasChanged = false;
+                indexes.sort(function (a, b) {
+                    var result = comparator(value[a], value[b]),
+                        temp;
+                    //Swap
+                    if ((a < b && result > 0) || (b < a && result < 0)) {
+                        temp = value[a];
+                        value[a] = value[b];
+                        value[b] = temp;
+                        hasChanged = true;
+                    }
+
+                    //stable sort
+                    if (result === 0) {
+                        result = (a < b ? -1 : 1);
+                    }
+                    return result;
+                });
+
+                //Refresh UI
+                if (hasChanged) {
+                    removeUnusedAndIterate(nodeBindings, uniqueNodes, function (info) {
+                        var bindingHandler = info.view.bindingHandler[info.binding];
+                        if (info.binding !== 'foreach') {
+                            if (bindingHandler && bindingHandler.update) {
+                                //TODO: Hmm..how to efficiently update?
+                                bindingHandler.update.call(info.view, info.node, info.binding, info.expr, info.extraInfo);
+                            }
+                        } else {
+                            bindingHandler.sort.call(info.view, info.node, info.binding, info.expr, indexes);
+                        }
+                    }, this);
+                }
             }
-            //TODO: Implement reverse, sort, remove(item), remove(function (item) {}), removeAll(), removeAll([items...]) like KO
+            //TODO: Implement remove(item), remove(function (item) {}), removeAll(), removeAll([items...]) like KO
         });
 
         observable.isLuiObservable = true;

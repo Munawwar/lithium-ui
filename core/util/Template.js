@@ -304,8 +304,28 @@
                         this.spliceForEachItems(tpl, node, 0, info.views ? info.views.length : 0, val.items, val.as);
                     }
                 },
-                update: function () {
-                    this.bindingHandler.foreach.init.apply(this, arguments);
+                sort: function (node, binding, expr, indexes) {
+                    var info = this.getNodeInfo(node);
+                    if (info.views) {
+                        var output = document.createDocumentFragment();
+
+                        var views = [];
+                        //Sort views
+                        indexes.forEach(function (i) {
+                            views.push(info.views[i]);
+                        });
+                        info.views = views;
+
+                        info.views.forEach(function (view) {
+                            output.appendChild(view.toDocumentFragment()); //removes from document and appends to 'output'
+                        });
+                        if (node.nodeType === 1) {
+                            node.appendChild(output);
+                        } else if (node.nodeType === 8) {
+                            //Render inner template and insert berfore this node.
+                            node.parentNode.insertBefore(output, info.blockEndNode);
+                        }
+                    }
                 },
                 splice: function (node, binding, expr, index, removeLength, newItems) {
                     var tNode = this.getNodeInfo(node).tNode,
@@ -319,6 +339,23 @@
 
                     if (tpl.frag.firstChild) {
                         this.spliceForEachItems(tpl, node, index, removeLength, newItems || [], as);
+                    }
+                },
+                reverse: function (node) {
+                    var info = this.getNodeInfo(node);
+                    if (info.views) {
+                        var output = document.createDocumentFragment();
+
+                        info.views.reverse();
+                        info.views.forEach(function (view) {
+                            output.appendChild(view.toDocumentFragment()); //removes from document and appends to 'output'
+                        });
+                        if (node.nodeType === 1) {
+                            node.appendChild(output);
+                        } else if (node.nodeType === 8) {
+                            //Render inner template and insert berfore this node.
+                            node.parentNode.insertBefore(output, info.blockEndNode);
+                        }
                     }
                 }
             },
