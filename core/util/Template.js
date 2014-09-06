@@ -794,9 +794,9 @@
             }, this);
 
             //Update index of items that come after last inserted/removed value.
-            if (Lui) { //No need to do anython on NodeJS
+            if (Lui) { //No need to do anything on on NodeJS
                 for (var i = startIndex + items.length; i < info.views.length; i += 1) {
-                    info.views[i].$index(i);
+                    info.views[i].context.$index(i);
                 }
             }
 
