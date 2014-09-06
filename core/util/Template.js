@@ -412,9 +412,9 @@
                         $(node).empty();
                         var val = this.evaluate(binding, expr, node);
                         if (val !== undefined && val !== null && val !== '') {
-                            var nodes = this.parseHTML(val + '');
+                            var nodes = util.parseHTML(val + '');
                             if (nodes) {
-                                var tempFrag = this.moveToNewFragment(nodes);
+                                var tempFrag = util.moveToNewFragment(nodes);
                                 node.appendChild(tempFrag);
                             }
                         }
