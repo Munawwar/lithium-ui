@@ -188,8 +188,32 @@ define(['./util', '../../lib/lithium/src/lithium', 'jquery'], function (Lui, Li,
                         }
                     }, this);
                 }
+            },
+            remove: function (itemOrFunction) {
+                var func;
+                if (Li.isFunction(itemOrFunction)) {
+                    func = itemOrFunction
+                } else {
+                    func = function (item) {
+                        return item === itemOrFunction;
+                    };
+                }
+
+                //TODO: Improve performance whn removing from view.
+                var removedItems = [];
+                for (var i = value.length - 1; i >= 0; i -= 1) {
+                    if (func(value[i])) {
+                        this.splice(i, 1);
+                        i += 1;
+                        removedItems.unshift(value[i]);
+                    }
+                }
+                return removedItems;
+            },
+            removeAll: function () {
+                this.splice(0, value.length);
             }
-            //TODO: Implement remove(item), remove(function (item) {}), removeAll(), removeAll([items...]) like KO
+            //TODO: Implement removeAll([items...]) like KO
         });
 
         observable.isLuiObservable = true;
