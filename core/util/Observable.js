@@ -9,7 +9,8 @@ define(['./util', '../../lib/lithium/src/lithium', 'jquery-node'], function (Lui
             uniqueNodes = {},
             observable = function me(val) {
                 //Check whether value is called from a template or not.
-                if (me.caller && me.caller.caller === Lui.util.Template.View.saferEval) {
+                if (me.caller && (me.caller === Lui.util.Template.View.prototype.evaluate ||
+                    me.caller.caller === Lui.util.Template.View.saferEval)) {
                     var view = Lui.util.Template.View.currentlyEvaluating;
                     if (view) {
                         var node = view.currentlyEvaluating.node;
