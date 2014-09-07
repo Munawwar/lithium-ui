@@ -538,7 +538,7 @@ if (typeof define !== 'function') {
                     }
                 },
                 update: function () {
-                    return this.bindingHandler.checked.init.apply(this, arguments);
+                    return this.bindingHandler.value.init.apply(this, arguments);
                 }
             },
             visible: {
