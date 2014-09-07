@@ -532,7 +532,7 @@ if (typeof define !== 'function') {
                         var val = this.evaluate(binding, expr, node);
                         if (val === null || val === undefined) {
                             node.removeAttribute('value');
-                        } else {
+                        } else if (node.value !== (val + '')) {
                             node.setAttribute('value', val);
                         }
                     }
