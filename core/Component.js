@@ -2,7 +2,7 @@ define([
     './lui',
     'jquery',
     '../lib/lithium/src/lithium.pubsub',
-    './util/Template',
+    './Template',
     'tpl!./Component.ko'
 ], function (Lui, $, Li) {
 
@@ -17,19 +17,19 @@ define([
         rootEl: null,
         /**
          * Outer render template
-         * @param {Lui.util.Template|undefined} tpl
+         * @param {Lui.Template|undefined} tpl
          * if undefined, then script tag in document with data-outer="<component type>" is searched.
          *
-         * If instance of Lui.util.Template, then that is used directly.
+         * If instance of Lui.Template, then that is used directly.
          * Use Lui.findTemplate() to find and load a template (in a script tag) using attribute and type.
          */
         outerTpl: undefined,
         /**
          * Inner render template
-         * @param {undefined|String|Lui.util.Template|null} tpl
+         * @param {undefined|String|Lui.Template|null} tpl
          * if undefined, then script tag in document with data-outer="<component type>" is searched.
          *
-         * If instance of Lui.util.Template, then that is used directly.
+         * If instance of Lui.Template, then that is used directly.
          * Use Lui.findTemplate() to find and load a template (in a script tag) using attribute and type.
          *
          * If null, then no template. Some components don't have different "inner" and "outer", (eg component with a single void tag like <input>).
@@ -79,9 +79,9 @@ define([
                 var tpl = templates.outer.cloneNode(true),
                     innerTpl = templates.inner.cloneNode(true);
                 tpl.firstChild.appendChild(innerTpl);
-                target.tpl = new Lui.util.Template(tpl);
+                target.tpl = new Lui.Template(tpl);
             } else if (templates.outer) {
-                target.tpl = new Lui.util.Template(templates.outer.cloneNode(true));
+                target.tpl = new Lui.Template(templates.outer.cloneNode(true));
             }
         },
 

@@ -2,10 +2,10 @@
 
 var assert = require("assert"),
     fs = require('fs'),
-    Lui = require('../../../../core/util/Template.js'),
-    Htmlizer = Lui.util.Template,
+    Lui = require('../../../core/Template.js'),
+    Htmlizer = Lui.Template,
     jsdom = require('jsdom').jsdom,
-    jqueryFactory = require('../../../../core/util/jquery.js'),
+    jqueryFactory = require('./jquery.js'),
     path = require('path');
 
 describe('run text and attr binding test', function () {
@@ -300,6 +300,9 @@ function htmlToDocumentFragment(html) {
         window = document.parentWindow,
         jquery = jqueryFactory(window),
         df = document.createDocumentFragment();
+    if (!window) {
+        throw new Error('hey window no defined');
+    }
     jquery.parseHTML(html).forEach(function (node) {
         df.appendChild(node);
     }, this);

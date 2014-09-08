@@ -2,16 +2,16 @@ if (typeof define !== 'function') {
     var define = require('amdefine')(module);
 }
 
-define(['./util', '../../lib/lithium/src/lithium', 'jquery-node'], function (Lui, Li, $) {
-    Lui.util.Observable = function (initVal) {
+define(['./lui', '../lib/lithium/src/lithium', 'jquery-node'], function (Lui, Li, $) {
+    Lui.Observable = function (initVal) {
         var value,
             nodeBindings = [],
             uniqueNodes = {},
             observable = function me(val) {
                 //Check whether value is called from a template or not.
-                if (me.caller && (me.caller === Lui.util.Template.View.prototype.evaluate ||
-                    me.caller.caller === Lui.util.Template.View.saferEval)) {
-                    var view = Lui.util.Template.View.currentlyEvaluating;
+                if (me.caller && (me.caller === Lui.Template.View.prototype.evaluate ||
+                    me.caller.caller === Lui.Template.View.saferEval)) {
+                    var view = Lui.Template.View.currentlyEvaluating;
                     if (view) {
                         var node = view.currentlyEvaluating.node;
                         if (!uniqueNodes[node._uid] && !view.retired) {
@@ -47,15 +47,15 @@ define(['./util', '../../lib/lithium/src/lithium', 'jquery-node'], function (Lui
         return observable;
     };
 
-    Lui.util.ObservableArray = function (initVal) {
+    Lui.ObservableArray = function (initVal) {
         var value = [],
             nodeBindings = [],
             uniqueNodes = {},
             observable = function me(val) {
                 //Check whether value is called from a template or not.
-                if (me.caller && (me.caller === Lui.util.Template.View.prototype.evaluate ||
-                    me.caller.caller === Lui.util.Template.View.saferEval)) {
-                    var view = Lui.util.Template.View.currentlyEvaluating;
+                if (me.caller && (me.caller === Lui.Template.View.prototype.evaluate ||
+                    me.caller.caller === Lui.Template.View.saferEval)) {
+                    var view = Lui.Template.View.currentlyEvaluating;
                     if (view) {
                         var node = view.currentlyEvaluating.node;
                         if (!uniqueNodes[node._uid] && !view.retired) {

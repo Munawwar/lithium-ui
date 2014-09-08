@@ -51,7 +51,7 @@ define(['./Component'], function (Lui) {
         },
 
         getHtml: function () {
-            return (new Lui.util.Template(this.outerTpl)).toDocumentFragment(this.getTemplateData());
+            return (new Lui.Template(this.outerTpl)).toDocumentFragment(this.getTemplateData());
         },
         renderSelf: function () {
             this.super(arguments);

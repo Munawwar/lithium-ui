@@ -5,8 +5,8 @@ if (typeof define !== 'function') {
 }
 
 (function (factory, saferEval) {
-    define(['jquery-node', './js-object-literal-parse', './Observable'], function ($, parseObjectLiteral, Lui) {
-        Lui.util.Template = factory.call(this, saferEval, $, parseObjectLiteral, Lui);
+    define(['jquery-node', './util/js-object-literal-parse', './Observable'], function ($, parseObjectLiteral, Lui) {
+        Lui.Template = factory.call(this, saferEval, $, parseObjectLiteral, Lui);
         return Lui;
     }.bind(this));
 }(function (saferEval, $, parseObjectLiteral, Lui) {
@@ -768,7 +768,7 @@ if (typeof define !== 'function') {
                 var newContext = this.getNewContext(this.context, this.data);
                 //foreach special properties
                 newContext.$data = newContext.$rawData = item;
-                newContext.$index = Lui ? Lui.util.Observable(index + startIndex) : (index + startIndex); //Lui is undefined when running tests with NodeJS
+                newContext.$index = Lui.Observable(index + startIndex);
 
                 if (as) {
                     newContext[as] = item;
