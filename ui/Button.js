@@ -22,15 +22,15 @@ define(['../core/Component', 'tpl!./Button.ko'], function (Lui) {
         /**
          * @override
          */
-        getOuterHtml: function () {
-            return this.outerTpl.toDocumentFragment({
+        getTemplateData: function () {
+            return {
                 id: this.id,
                 type: this.type,
                 cls: this.getCssClass(),
                 style: this.style,
                 label: this.label,
                 disabled: this.disabled ? '' : false
-            });
+            };
         },
 
         enable: function () {
