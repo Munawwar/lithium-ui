@@ -239,7 +239,7 @@ if (typeof define !== 'function') {
                 init: function (node, binding, expr, tNode) {
                     var val = this.evaluate(binding, expr, node),
                         tpl = this.tpl.getBindingInfo(tNode).subTpl,
-                        view = this.makeView(tpl, this.context, val, node);
+                        view = this.makeView(tpl, this.context, this.data, node);
                     if (val) {
                         var tempFrag = view.toDocumentFragment();
                         if (node.nodeType === 1) {
