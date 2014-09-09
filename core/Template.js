@@ -22,7 +22,7 @@ if (typeof define !== 'function') {
 
     //HTML 4 and 5 void tags
     var voidTags = unwrap('area,base,basefont,br,col,command,embed,frame,hr,img,input,keygen,link,meta,param,source,track,wbr'),
-        conflictingBindings = unwrap('if,ifnot,foreach,text,html');
+        conflictingBindings = unwrap('if,ifnot,foreach,with,text,html');
 
     /**
      * @param {String|DocumentFragment} template If string, then it is better if the HTML is balanced, else it probably won't be correctly converted to DOM.
@@ -200,6 +200,12 @@ if (typeof define !== 'function') {
 
     };
 
+    /**
+     * @param {Lui.Template} template Lui.Template instance
+     * @param {Object} data Any data
+     * @param {Object} context [Context] in which this view should run. Used internally.
+     * @param {Lui.Template.View} [parentView] parent of this view. Used internally.
+     */
     Htmlizer.View = function (htmlizerInstance, data, context, parentView) {
         this.tpl = htmlizerInstance;
         this.data = data;
