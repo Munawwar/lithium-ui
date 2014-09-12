@@ -39,19 +39,6 @@ define(['../core/Component', 'tpl!./Text.ko'], function (Lui) {
         /**
          * @override
          */
-        getTemplateData: function () {
-            return {
-                id: this.id,
-                type: this.type,
-                cls: this.getCssClass(),
-                style: this.style,
-                value: this.value,
-                placeholder: this.placeholder
-            };
-        },
-        /**
-         * @override
-         */
         postRender: function () {
             this.adjustAutoComplete();
             this.super(arguments);

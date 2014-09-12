@@ -1,0 +1,7 @@
+<script type="text/html" data-outer="Lui.Dropdown">
+    <select data-bind="attr: {id: id, data-type: type, class: getCssClass(), style: style}">
+        <!-- ko foreach: options -->
+            <option data-bind="value: $data[0], text: $data[1]"></option>
+        <!-- /ko -->
+    </select>
+</script>

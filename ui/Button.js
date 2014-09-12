@@ -15,22 +15,9 @@ define(['../core/Component', 'tpl!./Button.ko'], function (Lui) {
          */
         makeConfigFromView: function (target) {
             var cfg = this.super(arguments);
-            cfg.label = target.firstChild.nodeValue;
+            cfg.label = (target.firstChild || {}).nodeValue;
             cfg.disabled = target.hasAttribute('disabled');
             return cfg;
-        },
-        /**
-         * @override
-         */
-        getTemplateData: function () {
-            return {
-                id: this.id,
-                type: this.type,
-                cls: this.getCssClass(),
-                style: this.style,
-                label: this.label,
-                disabled: this.disabled ? '' : false
-            };
         },
 
         enable: function () {

@@ -18,6 +18,7 @@ define(['jquery-node', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium
          * @param {HTMLElement} target HTMLElement that contains the view. Typically this is document.body.
          * @param {Object} parentCfg Config of parent component. So that this method can be used recursively to establish parent-child relationship.
          */
+        //TODO: DEPRECATED: Remove this.
         makeConfigFromView: (function () {
             function unwrap(str) {
                 var o = {};
@@ -83,6 +84,7 @@ define(['jquery-node', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium
         /**
          * Pass an array of component configs, to return an array of initialized components.
          */
+        //TODO: DEPRECATED: Remove this.
         create: function (ui, parent) {
             var created = [], cmp;
             ui.forEach(function (o) {
@@ -118,6 +120,7 @@ define(['jquery-node', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium
         /**
          * Render an array of components to a render target element.
          */
+        //TODO: DEPRECATED: Remove this.
         render: function (ui, target, index) {
             if (!target) {
                 if (console) {
@@ -205,6 +208,7 @@ define(['jquery-node', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium
          * Recursively traverses through a given component's instance
          * (or a plain object with type properties) and child items.
          */
+        //TODO: DEPRECATED: Remove this.
         traverse: function (component, callback, context) {
             var classRef = this.getClass(component.type);
             if (classRef === Lui.Box || (classRef.prototype instanceof Lui.Box)) {

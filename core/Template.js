@@ -22,7 +22,8 @@ if (typeof define !== 'function') {
 
     //HTML 4 and 5 void tags
     var voidTags = unwrap('area,base,basefont,br,col,command,embed,frame,hr,img,input,keygen,link,meta,param,source,track,wbr'),
-        conflictingBindings = unwrap('if,ifnot,foreach,with,text,html');
+        conflictingBindings = unwrap('if,ifnot,foreach,with,text,html'),
+        customElementRegex = /^(X|L)\-/;
 
     /**
      * @param {String|DocumentFragment} template If string, then it is better if the HTML is balanced, else it probably won't be correctly converted to DOM.
@@ -67,9 +68,17 @@ if (typeof define !== 'function') {
                     var nodeInfo = {},
                         bindings;
                     if (node.nodeType === 1) { //element
+                        var classRef;
+                        if (customElementRegex.test(node.nodeName)) {
+                            var className = node.nodeName.replace(/^X\-/, '')
+                                .replace(/^L\-/, 'Lui.')
+                                .replace(/-/g, '.');
+                            classRef = Lui.getClass(className);
+                        }
+
                         var bindOpts = node.getAttribute(this.noConflict ? 'data-htmlizer' : 'data-bind');
                         if (bindOpts) {
-                            this.checkForConflictingBindings(bindOpts);
+                            this.checkForConflictingBindings(bindOpts, classRef);
                             bindings = util.parseObjectLiteral(bindOpts);
                             node._id = getId();
                             nodeInfo.node = node;
@@ -81,6 +90,10 @@ if (typeof define !== 'function') {
                             }
                             this.nodeInfoList.push(nodeInfo);
                             this.nodeMap[node._id] = nodeInfo;
+                        }
+
+                        if (classRef) { //do not add component inner config to nodeInfoList
+                            return 'continue';
                         }
                     }
 
@@ -185,14 +198,21 @@ if (typeof define !== 'function') {
          * @param {String} bindOpts Bindings as string
          * @private
          */
-        checkForConflictingBindings: function (bindOpts) {
+        checkForConflictingBindings: function (bindOpts, isComponent) {
             var conflict = [];
             util.forEachObjectLiteral(bindOpts, function (binding) {
-                if (binding in conflictingBindings) {
+                if (isComponent) {
+                    if (binding !== 'attr') {
+                        conflict.push(binding);
+                    }
+                } else if (binding in conflictingBindings) {
                     conflict.push(binding);
                 }
             });
-            if (conflict.length > 1) {
+
+            if (isComponent && conflict.length) {
+                throw new Error('Component only supports attr binding.');
+            } else if (conflict.length > 1) {
                 throw new Error('Multiple bindings (' + conflict[0] + ' and ' + conflict[1] + ') are trying to control descendant bindings of the same element.' +
                     'You cannot use these bindings together on the same element.');
             }
@@ -206,8 +226,8 @@ if (typeof define !== 'function') {
      * @param {Object} context [Context] in which this view should run. Used internally.
      * @param {Lui.Template.View} [parentView] parent of this view. Used internally.
      */
-    Htmlizer.View = function (htmlizerInstance, data, context, parentView) {
-        this.tpl = htmlizerInstance;
+    Htmlizer.View = function (template, data, context, parentView) {
+        this.tpl = template;
         this.data = data;
         this.context = context || {
             $parents: [],
@@ -235,6 +255,50 @@ if (typeof define !== 'function') {
 
     Htmlizer.View.prototype = {
         bindingHandler: {
+            component: {
+                init: function (node, tNode) {
+                    var className = node.nodeName.replace(/^X\-/, '')
+                            .replace(/^L\-/, 'Lui.')
+                            .replace(/-/g, '.'),
+                        classRef = Lui.getClass(className),
+                        cfg, cmp;
+                    node.innerHTML = tNode.innerHTML;
+                    if (classRef) {
+                        //Parse node to a config
+                        if (classRef.prototype.makeConfigFromView) {
+                            cfg = classRef.prototype.makeConfigFromView(node, cfg);
+                        } else {
+                            cfg = {
+                                type: classRef.prototype.type
+                            };
+                        }
+                        cfg.parent = this.context.$root;
+
+                        //Create instance from config
+                        cmp = new classRef(cfg);
+                        //Resolve reference using ref attribute
+                        if (cfg.ref && cfg.parent) {
+                            var backsRegEx = /\.\.\//g,
+                                backs = cfg.ref.match(backsRegEx);
+                            cfg.ref = cfg.ref.replace(backsRegEx, '');
+
+                            var rel = cfg.parent;
+                            for (backs = (backs ? backs.length : 0); backs > 0; backs -= 1) {
+                                rel = rel.parent;
+                            }
+
+                            rel[cfg.ref] = cmp;
+                            delete cmp.ref;
+                        }
+
+                        //Add to components list
+                        this.components = this.components || [];
+                        this.components.push({cmp: cmp, node: node});
+
+                        return {domTraverse: 'continue'}; //ignore inner content
+                    }
+                }
+            },
             "if": {
                 init: function (node, binding, expr, tNode) {
                     var val = this.evaluate(binding, expr, node),
@@ -601,7 +665,7 @@ if (typeof define !== 'function') {
                     var node = tNode.cloneNode(false);
                     stack[stack.length - 1].appendChild(node);
 
-                    var match, binding;
+                    var match, binding, control;
                     if (node.nodeType === 1) { //element
                         stack.push(node);
                         tStack.push(tNode);
@@ -615,7 +679,7 @@ if (typeof define !== 'function') {
                         var ret;
                         util.forEachObjectLiteral(bindOpts, function (binding, value) {
                             if (this.bindingHandler[binding]) {
-                                var control = this.bindingHandler[binding].init.call(this,
+                                control = this.bindingHandler[binding].init.call(this,
                                     node, binding, value, tNode, blocks) || {};
                                 if (control.domTraverse) {
                                     ret = control.domTraverse;
@@ -628,6 +692,14 @@ if (typeof define !== 'function') {
                                 }
                             }
                         }, this);
+
+                        if (customElementRegex.test(node.nodeName)) {
+                            control = this.bindingHandler.component.init.call(this, node, tNode);
+                            if (control.domTraverse) {
+                                ret = control.domTraverse;
+                            }
+                        }
+
                         if (ret) {
                             return ret;
                         }
@@ -656,7 +728,7 @@ if (typeof define !== 'function') {
                         match = stmt.match(/(?:ko|hz)[ ]+([^:]+):(.+)/);
                         if (match && this.bindingHandler[match[1].trim()]) {
                             binding = match[1].trim();
-                            var control = this.bindingHandler[binding].init.call(this,
+                            control = this.bindingHandler[binding].init.call(this,
                                 node, binding, match[2], tNode, blocks) || {};
                             if (control.skipOtherbindings) {
                                 return true;
@@ -677,10 +749,37 @@ if (typeof define !== 'function') {
                 }
             }, this);
 
+            //We could have iterated through this.components array and replaced componentnode with cmp.view.toDocumentFragment()
+            //..but that isn't suited for renderers that needs to initiate AJAX etc. So the right way is to call
+            //component's render method.
+            //I can't call it here, because Component hasn't called component.init() yet.
+            //i.e in Component.js constructor, toDocumentFragment() is called before init().
+            //Now that is because, init cannot be done until all instances are created and refs are resolved properly.
+
             //Keep track of first and last child
             this.firstChild = output.firstChild;
             this.lastChild = output.lastChild;
             return output;
+        },
+
+        /**
+         *
+         */
+        render: function () {
+            //Render components
+            (this.components || []).forEach(function (item) {
+                item.cmp.render(item.node.parentNode, Lui.util.childIndex(item.node));
+                item.node.parentNode.removeChild(item.node);
+            }, this);
+
+            //Call render() on sub views as well.
+            this.nodeInfoList.forEach(function (info) {
+                if (info.views) {
+                    info.views.forEach(function (view) {
+                        view.render();
+                    });
+                }
+            }, this);
         },
 
         toString: function () {

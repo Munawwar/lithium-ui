@@ -88,7 +88,11 @@ define([
         constructor: function (cfg) {
             this.id = 'cmp-' + Lui.Component.getNewId();
             this.set(cfg);
+            this.view = (new Lui.Template.View(this.tpl, this));
+            this.view.toDocumentFragment(); //Class = Template and Instance = View. So every instance should have View ready (even if be just in memory).
+            this.init();
         },
+        init: $.noop,
         /**
          * Set configuration. Call this.refresh to re-render this component with the new config.
          */
@@ -137,40 +141,19 @@ define([
             return (typeCls + ' ' + this.cls + ' ' + this.extraCls).trim();
         },
         /**
-         * @returns {Object}
-         * To be used by {@link #getHtml} method.
-         * @protected
-         */
-        getTemplateData: function () {
-            return {
-                id: this.id,
-                type: this.type,
-                cls: this.getCssClass() || '',
-                style: this.style || '',
-                inner: this.getInnerTemplateData()
-            };
-        },
-        /**
-         * @returns {Object}
-         * To be used by {@link #getTemplateData} method.
-         * @protected
-         */
-        getInnerTemplateData: function () {
-            return {};
-        },
-        /**
          * @returns {DocumentFragment}
          * To be used by {@link #render} method.
          * @protected
          */
         getHtml: function () {
-            return this.tpl.toDocumentFragment(this.getTemplateData());
+            return this.view.toDocumentFragment();
         },
         /**
          * @protected
          */
         renderSelf: function (target, childIndex) {
             target.insertBefore(this.getHtml(), target.childNodes[childIndex]);
+            this.view.render();
             this.rootEl = $('#' + this.id, target)[0];
         },
         /**

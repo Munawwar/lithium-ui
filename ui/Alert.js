@@ -24,19 +24,6 @@ define([
             return cls + ' alert-' + this.alertType;
         },
 
-        /**
-         * @override
-         */
-        getTemplateData: function () {
-            return {
-                id: this.id,
-                type: this.type,
-                cls: this.getCssClass(),
-                style: this.style,
-                html: this.html
-            };
-        },
-
         render: function () {
             this.super(arguments);
             if (!this.closeBtn) {
