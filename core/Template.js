@@ -639,11 +639,7 @@ if (typeof define !== 'function') {
 
             if (this.firstChild) { //if already rendered,
                 //then remove from document, add to new DocumentFragment and return it.
-                var nodes = util.getImmediateNodes(this.firstChild.ownerDocument, this.firstChild, this.lastChild);
-                if (this.firstChild !== this.lastChild) {
-                    nodes.unshift(this.firstChild);
-                }
-                nodes.push(this.lastChild);
+                var nodes = util.getImmediateNodes(this.firstChild.ownerDocument, this.firstChild, this.lastChild, true);
                 return util.moveToNewFragment(nodes);
             }
 
@@ -1036,9 +1032,13 @@ if (typeof define !== 'function') {
         /**
          * @private
          * Get all immediate nodes between two given nodes.
+         * @param {Boolean} inclusive Also include startNode and endNode in the returned array.
          */
-        getImmediateNodes: function (frag, startNode, endNode) {
+        getImmediateNodes: function (frag, startNode, endNode, inclusive) {
             var nodes = [];
+            if (inclusive) {
+                nodes.push(startNode);
+            }
             if (startNode === endNode) {
                 return nodes;
             }
@@ -1051,6 +1051,9 @@ if (typeof define !== 'function') {
                     return 'continue';
                 }
             });
+            if (inclusive) {
+                nodes.push(endNode);
+            }
             return nodes;
         },
 
