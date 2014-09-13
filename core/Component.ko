@@ -1,3 +1,5 @@
 <script type="text/html" data-outer="Lui.Component">
-    <div data-bind="attr: {id: id, data-type: type, class: getCssClass(), style: style}"></div>
+    <div data-bind="attr: {id: id, data-type: type, class: getCssClass(), style: style}">
+        <!-- ko template: innerTpl --><!-- /ko -->
+    </div>
 </script>

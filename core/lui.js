@@ -199,7 +199,7 @@ define(['jquery-node', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium
             tplTag = tplTag[tplTag.length - 1];
             if (tplTag) {
                 var text = tplTag.firstChild.nodeValue.trim();
-                tpl = Li.dom(text);
+                tpl = new Lui.Template(text);
             }
             return tpl;
         },

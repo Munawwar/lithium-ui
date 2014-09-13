@@ -304,6 +304,21 @@ if (typeof define !== 'function') {
                     }
                 }
             },
+            template: {
+                init: function (node, binding, expr, tNode, blocks) {
+                    if (node.nodeType === 8) {
+                        var tpl = this.evaluate(binding, expr, node);
+                        if (tpl) {
+                            var view = this.makeView(tpl, this.context, this.data, node),
+                                tempFrag = view.toDocumentFragment();
+                            node.parentNode.insertBefore(tempFrag, node.nextSibling);
+                        }
+                        node.parentNode.removeChild(node);
+                        var block = util.findBlockFromStartNode(blocks, tNode);
+                        return {ignoreTillNode: block.end};
+                    }
+                }
+            },
             "if": {
                 init: function (node, binding, expr, tNode) {
                     var val = this.evaluate(binding, expr, node),

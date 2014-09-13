@@ -68,27 +68,13 @@ define([
                 if (tpl) {
                     proto.innerTpl = tpl;
                 }
-                this.stitchTpl(proto, {outer: proto.outerTpl, inner: proto.innerTpl});
-            }
-        },
-        /**
-         * @protected
-         */
-        stitchTpl: function (target, templates) {
-            if (templates.outer && templates.inner) {
-                var tpl = templates.outer.cloneNode(true),
-                    innerTpl = templates.inner.cloneNode(true);
-                tpl.firstChild.appendChild(innerTpl);
-                target.tpl = new Lui.Template(tpl);
-            } else if (templates.outer) {
-                target.tpl = new Lui.Template(templates.outer.cloneNode(true));
             }
         },
 
         constructor: function (cfg) {
             this.id = 'cmp-' + Lui.Component.getNewId();
             this.set(cfg);
-            this.view = (new Lui.Template.View(this.tpl, this));
+            this.view = (new Lui.Template.View(this.outerTpl, this));
             this.init();
         },
         init: $.noop,
@@ -98,12 +84,9 @@ define([
         set: function (cfg) {
             this.cfg = this.cfg || {};
             $.extend(this, cfg);
-            //TODO: Handle more overridden outerTpl. Or think about removing the ability to override templates.
+            //TODO: Is the ability to override inner template of a single instance needed?
             if (cfg.innerTpl) {
-                this.stitchTpl(this, {outer: this.outerTpl, inner: this.innerTpl});
-            } else if (this.hasOwnProperty('innerTpl')) {
-                delete this.innerTpl;
-                this.stitchTpl(this, {outer: this.outerTpl, inner: this.innerTpl});
+                this.innerTpl = new Lui.Template(cfg.innerTpl);
             }
 
             this.listeners = this.listeners || [];
