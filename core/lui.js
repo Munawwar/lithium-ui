@@ -205,6 +205,27 @@ define(['jquery-node', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium
         },
 
         /**
+         * Converts each property of object to an Observable
+         */
+        toObservable: function (obj) {
+            Li.forEach(obj, function (val, key) {
+                obj[key] = new Lui.Observable(val);
+            });
+        },
+
+        /**
+         * Get values from each property of ab object.
+         * If property is an observable, then find it's primitive value.
+         */
+        fromObservable: function (obj) {
+            var ret = {};
+            Li.forEach(obj, function (val, key) {
+                ret[key] = (val.isLuiObservable ? val() : val);
+            });
+            return ret;
+        },
+
+        /**
          * Recursively traverses through a given component's instance
          * (or a plain object with type properties) and child items.
          */
