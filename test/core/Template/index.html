@@ -1,9 +1,22 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <script src="../src/jquery.js"></script>
-        <script src="../src/js-object-literal-parse.js"></script>
-        <script src="../src/Htmlizer.js"></script>
+        <script src="require.js"></script>
+        <script>
+            requirejs.config({
+                //By default load any module IDs from js/lib
+                baseUrl: '',
+                //except, if the module ID starts with "app",
+                //load it from the js/app directory. paths
+                //config is relative to the baseUrl, and
+                //never includes a ".js" extension since
+                //the paths config could be for a directory.
+                paths: {
+                    jquery: './jquery',
+                    "jquery-node": '../../../node_modules/jquery-node/jquery-node'
+                }
+            });
+        </script>
     </head>
     <body>
         <script>
@@ -13,161 +26,163 @@
                 xhr.send();
                 return xhr.responseText;
             }
+            require(['../../../core/Template.js'], function (Lui) {
+                var Htmlizer = Lui.Template;
 
-            //Test 1 - text and attr binding
-            console.info('Test 1 - text and attr binding');
-            var text = fetch('text-and-attr-binding-tpl.html');
-            console.log((new Htmlizer(text)).toString({
-                btnText: 'Click here',
-                titleText: 'abc " def',
-                cls: 'btn btn-default'
-            }));
+                //Test 1 - text and attr binding
+                console.info('Test 1 - text and attr binding');
+                var text = fetch('text-and-attr-binding-tpl.html');
+                console.log((new Htmlizer(text)).toString({
+                    btnText: 'Click here',
+                    titleText: 'abc " def',
+                    cls: 'btn btn-default'
+                }));
 
-            //Test 1.1 - Container-less text binding
-            console.info('Test 1.1 - Container-less text binding');
-            var text = fetch('text-comment-tpl.html');
-            console.log((new Htmlizer(text)).toString({
-                btnText: 'Click here'
-            }));
+                //Test 1.1 - Container-less text binding
+                console.info('Test 1.1 - Container-less text binding');
+                var text = fetch('text-comment-tpl.html');
+                console.log((new Htmlizer(text)).toString({
+                    btnText: 'Click here'
+                }));
 
-            //Test 2 - html binding
-            console.info('Test 2 - html binding');
-            var text = fetch('html-binding-tpl.html');
-            console.log((new Htmlizer(text)).toString({
-                message: '<b>This</b> is a <b>serious message</b>.'
-            }));
+                //Test 2 - html binding
+                console.info('Test 2 - html binding');
+                var text = fetch('html-binding-tpl.html');
+                console.log((new Htmlizer(text)).toString({
+                    message: '<b>This</b> is a <b>serious message</b>.'
+                }));
 
-            //Test 3 - inline if
-            console.info('Test 3 - inline if');
-            var text = fetch('if-inline-tpl.html');
-            console.log((new Htmlizer(text)).toString({
-                btnText: 'Howdy!',
-                cls: 'btn btn-default' //bootstrap 3 button css class
-            }));
+                //Test 3 - inline if
+                console.info('Test 3 - inline if');
+                var text = fetch('if-inline-tpl.html');
+                console.log((new Htmlizer(text)).toString({
+                    btnText: 'Howdy!',
+                    cls: 'btn btn-default' //bootstrap 3 button css class
+                }));
 
-            //Test 4 - Nested container-less if comments
-            console.info('Test 4 - Nested container-less if comments');
-            var text = fetch('if-comment-tpl.html');
-            console.log((new Htmlizer(text)).toString({
-                btnText: 'Howdy!',
-                cls: 'btn btn-default' //bootstrap 3 button css class
-            }));
+                //Test 4 - Nested container-less if comments
+                console.info('Test 4 - Nested container-less if comments');
+                var text = fetch('if-comment-tpl.html');
+                console.log((new Htmlizer(text)).toString({
+                    btnText: 'Howdy!',
+                    cls: 'btn btn-default' //bootstrap 3 button css class
+                }));
 
-            //Test 5 - Inline foreach
-            console.info('Test 5 - Inline foreach');
-            var text = fetch('foreach-inline-tpl.html');
-            console.log((new Htmlizer(text)).toString({
-                items: ['item1', 'item2', 'item3']
-            }));
+                //Test 5 - Inline foreach
+                console.info('Test 5 - Inline foreach');
+                var text = fetch('foreach-inline-tpl.html');
+                console.log((new Htmlizer(text)).toString({
+                    items: ['item1', 'item2', 'item3']
+                }));
 
-            //Test 5.1 - Inline foreach as
-            console.info('Test 5.1 - Inline foreach as');
-            var text = fetch('foreach-as-tpl.html');
-            console.log((new Htmlizer(text)).toString({
-                items: [{
-                    name: 'item1',
-                    subItems: [{
-                        name: 'subitem1'
+                //Test 5.1 - Inline foreach as
+                console.info('Test 5.1 - Inline foreach as');
+                var text = fetch('foreach-as-tpl.html');
+                console.log((new Htmlizer(text)).toString({
+                    items: [{
+                        name: 'item1',
+                        subItems: [{
+                            name: 'subitem1'
+                        }, {
+                            name: 'subitem2'
+                        }]
                     }, {
-                        name: 'subitem2'
-                    }]
-                }, {
-                    name: 'item2'
-                }, {
-                    name: 'item3'
-                }]
-            }));
-
-            //Test 6 - Nested container-less foreach comment
-            console.info('Test 6 - Nested container-less foreach comment');
-            var text = fetch('foreach-comment-tpl.html');
-            console.log((new Htmlizer(text)).toString({
-                items: [{
-                    name: 'item1',
-                    subItems: [{
-                        name: 'subitem1'
+                        name: 'item2'
                     }, {
-                        name: 'subitem2'
+                        name: 'item3'
                     }]
-                }, {
-                    name: 'item2'
-                }, {
-                    name: 'item3'
-                }]
-            }));
+                }));
 
-            //Test 7 - css and style binding
-            console.info('Test 7 - css and style binding');
-            var text = fetch('css-and-style-binding-tpl.html');
-            console.log((new Htmlizer(text)).toString({
-                isWarning: true,
-                bold: false
-            }));
-
-            //Test 8 - Binding context
-            console.info('Test 8 - Binding context');
-            var text = fetch('binding-context-tpl.html');
-            console.log((new Htmlizer(text)).toString({
-                items: [{
-                    name: 'item1',
-                    subItems: [{
-                        name: 'subitem1'
-                    }]
-                }]
-            }));
-
-            //Test 9 - ifnot binding
-            console.info('Test 9 - ifnot binding');
-            var text = fetch('ifnot-tpl.html');
-            console.log((new Htmlizer(text)).toString({
-                btnText: 'Howdy!',
-                cls: 'btn btn-default' //bootstrap 3 button css class
-            }));
-
-            //Test 10 - with binding
-            console.info('Test 10 - with binding');
-            var text = fetch('with-inline-tpl.html');
-            console.log((new Htmlizer(text)).toString({
-                obj: {
-                    val: 10
-                }
-            }));
-
-            //Test 11 - Container-less with binding
-            console.info('Test 11 - Container-less with binding');
-            var text = fetch('with-comment-tpl.html');
-            console.log((new Htmlizer(text)).toString({
-                obj: {
-                    val: 10
-                }
-            }));
-
-            //Test 12 - No conflict test
-            console.info('Test 12 - No conflict test');
-            var text = fetch('noconflict-tpl.html');
-            console.log((new Htmlizer(text, {noConflict: true})).toString({
-                btnText: 'Howdy!',
-                cls: 'btn btn-default' //bootstrap 3 button css class
-            }));
-
-            //Test 13 - No conflict sub-template test
-            console.info('Test 13 - No conflict sub-template test');
-            var text = fetch('noconflict-subtemplate-tpl.html');
-            console.log((new Htmlizer(text, {noConflict: true})).toString({
-                items: [{
-                    name: 'item1',
-                    subItems: [{
-                        name: 'subitem1'
+                //Test 6 - Nested container-less foreach comment
+                console.info('Test 6 - Nested container-less foreach comment');
+                var text = fetch('foreach-comment-tpl.html');
+                console.log((new Htmlizer(text)).toString({
+                    items: [{
+                        name: 'item1',
+                        subItems: [{
+                            name: 'subitem1'
+                        }, {
+                            name: 'subitem2'
+                        }]
                     }, {
-                        name: 'subitem2'
+                        name: 'item2'
+                    }, {
+                        name: 'item3'
                     }]
-                }, {
-                    name: 'item2'
-                }, {
-                    name: 'item3'
-                }]
-            }));
+                }));
 
+                //Test 7 - css and style binding
+                console.info('Test 7 - css and style binding');
+                var text = fetch('css-and-style-binding-tpl.html');
+                console.log((new Htmlizer(text)).toString({
+                    isWarning: true,
+                    bold: false
+                }));
+
+                //Test 8 - Binding context
+                console.info('Test 8 - Binding context');
+                var text = fetch('binding-context-tpl.html');
+                console.log((new Htmlizer(text)).toString({
+                    items: [{
+                        name: 'item1',
+                        subItems: [{
+                            name: 'subitem1'
+                        }]
+                    }]
+                }));
+
+                //Test 9 - ifnot binding
+                console.info('Test 9 - ifnot binding');
+                var text = fetch('ifnot-tpl.html');
+                console.log((new Htmlizer(text)).toString({
+                    btnText: 'Howdy!',
+                    cls: 'btn btn-default' //bootstrap 3 button css class
+                }));
+
+                //Test 10 - with binding
+                console.info('Test 10 - with binding');
+                var text = fetch('with-inline-tpl.html');
+                console.log((new Htmlizer(text)).toString({
+                    obj: {
+                        val: 10
+                    }
+                }));
+
+                //Test 11 - Container-less with binding
+                console.info('Test 11 - Container-less with binding');
+                var text = fetch('with-comment-tpl.html');
+                console.log((new Htmlizer(text)).toString({
+                    obj: {
+                        val: 10
+                    }
+                }));
+
+                //Test 12 - No conflict test
+                console.info('Test 12 - No conflict test');
+                var text = fetch('noconflict-tpl.html');
+                console.log((new Htmlizer(text, {noConflict: true})).toString({
+                    btnText: 'Howdy!',
+                    cls: 'btn btn-default' //bootstrap 3 button css class
+                }));
+
+                //Test 13 - No conflict sub-template test
+                console.info('Test 13 - No conflict sub-template test');
+                var text = fetch('noconflict-subtemplate-tpl.html');
+                console.log((new Htmlizer(text, {noConflict: true})).toString({
+                    items: [{
+                        name: 'item1',
+                        subItems: [{
+                            name: 'subitem1'
+                        }, {
+                            name: 'subitem2'
+                        }]
+                    }, {
+                        name: 'item2'
+                    }, {
+                        name: 'item3'
+                    }]
+                }));
+            });
         </script>
     </body>
 </html>
