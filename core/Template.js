@@ -820,6 +820,21 @@ if (typeof define !== 'function') {
             return this.fragment;
         },
 
+        /**
+         * Get all components used by this view and sub-views.
+         */
+        getComponents: function () {
+            var components = (this.components || []).slice();
+            this.nodeInfoList.forEach(function (info) {
+                if (info.views) {
+                    info.views.forEach(function (view) {
+                        components = components.concat(view.getComponents());
+                    });
+                }
+            }, this);
+            return components;
+        },
+
         toString: function () {
             var frag = this.toDocumentFragment(), html = '';
             traverse(frag, frag, function (node, isOpenTag) {
