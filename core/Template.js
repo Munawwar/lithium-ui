@@ -23,7 +23,6 @@ if (typeof define !== 'function') {
     //HTML 4 and 5 void tags
     var voidTags = unwrap('area,base,basefont,br,col,command,embed,frame,hr,img,input,keygen,link,meta,param,source,track,wbr'),
         conflictingBindings = unwrap('if,ifnot,foreach,with,text,html'),
-        customElementRegex = /^(X|L)\-/,
         traverse = Lui.util.traverse;
 
     /**
@@ -70,7 +69,7 @@ if (typeof define !== 'function') {
                         bindings;
                     if (node.nodeType === 1) { //element
                         var classRef;
-                        if (customElementRegex.test(node.nodeName)) {
+                        if (util.regex.customElement.test(node.nodeName)) {
                             var className = node.nodeName.replace(/^X\-/, '')
                                 .replace(/^L\-/, 'Lui.')
                                 .replace(/-/g, '.');
@@ -412,6 +411,13 @@ if (typeof define !== 'function') {
                         tpl = this.tpl.getBindingInfo(tNode).subTpl,
                         as;
 
+                    if (node.nodeType === 1) {
+                        expr = this.parseObjectLiteral(node.getAttribute('data-bind')).foreach;
+                    } else if (node.nodeType === 8) {
+                        var match = node.data.match(util.regex.commentStatment);
+                        expr = match[2];
+                    }
+
                     expr = expr.trim();
                     if (expr[0] === '{') {
                         as = util.parseObjectLiteral(expr).as.slice(1, -1);
@@ -714,7 +720,7 @@ if (typeof define !== 'function') {
                             }
                         }, this);
 
-                        if (customElementRegex.test(node.nodeName)) {
+                        if (util.regex.customElement.test(node.nodeName)) {
                             control = this.bindingHandler.component.init.call(this, node, tNode);
                             if (control.domTraverse) {
                                 ret = control.domTraverse;
@@ -746,7 +752,7 @@ if (typeof define !== 'function') {
                             this.getNodeInfo(node).blockStartNode = startNode;
                         }
 
-                        match = stmt.match(/(?:ko|hz)[ ]+([^:]+):(.+)/);
+                        match = stmt.match(util.regex.commentStatment);
                         if (match && this.bindingHandler[match[1].trim()]) {
                             binding = match[1].trim();
                             control = this.bindingHandler[binding].init.call(this,
@@ -1013,6 +1019,10 @@ if (typeof define !== 'function') {
     };
 
     var util = Htmlizer.util = {
+        regex: {
+            customElement: /^(X|L)\-/,
+            commentStatment: /(?:ko|hz)[ ]+([^:]+):(.+)/
+        },
         /**
          * Parse html string using jQuery.parseHTML and also make sure script tags aren't removed.
          * @param {String} html

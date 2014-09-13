@@ -47,12 +47,14 @@ define(['./lui', '../lib/lithium/src/lithium', 'jquery-node'], function (Lui, Li
         return observable;
     };
 
+
     Lui.ObservableArray = function (initVal) {
         var value = [],
             nodeBindings = [],
             uniqueNodes = {},
-            observable = function me(val) {
+            trackDependency = function () {
                 //Check whether value is called from a template or not.
+                var me = trackDependency.caller;
                 if (me.caller && (me.caller === Lui.Template.View.prototype.evaluate ||
                     me.caller.caller === Lui.Template.View.saferEval)) {
                     var view = Lui.Template.View.currentlyEvaluating;
@@ -64,6 +66,9 @@ define(['./lui', '../lib/lithium/src/lithium', 'jquery-node'], function (Lui, Li
                         }
                     }
                 }
+            },
+            observable = function me(val) {
+                trackDependency();
 
                 //Set if not undefined
                 if (val !== undefined) {
@@ -79,7 +84,7 @@ define(['./lui', '../lib/lithium/src/lithium', 'jquery-node'], function (Lui, Li
                                     bindingHandler.update.call(info.view, info.node, info.binding, info.expr, info.extraInfo);
                                 }
                             } else {
-                                bindingHandler.splice.apply(info.view, ([info.node, info.binding, info.expr, 0, oldValue.length]).concat(val));
+                                bindingHandler.splice.call(info.view, info.node, info.binding, info.expr, 0, oldValue.length, val);
                             }
                         }, this);
                     }
@@ -197,7 +202,7 @@ define(['./lui', '../lib/lithium/src/lithium', 'jquery-node'], function (Lui, Li
             remove: function (itemOrFunction) {
                 var func;
                 if (Li.isFunction(itemOrFunction)) {
-                    func = itemOrFunction
+                    func = itemOrFunction;
                 } else {
                     func = function (item) {
                         return item === itemOrFunction;
@@ -217,6 +222,10 @@ define(['./lui', '../lib/lithium/src/lithium', 'jquery-node'], function (Lui, Li
             },
             removeAll: function () {
                 this.splice(0, value.length);
+            },
+            count: function () {
+                trackDependency();
+                return value.length;
             }
             //TODO: Implement removeAll([items...]) like KO
         });
