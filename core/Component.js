@@ -89,7 +89,6 @@ define([
             this.id = 'cmp-' + Lui.Component.getNewId();
             this.set(cfg);
             this.view = (new Lui.Template.View(this.tpl, this));
-            this.view.toDocumentFragment(); //Class = Template and Instance = View. So every instance should have View ready (even if be just in memory).
             this.init();
         },
         init: $.noop,
@@ -146,14 +145,13 @@ define([
          * @protected
          */
         getHtml: function () {
-            return this.view.toDocumentFragment();
+            return this.view.render();
         },
         /**
          * @protected
          */
         renderSelf: function (target, childIndex) {
             target.insertBefore(this.getHtml(), target.childNodes[childIndex]);
-            this.view.render();
             this.rootEl = $('#' + this.id, target)[0];
         },
         /**

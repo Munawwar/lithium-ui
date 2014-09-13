@@ -239,11 +239,15 @@ if (typeof define !== 'function') {
         this.parentView = parentView || null;
 
         //Track first and last child after render.
+        this.fragment = null;
         this.firstChild = null;
         this.lastChild = null;
 
         this.nodeInfoList = []; //will contain the binding information for each node.
         this.nodeMap = {}; //used to quickly map a node to it's nodeInfo.
+
+        //Partially render the view, as Components and sub-components need to be constructed before render.
+        this.toDocumentFragment();
     };
 
     Htmlizer.View.uid = (function () {
@@ -633,15 +637,20 @@ if (typeof define !== 'function') {
             }
         },
         /**
-         * @param {Object} data
+         * @private
          */
         toDocumentFragment: function () {
             this.retired = false;
 
             if (this.firstChild) { //if already rendered,
-                //then remove from document, add to new DocumentFragment and return it.
-                var nodes = util.getImmediateNodes(this.firstChild.ownerDocument, this.firstChild, this.lastChild, true);
-                return util.moveToNewFragment(nodes);
+                var ownerDocument = this.firstChild.ownerDocument;
+                //remove from document, add to new DocumentFragment, if it has changed
+                if (!(ownerDocument === this.fragment && ownerDocument.firstChild === this.firstChild &&
+                    ownerDocument.lastChild === this.lastChild)) {
+                    var nodes = util.getImmediateNodes(this.firstChild.ownerDocument, this.firstChild, this.lastChild, true);
+                    this.fragment = util.moveToNewFragment(nodes);
+                }
+                return this.fragment;
             }
 
             var frag = this.tpl.frag,
@@ -746,7 +755,7 @@ if (typeof define !== 'function') {
                 }
             }, this);
 
-            //We could have iterated through this.components array and replaced componentnode with cmp.view.toDocumentFragment()
+            //We could have iterated through this.components array and replaced component node with cmp.view.toDocumentFragment()
             //..but that isn't suited for renderers that needs to initiate AJAX etc. So the right way is to call
             //component's render method.
             //I can't call it here, because Component hasn't called component.init() yet.
@@ -754,19 +763,28 @@ if (typeof define !== 'function') {
             //Now that is because, init cannot be done until all instances are created and refs are resolved properly.
 
             //Keep track of first and last child
+            this.fragment = output;
             this.firstChild = output.firstChild;
             this.lastChild = output.lastChild;
             return output;
         },
 
         /**
-         *
+         * Renders and returns a DocumentFragment.
          */
         render: function () {
             //Render components
             (this.components || []).forEach(function (item) {
-                item.cmp.render(item.node.parentNode, Lui.util.childIndex(item.node));
-                item.node.parentNode.removeChild(item.node);
+                var parent = item.node.parentNode,
+                    index = Lui.util.childIndex(item.node);
+                item.cmp.render(parent, index);
+                if (item.node === this.firstChild) {
+                    this.firstChild = parent.childNodes[index];
+                }
+                if (item.node === this.lastChild) {
+                    this.lastChild = parent.childNodes[index];
+                }
+                parent.removeChild(item.node);
             }, this);
 
             //Call render() on sub views as well.
@@ -777,6 +795,8 @@ if (typeof define !== 'function') {
                     });
                 }
             }, this);
+
+            return this.fragment;
         },
 
         toString: function () {
