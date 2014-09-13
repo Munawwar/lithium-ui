@@ -1045,6 +1045,9 @@ if (typeof define !== 'function') {
             }
             traverse(startNode, frag, function (node, isOpenTag) {
                 if (isOpenTag) {
+                    if (inclusive && node.parentNode === startNode) {
+                        return 'break';
+                    }
                     if (node === endNode) {
                         return 'halt';
                     }
