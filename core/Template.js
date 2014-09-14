@@ -824,7 +824,9 @@ if (typeof define !== 'function') {
          * Get all components used by this view and sub-views.
          */
         getComponents: function () {
-            var components = (this.components || []).slice();
+            var components = (this.components || []).slice().map(function (o) {
+                return o.cmp;
+            });
             this.nodeInfoList.forEach(function (info) {
                 if (info.views) {
                     info.views.forEach(function (view) {
