@@ -99,7 +99,7 @@ if (typeof define !== 'function') {
 
                     //HTML comment node
                     if (node.nodeType === 8) {
-                        var stmt = node.data.trim();
+                        var stmt = node.data.trim(), match;
 
                         //Ignore all containerless statements beginning with "ko" if noConflict = true.
                         if (this.noConflict && (/^(ko |\/ko$)/).test(stmt)) {
@@ -112,6 +112,9 @@ if (typeof define !== 'function') {
                             nodeInfo.node = node;
                             nodeInfo.depth = depth;
                             nodeInfo.block = block;
+                            match = stmt.match(util.regex.commentStatment);
+                            nodeInfo.bindings = {};
+                            nodeInfo.bindings[match[1]] = match[2];
                             if (block.key === 'foreach' || block.key === 'with' || block.key === 'if' || block.key === 'ifnot') {
                                 blockNodes = util.getImmediateNodes(frag, block.start, block.end);
                                 tempFrag = util.moveToNewFragment(blockNodes);
@@ -408,17 +411,11 @@ if (typeof define !== 'function') {
                 },
                 splice: function (node, binding, expr, index, removeLength, newItems) {
                     var tNode = this.getNodeInfo(node).tNode,
+                        bindingInfo = this.tpl.getBindingInfo(tNode),
                         tpl = this.tpl.getBindingInfo(tNode).subTpl,
                         as;
 
-                    if (node.nodeType === 1) {
-                        expr = this.parseObjectLiteral(node.getAttribute('data-bind')).foreach;
-                    } else if (node.nodeType === 8) {
-                        var match = node.data.match(util.regex.commentStatment);
-                        expr = match[2];
-                    }
-
-                    expr = expr.trim();
+                    expr = bindingInfo.bindings.foreach.trim();
                     if (expr[0] === '{') {
                         as = util.parseObjectLiteral(expr).as.slice(1, -1);
                     }
