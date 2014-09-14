@@ -294,8 +294,11 @@ if (typeof define !== 'function') {
                                 rel = rel.parent;
                             }
 
-                            rel[cfg.ref] = cmp;
-                            delete cmp.ref;
+                            cfg.ref.split('.').slice(0, -1).forEach(function (part) {
+                                rel = rel[part];
+                            });
+                            rel[cfg.ref.split('.').slice(-1)[0]] = cmp;
+                            delete cfg.ref;
                         }
 
                         //Add to components list
