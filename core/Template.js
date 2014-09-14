@@ -982,7 +982,7 @@ if (typeof define !== 'function') {
 
             var value = saferEval.call(null, expr, this.context, this.data, node);
 
-            if (value && value.isLuiObservable) {
+            if (value && Lui.isObservable(value)) {
                 value = value();
             }
 

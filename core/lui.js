@@ -64,11 +64,18 @@ define(['jquery-node', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium
         },
 
         /**
+         * Check if type is an observable.
+         */
+        isObservable: function (o) {
+            return (Li.isObject(o) && o.isLuiObservable);
+        },
+
+        /**
          * Converts each property of object to an Observable
          */
         toObservable: function (obj) {
             Li.forEach(obj, function (val, key) {
-                obj[key] = new Lui.Observable(val);
+                obj[key] = Lui.Observable(val);
             });
         },
 
@@ -79,7 +86,7 @@ define(['jquery-node', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium
         fromObservable: function (obj) {
             var ret = {};
             Li.forEach(obj, function (val, key) {
-                ret[key] = (val.isLuiObservable ? val() : val);
+                ret[key] = (Lui.isObservable(val) ? val() : val);
             });
             return ret;
         }
