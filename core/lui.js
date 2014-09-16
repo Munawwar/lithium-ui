@@ -77,6 +77,7 @@ define(['jquery-node', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium
             Li.forEach(obj, function (val, key) {
                 obj[key] = Lui.Observable(val);
             });
+            return obj;
         },
 
         /**
@@ -84,6 +85,9 @@ define(['jquery-node', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium
          * If property is an observable, then find it's primitive value.
          */
         fromObservable: function (obj) {
+            if (!obj) {
+                return obj;
+            }
             var ret = {};
             Li.forEach(obj, function (val, key) {
                 ret[key] = (Lui.isObservable(val) ? val() : val);
