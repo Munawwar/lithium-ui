@@ -248,6 +248,9 @@ if (typeof define !== 'function') {
         this.nodeInfoList = []; //will contain the binding information for each node.
         this.nodeMap = {}; //used to quickly map a node to it's nodeInfo.
 
+        this.components = null;
+        this.componentMap = null;
+
         //Partially render the view, as Components and sub-components need to be constructed before render.
         this.toDocumentFragment();
     };
@@ -305,7 +308,22 @@ if (typeof define !== 'function') {
                         this.components = this.components || [];
                         this.components.push({cmp: cmp, node: node});
 
+                        this.componentMap = this.componentMap || {};
+                        this.componentMap[node._uid] = cmp;
+
                         return {domTraverse: 'continue'}; //ignore inner content
+                    }
+                },
+                update: function (node, attr) {
+                    var cmp;
+                    if (this.componentMap && (cmp = this.componentMap[node._uid])) {
+                        var cfg = {};
+                        if (attr === 'class') {
+                            cfg.cls = node.getAttribute(attr);
+                        } else {
+                            cfg[attr] = node.getAttribute(attr);
+                        }
+                        cmp.set(cfg);
                     }
                 }
             },
@@ -529,6 +547,7 @@ if (typeof define !== 'function') {
                         } else { //undefined, null, false
                             node.removeAttribute(extraInfo.attr);
                         }
+                        this.bindingHandler.component.update.call(this, node, extraInfo.attr);
                     }
                 }
             },
@@ -551,6 +570,7 @@ if (typeof define !== 'function') {
                         } else {
                             $(node).removeClass(extraInfo.className);
                         }
+                        this.bindingHandler.component.update.call(this, node, 'class');
                     }
                 }
             },
@@ -575,6 +595,7 @@ if (typeof define !== 'function') {
                             } else { //undefined, null, false
                                 node.style.removeProperty(extraInfo.prop.replace(/[A-Z]/g, toCssProp));
                             }
+                            this.bindingHandler.component.update.call(this, node, 'style');
                         }
                     }
                 };

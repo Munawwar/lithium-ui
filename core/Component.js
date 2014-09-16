@@ -102,13 +102,15 @@ define([
         makeConfigFromView: function (element) {
             var cfg = {
                 type: this.type,
-                id: element.id || undefined,
-                cls: element.className || undefined,
-                extraCls: element.getAttribute('extracls') || undefined,
-                style: element.getAttribute('style') || undefined,
-                ref: element.getAttribute('ref') || undefined,
                 innerTpl: element.innerHTML.trim() || undefined
             };
+            Li.slice(element.attributes).forEach(function (attr) {
+                if (attr.name === 'class') {
+                    cfg.cls = attr.value;
+                } else if (attr.name !== 'data-bind') {
+                    cfg[attr.name] = attr.value;
+                }
+            });
             if (cfg.innerTpl) {
                 cfg.innerTpl = Li.dom(cfg.innerTpl);
             }
