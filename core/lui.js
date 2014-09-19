@@ -41,6 +41,16 @@ define(['jquery-node', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium
                 P = function () {};
             P.prototype = proto;
             var inst = new P();
+
+            //Find all observables from prototype and note them down in _observables.
+            //A Component instance can use _observables to make it's own copy of these observables.
+            proto._observables = [];
+            for (var prop in inst) {
+                if (Lui.isObservable(inst[prop])) {
+                    proto._observables.push(prop);
+                }
+            }
+
             if (Li.isFunction(inst.afterExtend)) {
                 inst.afterExtend(proto);
             }

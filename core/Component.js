@@ -3,6 +3,7 @@ define([
     'jquery',
     '../lib/lithium/src/lithium.pubsub',
     './Template',
+    './Observable',
     'tpl!./Component.ko'
 ], function (Lui, $, Li) {
 
@@ -73,6 +74,11 @@ define([
 
         constructor: function (cfg) {
             this.id = 'cmp-' + Lui.Component.getNewId();
+            //Make own copy of observable from prototype.
+            this._observables.forEach(function (prop) {
+                var val = this[prop];
+                this[prop] = val.isLuiObservableArray ? Lui.ObservableArray(val()) : Lui.Observable(val());
+            }, this);
             this.set(cfg);
             this.view = (new Lui.Template.View(this.outerTpl, this));
             this.init();
@@ -83,7 +89,18 @@ define([
          */
         set: function (cfg) {
             this.cfg = this.cfg || {};
-            $.extend(this, cfg);
+
+            for (var prop in cfg) {
+                var val = cfg[prop];
+                if (val !== undefined) {
+                    if (Lui.isObservable(this[prop]) && this.hasOwnProperty(prop)) {
+                        this[prop](val);
+                    } else {
+                        this[prop] = val;
+                    }
+                }
+            }
+
             //TODO: Is the ability to override inner template of a single instance needed?
             if (cfg.innerTpl) {
                 this.innerTpl = new Lui.Template(cfg.innerTpl);
