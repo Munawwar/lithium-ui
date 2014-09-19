@@ -49,6 +49,9 @@ define([
          */
         //undefined because, empty string would cause empty style attribute to be rendered by htmlizer.
         style: undefined,
+
+        //Note: afterExtend() and makeConfigFromView() cannot be static methods since they are taken from the prototype chain.
+
         /**
          * Called after Lui.extend() succeeds. Called exactly once for a class.
          * @param {Object} proto Prototype object of this class.
@@ -70,6 +73,28 @@ define([
                     proto.innerTpl = tpl;
                 }
             }
+        },
+        /**
+         * Read a <component> HTML element and generate corresponding component config.
+         * @param {HTMLElement} el Component's root element in the static view implementation.
+         * @protected
+         */
+        makeConfigFromView: function (element) {
+            var cfg = {
+                type: this.type,
+                innerTpl: element.innerHTML.trim() || undefined
+            };
+            Li.slice(element.attributes).forEach(function (attr) {
+                if (attr.name === 'class') {
+                    cfg.cls = attr.value;
+                } else if (attr.name !== 'data-bind') {
+                    cfg[attr.name] = attr.value;
+                }
+            });
+            if (cfg.innerTpl) {
+                cfg.innerTpl = Li.dom(cfg.innerTpl);
+            }
+            return cfg;
         },
 
         constructor: function (cfg) {
@@ -112,28 +137,6 @@ define([
             }
         },
         /**
-         * Read a <component> HTML element and generate corresponding component config.
-         * @param {HTMLElement} el Component's root element in the static view implementation.
-         * @protected
-         */
-        makeConfigFromView: function (element) {
-            var cfg = {
-                type: this.type,
-                innerTpl: element.innerHTML.trim() || undefined
-            };
-            Li.slice(element.attributes).forEach(function (attr) {
-                if (attr.name === 'class') {
-                    cfg.cls = attr.value;
-                } else if (attr.name !== 'data-bind') {
-                    cfg[attr.name] = attr.value;
-                }
-            });
-            if (cfg.innerTpl) {
-                cfg.innerTpl = Li.dom(cfg.innerTpl);
-            }
-            return cfg;
-        },
-        /**
          * @returns {String} The CSS class to be used on rootEl by {@link #render} method.
          * @protected
          */
@@ -142,18 +145,10 @@ define([
             return (typeCls + ' ' + this.cls + ' ' + this.extraCls).trim();
         },
         /**
-         * @returns {DocumentFragment}
-         * To be used by {@link #render} method.
-         * @protected
-         */
-        getHtml: function () {
-            return this.view.render();
-        },
-        /**
          * @protected
          */
         renderSelf: function (target, childIndex) {
-            target.insertBefore(this.getHtml(), target.childNodes[childIndex]);
+            target.insertBefore(this.view.render(), target.childNodes[childIndex]);
             this.rootEl = $('#' + this.id, target)[0];
         },
         /**
@@ -173,7 +168,7 @@ define([
         unrender: function () {
             /* If you call this method from blur event, then the removal of rootEl
              * could cause a second blur event to fire.
-             * Hence store rootEl in temporary and set this.rootEl to null*/
+             * Hence set this.rootEl to null before removing from document*/
             var rootEl = this.rootEl;
             this.rootEl = null;
             if (rootEl && rootEl.parentNode) {
@@ -182,25 +177,11 @@ define([
         },
         /**
          * Refresh component. This method can only be used after rendering.
-         * This method can be overridden to avoid a complete re-render of markup for efficiency.
          */
         refresh: function () {
             var rootEl = this.rootEl;
             if (rootEl && rootEl.parentNode) {
-                var childIndex = Li.slice(rootEl.parentNode.childNodes).indexOf(rootEl);
-                this.render(rootEl.parentNode, childIndex);
-            }
-        },
-        /**
-         * @protected
-         */
-        refreshInner: function () {
-            if (this.rootEl) {
-                var inner = this.getInnerHtml();
-                if (inner) {
-                    $(this.rootEl).empty();
-                    this.rootEl.appendChild(inner);
-                }
+                this.render(rootEl.parentNode, Lui.util.childIndex(rootEl));
             }
         },
         /**
