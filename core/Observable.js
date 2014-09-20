@@ -131,7 +131,7 @@ define(['./lui', '../lib/lithium/src/lithium', 'jquery-node'], function (Lui, Li
                 return value.length;
             },
             pop: function () {
-                return this.splice(value.length, 1)[0];
+                return this.splice(value.length - 1, 1)[0];
             },
             shift: function () {
                 return this.splice(0, 1)[0];
