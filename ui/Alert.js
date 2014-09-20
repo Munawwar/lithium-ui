@@ -12,7 +12,7 @@ define([
     Lui.Alert = Lui.extend('Lui.Alert', Lui.Component, {
         html: 'Alert!',
         alertType: 'warning',
-        cls: 'alert alert-stick-top',
+        cls: Lui.Observable('alert-stick-top'),
 
         closeBtn: true,
 

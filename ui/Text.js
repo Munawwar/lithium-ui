@@ -3,7 +3,7 @@ define(['../core/Component', 'tpl!./Text.ko'], function (Lui) {
      * Text field.
      */
     Lui.Text = Lui.extend('Lui.Text', Lui.Component, {
-        cls: 'form-control',
+        cls: Lui.Observable('form-control'),
         autocomplete: [],
         placeholder: Lui.Observable(''),
         getValue: function () {

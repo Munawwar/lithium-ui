@@ -39,11 +39,11 @@ define([
         /**
          * CSS class to use on {@link #rootEl}.
          */
-        cls: '',
+        cls: Lui.Observable(''),
         /**
          * Extra CSS class to be added by view
          */
-        extraCls: '',
+        extraCls: Lui.Observable(''),
         /**
          * Inline CSS style to apply on {@link #rootEl}.
          */
@@ -142,7 +142,7 @@ define([
          */
         getCssClass: function () {
             var typeCls = this.type.toLowerCase().replace(/\./g, '-');
-            return (typeCls + ' ' + this.cls + ' ' + this.extraCls).trim();
+            return (typeCls + ' ' + this.cls() + ' ' + this.extraCls()).trim();
         },
         /**
          * @protected

@@ -1,3 +1,4 @@
+//FIXME: This class is broken at the moment. Need to rewrite this to use the new architecture.
 define(['./Cards'], function (Lui) {
 
     /**

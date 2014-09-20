@@ -4,7 +4,7 @@ define(['../core/Component', '../core/Observable', 'tpl!./Button.ko'], function 
      * Button.
      */
     Lui.Button = Lui.extend('Lui.Button', Lui.Component, {
-        cls: 'btn btn-default',
+        cls: Lui.Observable('btn btn-default'),
         /**
          * Text to display on button
          */
