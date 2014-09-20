@@ -5,7 +5,7 @@ define(['../core/Component', 'tpl!./Text.ko'], function (Lui) {
     Lui.Text = Lui.extend('Lui.Text', Lui.Component, {
         cls: 'form-control',
         autocomplete: [],
-        placeholder: '',
+        placeholder: Lui.Observable(''),
         getValue: function () {
             if (this.rootEl) {
                 return this.rootEl.value;
