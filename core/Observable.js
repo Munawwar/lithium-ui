@@ -7,17 +7,14 @@ define(['./lui', '../lib/lithium/src/lithium', 'jquery-node'], function (Lui, Li
         var value,
             nodeBindings = [],
             uniqueNodes = {},
-            observable = function me(val) {
+            observable = function (val) {
                 //Check whether value is called from a template or not.
-                if (me.caller && (me.caller === Lui.Template.View.prototype.evaluate ||
-                    me.caller.caller === Lui.Template.View.saferEval)) {
-                    var view = Lui.Template.View.currentlyEvaluating;
-                    if (view) {
-                        var node = view.currentlyEvaluating.node;
-                        if (!uniqueNodes[node._uid] && !view.retired) {
-                            uniqueNodes[node._uid] = view.currentlyEvaluating;
-                            nodeBindings.push(view.currentlyEvaluating);
-                        }
+                var view;
+                if ((view = Lui.Template.View.currentlyEvaluating)) {
+                    var node = view.currentlyEvaluating.node;
+                    if (!uniqueNodes[node._uid] && !view.retired) {
+                        uniqueNodes[node._uid] = view.currentlyEvaluating;
+                        nodeBindings.push(view.currentlyEvaluating);
                     }
                 }
 
@@ -54,20 +51,16 @@ define(['./lui', '../lib/lithium/src/lithium', 'jquery-node'], function (Lui, Li
             uniqueNodes = {},
             trackDependency = function () {
                 //Check whether value is called from a template or not.
-                var me = trackDependency.caller;
-                if (me.caller && (me.caller === Lui.Template.View.prototype.evaluate ||
-                    me.caller.caller === Lui.Template.View.saferEval)) {
-                    var view = Lui.Template.View.currentlyEvaluating;
-                    if (view) {
-                        var node = view.currentlyEvaluating.node;
-                        if (!uniqueNodes[node._uid] && !view.retired) {
-                            uniqueNodes[node._uid] = view.currentlyEvaluating;
-                            nodeBindings.push(view.currentlyEvaluating);
-                        }
+                var view;
+                if ((view = Lui.Template.View.currentlyEvaluating)) {
+                    var node = view.currentlyEvaluating.node;
+                    if (!uniqueNodes[node._uid] && !view.retired) {
+                        uniqueNodes[node._uid] = view.currentlyEvaluating;
+                        nodeBindings.push(view.currentlyEvaluating);
                     }
                 }
             },
-            observable = function me(val) {
+            observable = function (val) {
                 trackDependency();
 
                 //Set if not undefined
