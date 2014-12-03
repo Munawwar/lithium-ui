@@ -387,7 +387,7 @@ if (typeof define !== 'function') {
             },
             foreach: {
                 init: function (node, binding, expr) {
-                    var info = this.getNodeInfo(node),
+                    var info = this.getNodeInfo(node),c
                         tNode = info.tNode,
                         tpl = this.tpl.getBindingInfo(tNode).subTpl,
                         val;
@@ -989,7 +989,7 @@ if (typeof define !== 'function') {
          * @private
          */
         evaluate: function (binding, expr, node) {
-            var old = Htmlizer.View.currentlyExecuting;
+            var old = Htmlizer.View.currentlyEvaluating;
             Htmlizer.View.currentlyEvaluating = this;
 
             var extraInfo;
