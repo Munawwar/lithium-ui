@@ -387,7 +387,7 @@ if (typeof define !== 'function') {
             },
             foreach: {
                 init: function (node, binding, expr) {
-                    var info = this.getNodeInfo(node),c
+                    var info = this.getNodeInfo(node),
                         tNode = info.tNode,
                         tpl = this.tpl.getBindingInfo(tNode).subTpl,
                         val;
