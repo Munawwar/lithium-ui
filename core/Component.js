@@ -235,7 +235,7 @@ define([
                                 if (obj) {
                                     if (obj instanceof Lui.Component) {
                                         funcOrObj.scope = listeners.scope || this;
-                                        obj.addListeners(funcOrObj);
+                                        obj.attachListeners(funcOrObj);
                                     } else { //assume HTMLElement
                                         bindToDom($(obj), funcOrObj, listeners.scope || this);
                                     }
@@ -269,10 +269,36 @@ define([
          *   }
          * }
          */
-        addListeners: function (listeners) {
+        addListeners: function (listeners, dontAttach) {
             //Push to this.listeners
-            this.listeners.push(listeners);
-            this.attachListeners(listeners);
+            var pos = this.listeners.indexOf(listeners);
+            if (pos < 0) {
+                this.listeners.push(listeners);
+                Li.forEach(listeners, function (funcOrObj, prop) {
+                    if (prop === 'scope') {
+                        return;
+                    }
+                    //if not css selector and value is an object
+                    if (!(prop[0] === '(' && prop.slice(-1) === ')') && Li.isObject(funcOrObj)) { //find reference
+                        //Find the property being referenced
+                        var ns = prop, obj = this;
+                        ns.split('.').forEach(function (part) {
+                            if (obj && Li.isDefined(obj[part])) {
+                                obj = obj[part];
+                            } else {
+                                obj = null;
+                            }
+                        });
+                        if (obj && obj instanceof Lui.Component) {
+                            funcOrObj.scope = listeners.scope || this;
+                            obj.addListeners(funcOrObj, true);
+                        }
+                    }
+                }, this);
+                if (!dontAttach) {
+                    this.attachListeners(listeners);
+                }
+            }
         },
         /**
          * Removes listeners
@@ -282,6 +308,26 @@ define([
             var pos = this.listeners.indexOf(listeners);
             if (pos > -1) {
                 this.detachListeners(listeners);
+                Li.forEach(listeners, function (funcOrObj, prop) {
+                    if (prop === 'scope') {
+                        return;
+                    }
+                    //if not css selector and value is an object
+                    if (!(prop[0] === '(' && prop.slice(-1) === ')') && Li.isObject(funcOrObj)) { //find reference
+                        //Find the property being referenced
+                        var ns = prop, obj = this;
+                        ns.split('.').forEach(function (part) {
+                            if (obj && Li.isDefined(obj[part])) {
+                                obj = obj[part];
+                            } else {
+                                obj = null;
+                            }
+                        });
+                        if (obj && obj instanceof Lui.Component) {
+                            obj.removeListeners(funcOrObj);
+                        }
+                    }
+                }, this);
                 this.listeners.splice(pos, 1);
             }
         },
