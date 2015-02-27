@@ -7,7 +7,8 @@ A UI framework inspired by Ext's component architecture and Knockout's template 
 ```html
 <div style="positon:absolute; width:500px;">
     <div class="hbox">
-      <x-lui-text class="flex" placeholder="Your name" class="namefield" data-bind="value:name"></x-lui-text>
+      <input type="text" class="flex namefield form-control"
+        placeholder="Your name" data-bind="value: name" />
       <x-lui-button ref="submitBtn">Submit</x-lui-button>
     </div>
 </div>
