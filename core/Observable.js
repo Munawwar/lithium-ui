@@ -2,7 +2,10 @@ if (typeof define !== 'function') {
     var define = require('amdefine')(module);
 }
 
-define(['./lui', '../lib/lithium/src/lithium', 'jquery-node'], function (Lui, Li, $) {
+define(['./lui',
+    'jquery-node',
+    '../lib/lithium/src/lithium',
+    '../lib/lithium/src/lithium.dom'], function (Lui, $, Li) {
     Lui.Observable = function (initVal) {
         var value,
             nodeBindings = [],

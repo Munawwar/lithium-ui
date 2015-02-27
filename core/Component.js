@@ -181,7 +181,7 @@ define([
         refresh: function () {
             var rootEl = this.rootEl;
             if (rootEl && rootEl.parentNode) {
-                this.render(rootEl.parentNode, Lui.util.childIndex(rootEl));
+                this.render(rootEl.parentNode, Li.childIndex(rootEl));
             }
         },
         /**

@@ -5,11 +5,15 @@ if (typeof define !== 'function') {
 }
 
 (function (factory, saferEval) {
-    define(['jquery-node', './util/js-object-literal-parse', './Observable'], function ($, parseObjectLiteral, Lui) {
-        Lui.Template = factory.call(this, saferEval, $, parseObjectLiteral, Lui);
+    define(['jquery-node',
+        './util/js-object-literal-parse',
+        './Observable',
+        '../lib/lithium/src/lithium',
+        '../lib/lithium/src/lithium.dom'], function ($, parseObjectLiteral, Lui, Li) {
+        Lui.Template = factory.call(this, saferEval, $, parseObjectLiteral, Lui, Li);
         return Lui;
     }.bind(this));
-}(function (saferEval, $, parseObjectLiteral, Lui) {
+}(function (saferEval, $, parseObjectLiteral, Lui, Li) {
     //var window = document.defaultView;
 
     function unwrap(str) {
@@ -23,7 +27,7 @@ if (typeof define !== 'function') {
     //HTML 4 and 5 void tags
     var voidTags = unwrap('area,base,basefont,br,col,command,embed,frame,hr,img,input,keygen,link,meta,param,source,track,wbr'),
         conflictingBindings = unwrap('if,ifnot,foreach,with,text,html'),
-        traverse = Lui.util.traverse;
+        traverse = Li.traverse;
 
     /**
      * @param {String|DocumentFragment} template If string, then it is better if the HTML is balanced, else it probably won't be correctly converted to DOM.
@@ -818,7 +822,7 @@ if (typeof define !== 'function') {
             //Render components
             (this.components || []).forEach(function (item) {
                 var parent = item.node.parentNode,
-                    index = Lui.util.childIndex(item.node);
+                    index = Li.childIndex(item.node);
                 item.cmp.render(parent, index);
                 if (item.node === this.firstChild) {
                     this.firstChild = parent.childNodes[index];
