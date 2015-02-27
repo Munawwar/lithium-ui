@@ -13,7 +13,7 @@ A UI framework inspired by Ext's component architecture and Knockout's template 
     </div>
 </div>
 ```
-```javascirpt
+```javascript
 /**
  * A Form window
  */
@@ -27,7 +27,8 @@ define(['lui/core/Box', 'tpl!./myform.ko'], function (Lui) {
             this.addListeners({
               "submitBtn.rootEl": {
                   click: function () {
-                      this.name($('.namefield', this.rootEl)[0].value); //Update observable like KnockoutJS
+                      //Update observable
+                      this.name($('.namefield', this.rootEl)[0].value);
                       console.log('Data submitted: ' + this.name());
                       this.submitBtn.disable();
                   }
