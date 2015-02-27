@@ -26,11 +26,7 @@ define(['../core/Component', 'tpl!./Text.ko'], function (Lui) {
          */
         makeConfigFromView: function (target) {
             var cfg = this.super(arguments),
-                placeholder = target.getAttribute('placeholder'),
                 value = target.textContent;
-            if (placeholder) {
-                cfg.placeholder = placeholder;
-            }
             if (value) {
                 cfg.value = value;
             }

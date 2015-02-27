@@ -87,7 +87,7 @@ define([
             Li.slice(element.attributes).forEach(function (attr) {
                 if (attr.name === 'class') {
                     cfg.cls = attr.value;
-                } else if (attr.name !== 'data-bind') {
+                } else if (attr.name !== 'data-bind' && attr.name !== 'type') {
                     cfg[attr.name] = attr.value;
                 }
             });
