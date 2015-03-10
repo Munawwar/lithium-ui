@@ -7,18 +7,18 @@ define(['../core/Component', 'tpl!./Text.ko'], function (Lui) {
         autocomplete: [],
         placeholder: Lui.Observable(''),
         getValue: function () {
-            if (this.rootEl) {
-                return this.rootEl.value;
+            if (this.el) {
+                return this.el.value;
             }
         },
         setValue: function (value) {
-            if (this.rootEl) {
-                this.rootEl.value = value;
+            if (this.el) {
+                this.el.value = value;
             }
         },
         clear: function () {
-            if (this.rootEl) {
-                this.rootEl.value = '';
+            if (this.el) {
+                this.el.value = '';
             }
         },
         /**
@@ -44,7 +44,7 @@ define(['../core/Component', 'tpl!./Text.ko'], function (Lui) {
          */
         adjustAutoComplete: function () {
             if (this.autocomplete.length) {
-                $(this.rootEl).autocomplete({
+                $(this.el).autocomplete({
                     source: this.autocomplete
                 });
             }

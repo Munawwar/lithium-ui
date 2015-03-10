@@ -12,10 +12,10 @@ define([
      */
     Lui.Component = Lui.extend('Lui.Component', Li.Publisher, {
         /**
-         * Top most element of this component
+         * Root (top most) element of this component
          * @readonly
          */
-        rootEl: null,
+        el: null,
         /**
          * Outer render template
          * @param {Lui.Template|undefined} tpl
@@ -37,7 +37,7 @@ define([
          */
         innerTpl: undefined,
         /**
-         * CSS class to use on {@link #rootEl}.
+         * CSS class to use on {@link #el}.
          */
         cls: Lui.Observable(''),
         /**
@@ -45,7 +45,7 @@ define([
          */
         extraCls: Lui.Observable(''),
         /**
-         * Inline CSS style to apply on {@link #rootEl}.
+         * Inline CSS style to apply on {@link #el}.
          */
         //undefined because, empty string would cause empty style attribute to be rendered by htmlizer.
         style: undefined,
@@ -137,7 +137,7 @@ define([
             }
         },
         /**
-         * @returns {String} The CSS class to be used on rootEl by {@link #render} method.
+         * @returns {String} The CSS class to be used on el by {@link #render} method.
          * @protected
          */
         getCssClass: function () {
@@ -149,7 +149,7 @@ define([
          */
         renderSelf: function (target, childIndex) {
             target.insertBefore(this.view.render(), target.childNodes[childIndex]);
-            this.rootEl = $('#' + this.id, target)[0];
+            this.el = $('#' + this.id, target)[0];
         },
         /**
          * Render component to target HTMLElement.
@@ -166,22 +166,22 @@ define([
          * @protected
          */
         unrender: function () {
-            /* If you call this method from blur event, then the removal of rootEl
+            /* If you call this method from blur event, then the removal of el
              * could cause a second blur event to fire.
-             * Hence set this.rootEl to null before removing from document*/
-            var rootEl = this.rootEl;
-            this.rootEl = null;
-            if (rootEl && rootEl.parentNode) {
-                rootEl.parentNode.removeChild(rootEl);
+             * Hence set this.el to null before removing from document*/
+            var el = this.el;
+            this.el = null;
+            if (el && el.parentNode) {
+                el.parentNode.removeChild(el);
             }
         },
         /**
          * Refresh component. This method can only be used after rendering.
          */
         refresh: function () {
-            var rootEl = this.rootEl;
-            if (rootEl && rootEl.parentNode) {
-                this.render(rootEl.parentNode, Li.childIndex(rootEl));
+            var el = this.el;
+            if (el && el.parentNode) {
+                this.render(el.parentNode, Li.childIndex(el));
             }
         },
         /**
@@ -216,8 +216,8 @@ define([
                                 return;
                             }
                             if (prop[0] === '(' && prop.slice(-1) === ')') { //using css selector
-                                if (this.rootEl) {
-                                    var $els = $(prop.slice(1, -1), this.rootEl);
+                                if (this.el) {
+                                    var $els = $(prop.slice(1, -1), this.el);
                                     bindToDom($els, funcOrObj, listeners.scope || this);
                                 }
                             } else if (Li.isFunction(funcOrObj)) { //component event
@@ -261,7 +261,7 @@ define([
          * Example:
          * {
          *   afterrender: function () { //this is a component event },
-         *   "rootEl" : {
+         *   "el" : {
          *      click: function () { //this is a dom event }
          *   },
          *   "(.navigation)": {
@@ -345,8 +345,8 @@ define([
                             return;
                         }
                         if (prop[0] === '(' && prop.slice(-1) === ')') { //using css selector
-                            if (this.rootEl) {
-                                var $els = $(prop.slice(1, -1), this.rootEl);
+                            if (this.el) {
+                                var $els = $(prop.slice(1, -1), this.el);
                                 Li.forEach(funcOrObj, function (fn, event) {
                                     $els.off(event, fn);
                                 });

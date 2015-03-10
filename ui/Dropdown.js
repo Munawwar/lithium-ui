@@ -31,21 +31,21 @@ define([
             return cfg;
         },
         getValue: function () {
-            if (this.rootEl) {
-                return this.rootEl.value;
+            if (this.el) {
+                return this.el.value;
             }
         },
         /**
          * Searches for the option with given value and sets it
          */
         setValue: function (value) {
-            if (this.rootEl) {
-                this.rootEl.value = value;
+            if (this.el) {
+                this.el.value = value;
             }
         },
         clear: function () {
-            if (this.rootEl) {
-                this.rootEl.selectedIndex = this.defaultOption;
+            if (this.el) {
+                this.el.selectedIndex = this.defaultOption;
             }
         }
     });

@@ -19,8 +19,8 @@ define(['../core/Box'], function (Lui) {
          * Displays given card number and hides the other cards.
          */
         setActiveItem: function (itemNumber) {
-            if (this.rootEl) {
-                var items = Li.slice(this.rootEl.children);
+            if (this.el) {
+                var items = Li.slice(this.el.children);
                     len = items.length;
                 if (len && itemNumber >= 0 && itemNumber < len) {
                     this.activeItem = itemNumber;

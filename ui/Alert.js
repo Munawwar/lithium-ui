@@ -27,7 +27,7 @@ define([
         render: function () {
             this.super(arguments);
             if (!this.closeBtn) {
-                $('.close', this.rootEl).hide();
+                $('.close', this.el).hide();
             }
         },
 
@@ -38,10 +38,10 @@ define([
             this.super(arguments);
             if (!this.closeBtn) {
                 setTimeout(function () {
-                    $(this.rootEl).fadeOut(1000, this.unrender.bind(this));
+                    $(this.el).fadeOut(1000, this.unrender.bind(this));
                 }.bind(this), 2000);
             } else {
-                $(this.rootEl).on('click', this.unrender.bind(this));
+                $(this.el).on('click', this.unrender.bind(this));
             }
         },
 
@@ -49,14 +49,14 @@ define([
          * Show alert
          */
         show: function () {
-            $(this.rootEl).show(150);
+            $(this.el).show(150);
         },
 
         /**
          * Hide alert
          */
         hide: function () {
-            $(this.rootEl).hide(150);
+            $(this.el).hide(150);
         }
     });
 
