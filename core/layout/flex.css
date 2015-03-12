@@ -1,3 +1,4 @@
+/*Stack child items vertically*/
 .vbox {
     display: -webkit-flex;
     display: -ms-flexbox;
@@ -12,6 +13,7 @@
     -ms-flex-line-pack: start;
     align-content: flex-start;
 }
+/*Stack child items horizontally*/
 .hbox {
     display: -webkit-flex;
     display: -ms-flexbox;
@@ -38,43 +40,43 @@
 }
 
 /*Stack child items to the main-axis start*/
-.mx-start {
+.main-start {
     -webkit-justify-content: flex-start;
     -ms-flex-pack: flex-start;
     justify-content: flex-start;
 }
 /*Stack child items to the cross-axis start*/
-.cx-start {
+.cross-start {
     -webkit-align-items: flex-start;
     -ms-flex-align: flex-start;
     align-items: flex-start;
 }
 /*Stack child items to the main-axis center*/
-.mx-center {
+.main-center {
     -webkit-justify-content: center;
     -ms-flex-pack: center;
     justify-content: center;
 }
 /*Stack child items to the cross-axis center*/
-.cx-center {
+.cross-center {
     -webkit-align-items: center;
     -ms-flex-align: center;
     align-items: center;
 }
 /*Stack child items to the main-axis end.*/
-.mx-end {
+.main-end {
     -webkit-justify-content: flex-end;
     -ms-flex-pack: end;
     justify-content: flex-end;
 }
 /*Stack child items to the cross-axis end.*/
-.cx-end {
+.cross-end {
     -webkit-align-items: end;
     -ms-flex-align: end;
     align-items: end;
 }
 /*Stretch child items along the cross-axis*/
-.cx-stretch {
+.cross-stretch {
     -webkit-align-items: stretch;
     -ms-flex-align: stretch;
     align-items: stretch;
