@@ -4,21 +4,23 @@ lithium-ui
 A UI framework inspired by Ext's component architecture and Knockout's template syntax.
 
 ### Teaser
+Template
 ```html
 <div style="positon:absolute; width:500px;">
     <div class="hbox">
       <input type="text" class="flex namefield form-control"
         placeholder="Your name" data-bind="value: name" />
-      <x-lui-button ref="submitBtn">Submit</x-lui-button>
+      <lui-button ref="submitBtn">Submit</lui-button>
     </div>
 </div>
 ```
+Component
 ```javascript
 /**
  * A Form window
  */
 define(['lui/core/Box', 'tpl!./myform.ko'], function (Lui) {
-    return Lui.extend('myform', Lui.Box, {
+    return Lui.extend('app.form', Lui.Box, {
         name: Lui.Observable(''), //An observable..like KnockoutJS
         
         constructor: function (config) {
@@ -38,6 +40,10 @@ define(['lui/core/Box', 'tpl!./myform.ko'], function (Lui) {
         }
     });
 });
+```
+Use the component in another template.
+```html
+<app-form></app-form>
 ```
 
 Tutorial
