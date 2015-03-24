@@ -25,10 +25,10 @@ define(['lui/core/Box', 'tpl!./myform.ko'], function (Lui) {
             this.super(arguments);
           
             this.addListeners({
-              "submitBtn.rootEl": {
+              "submitBtn.el": { //listen to events on root element of component
                   click: function () {
                       //Update observable
-                      this.name($('.namefield', this.rootEl)[0].value);
+                      this.name($('.namefield', this.el)[0].value);
                       console.log('Data submitted: ' + this.name());
                       this.submitBtn.disable();
                   }
