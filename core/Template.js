@@ -73,10 +73,8 @@ if (typeof define !== 'function') {
                         bindings;
                     if (node.nodeType === 1) { //element
                         var classRef;
-                        if (util.regex.customElement.test(node.nodeName)) {
-                            var className = node.nodeName.replace(/^X\-/, '')
-                                .replace(/^L\-/, 'Lui.')
-                                .replace(/-/g, '.');
+                        if (node.nodeName.indexOf('-') > -1) {
+                            var className = node.nodeName.replace(/-/g, '.');
                             classRef = Lui.getClass(className);
                         }
 
@@ -270,12 +268,8 @@ if (typeof define !== 'function') {
     Htmlizer.View.prototype = {
         bindingHandler: {
             component: {
-                init: function (node, tNode) {
-                    var className = node.nodeName.replace(/^X\-/, '')
-                            .replace(/^L\-/, 'Lui.')
-                            .replace(/-/g, '.'),
-                        classRef = Lui.getClass(className),
-                        cfg, cmp;
+                init: function (node, tNode, classRef) {
+                    var cfg, cmp;
                     node.innerHTML = tNode.innerHTML;
                     if (classRef) {
                         //Parse node to a config
@@ -745,8 +739,9 @@ if (typeof define !== 'function') {
                             }
                         }, this);
 
-                        if (util.regex.customElement.test(node.nodeName)) {
-                            control = this.bindingHandler.component.init.call(this, node, tNode);
+                        var classRef;
+                        if (node.nodeName.indexOf('-') > -1 && (classRef = Lui.getClass(node.nodeName.replace(/-/g, '.')))) {
+                            control = this.bindingHandler.component.init.call(this, node, tNode, classRef);
                             if (control.domTraverse) {
                                 ret = control.domTraverse;
                             }
@@ -1062,7 +1057,6 @@ if (typeof define !== 'function') {
 
     var util = Htmlizer.util = {
         regex: {
-            customElement: /^(X|L)\-/,
             commentStatment: /(?:ko|hz)[ ]+([^:]+):(.+)/
         },
         /**
