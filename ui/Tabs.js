@@ -34,7 +34,8 @@ define(['./Cards'], function (Lui) {
          */
         cards: [],
 
-        init: function () {
+        constructor: function () {
+            this.super(arguments);
             this.buttons.forEach(function (s, i) {
                 if (Li.isString(s)) {
                     this.buttons[i] = {
@@ -46,7 +47,6 @@ define(['./Cards'], function (Lui) {
             this.items[0].items = this.buttons;
             this.items[1].activeItem = this.activeItem;
             this.items[1].items = this.cards;
-            this.super(arguments);
         },
 
         postRender: function () {

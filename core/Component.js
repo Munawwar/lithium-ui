@@ -106,9 +106,7 @@ define([
             }, this);
             this.set(cfg);
             this.view = (new Lui.Template.View(this.outerTpl, this));
-            this.init();
         },
-        init: $.noop,
         /**
          * Set configuration. Call this.refresh to re-render this component with the new config.
          */
