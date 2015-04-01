@@ -58,14 +58,43 @@ if (typeof define !== 'function') {
          * @private
          */
         prepare: function () {
-            var frag = this.frag,
-                blocks = this.getVirtualBlocks(),
+            var frag = this.frag;
+
+            //Convert containerless statement to comment nodes
+            var convert = []; //one shouldn't manipulate the DOM which is being traversed. So remember them.
+            traverse(frag, frag, function (node, isOpenTag) {
+                if (isOpenTag && node.nodeType === 3) {
+                    var arr = util.findPlaceHolders(node.nodeValue);
+                    if (arr.length > 1 || Li.isArray(arr[0])) {
+                        arr.forEach(function (item, i) {
+                            if (Li.isArray(item)) {
+                                item = item[0];
+                                item = item[0] === '/' ? '/hz' : 'hz ' + item;
+                                arr[i] = document.createComment(item);
+                            } else {
+                                arr[i] = document.createTextNode(item);
+                            }
+                        });
+                        convert.push({
+                            node: node,
+                            replace: util.moveToNewFragment(arr)
+                        });
+                    }
+                }
+            }, this);
+            convert.forEach(function (item) {
+                item.node.parentNode.replaceChild(item.replace, item.node);
+            });
+
+            var blocks = this.getVirtualBlocks(),
                 depth = this.depth,
                 id = 1,
                 getId = function () {
                     return 'hz-' + id++;
                 },
                 blockNodes, tempFrag;
+
+            //Prepare
             traverse(frag, frag, function (node, isOpenTag) {
                 if (isOpenTag) {
                     depth += 1;
@@ -176,7 +205,7 @@ if (typeof define !== 'function') {
                         return;
                     }
 
-                    if ((match = stmt.match(/^(?:ko|hz)[ ]+([^:]+):/))) {
+                    if ((match = stmt.match(/^(?:ko|hz)[ ]+(\w+)[ :]/))) {
                         stack.unshift({
                             key: match[1],
                             start: node
@@ -891,32 +920,8 @@ if (typeof define !== 'function') {
         },
 
         toString: function () {
-            var frag = this.toDocumentFragment(), html = '';
-            traverse(frag, frag, function (node, isOpenTag) {
-                if (node.nodeType === 1) {
-                    var tag = node.nodeName.toLowerCase();
-                    if (isOpenTag) {
-                        html += '<' + tag;
-                        util.slice(node.attributes).forEach(function (attr) {
-                            html += ' ' + attr.name + '="' + attr.value.replace(/"/g, '&quot;') + '"';
-                        });
-                        html += (voidTags[tag] ? '/>' : '>');
-                    } else if (!voidTags[tag]) {
-                        html += '</' + tag + '>';
-                    }
-                }
-                if (isOpenTag && node.nodeType === 3) {
-                    var text = node.nodeValue || '';
-                    //escape <,> and &. Except text node inside script or style tag.
-                    if (!(/^(?:script|style)$/i).test(node.parentNode.nodeName)) {
-                        text = text.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;");
-                    }
-                    html += text;
-                }
-                if (isOpenTag && node.nodeType === 8) {
-                    html += '<!-- ' + node.data.trim() + ' -->';
-                }
-            }, this);
+            var frag = this.toDocumentFragment(),
+                html = util.DOMtoString(frag);
             return html;
         },
 
@@ -1101,8 +1106,36 @@ if (typeof define !== 'function') {
 
     var util = Htmlizer.util = {
         regex: {
-            commentStatment: /(?:ko|hz)[ ]+([^:]+):(.+)/
+            commentStatment: /(?:ko|hz)[ ]+(\w+)[ :](.+)/
         },
+
+        /**
+         * Find paceholders from a string
+         * @return {Array} Array of strings split at placholder
+         */
+        findPlaceHolders: function (str) {
+            var match, arr = [];
+            while ((match = str.match(/(^|[^\\])(\{(?:\\\}|[^\}])+\})/))) { //Without escaping braces: /(^|[^\\])({(?:\\}|[^}])+})/
+                arr.push(str.substring(0, match.index + match[1].length));
+                arr.push([match[2].slice(1, -1)]);
+                str = str.substr(match.index + match[0].length);
+            }
+            if (str) {
+                arr.push(str);
+            }
+            //Unescape \{ and  \}
+            arr.forEach(function (s, i) {
+                var ss = Li.isArray(s) ? s[0] : s;
+                ss = ss.replace(/\\{/g, '{').replace(/\\}/g, '}');
+                if (Li.isArray(s)) {
+                    s[0] = ss;
+                } else {
+                    arr[i] = ss;
+                }
+            });
+            return arr;
+        },
+
         /**
          * Parse html string using jQuery.parseHTML and also make sure script tags aren't removed.
          * @param {String} html
@@ -1153,6 +1186,40 @@ if (typeof define !== 'function') {
                     return (callback.call(scope, tuple[0], tuple[1]) === true);
                 });
             }
+        },
+
+        /**
+         * Convert DOM to string.
+         * @param {DocumentFragment} frag
+         */
+        DOMtoString: function (frag) {
+            var html = '';
+            traverse(frag, frag, function (node, isOpenTag) {
+                if (node.nodeType === 1) {
+                    var tag = node.nodeName.toLowerCase();
+                    if (isOpenTag) {
+                        html += '<' + tag;
+                        util.slice(node.attributes).forEach(function (attr) {
+                            html += ' ' + attr.name + '="' + attr.value.replace(/"/g, '&quot;') + '"';
+                        });
+                        html += (voidTags[tag] ? '/>' : '>');
+                    } else if (!voidTags[tag]) {
+                        html += '</' + tag + '>';
+                    }
+                }
+                if (isOpenTag && node.nodeType === 3) {
+                    var text = node.nodeValue || '';
+                    //escape <,> and &. Except text node inside script or style tag.
+                    if (!(/^(?:script|style)$/i).test(node.parentNode.nodeName)) {
+                        text = text.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;");
+                    }
+                    html += text;
+                }
+                if (isOpenTag && node.nodeType === 8) {
+                    html += '<!-- ' + node.data.trim() + ' -->';
+                }
+            }, this);
+            return html;
         },
 
         /**
