@@ -75,7 +75,7 @@ describe('run container-less nested "if" statement test', function () {
         assert.equal(3, countElements(df));
     });
     it('button element should have text in it', function () {
-        assert.equal('Howdy!', findElementByClassName(df, 'btn').firstChild.nodeValue);
+        assert.equal('Howdy!', findElementByClassName(df, 'btn').textContent);
     });
 });
 

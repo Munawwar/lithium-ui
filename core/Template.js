@@ -66,15 +66,28 @@ if (typeof define !== 'function') {
                 if (isOpenTag && node.nodeType === 3) {
                     var arr = util.findPlaceHolders(node.nodeValue);
                     if (arr.length > 1 || Li.isArray(arr[0])) {
-                        arr.forEach(function (item, i) {
+                        for (var i = 0; i < arr.length; i += 1) {
+                            var item = arr[i];
                             if (Li.isArray(item)) {
                                 item = item[0];
-                                item = item[0] === '/' ? '/hz' : 'hz ' + item;
+                                var autoClosed = false;
+                                //if binding not specified, then assume text binding
+                                //FIXME: This is a sub-optimal solution. Why add comment nodes?
+                                //Why not just track the text node (using parent node and child index)?
+                                if (item[0] !== '/' && !(/^\w+:/).test(item)) {
+                                    item = 'text: ' + item;
+                                    arr.splice(i + 1, 0, document.createComment('/hz')); //auto close the statement
+                                    autoClosed = true;
+                                }
+                                item = (item[0] === '/' ? '/hz' : 'hz ' + item);
                                 arr[i] = document.createComment(item);
+                                if (autoClosed) {
+                                    i += 1;
+                                }
                             } else {
                                 arr[i] = document.createTextNode(item);
                             }
-                        });
+                        }
                         convert.push({
                             node: node,
                             replace: util.moveToNewFragment(arr)
@@ -205,7 +218,7 @@ if (typeof define !== 'function') {
                         return;
                     }
 
-                    if ((match = stmt.match(/^(?:ko|hz)[ ]+([^:]+):/))) {
+                    if ((match = stmt.match(/^(?:ko|hz)[ ]+(\w+):/))) {
                         stack.unshift({
                             key: match[1],
                             start: node
@@ -1106,7 +1119,7 @@ if (typeof define !== 'function') {
 
     var util = Htmlizer.util = {
         regex: {
-            commentStatment: /(?:ko|hz)[ ]+([^:]+):(.+)/
+            commentStatment: /^(?:ko|hz)[ ]+(\w+):(.+)/
         },
 
         /**
@@ -1117,7 +1130,7 @@ if (typeof define !== 'function') {
             var match, arr = [];
             while ((match = str.match(/(^|[^\\])(\{(?:\\\}|[^\}])+\})/))) { //Without escaping braces: /(^|[^\\])({(?:\\}|[^}])+})/
                 arr.push(str.substring(0, match.index + match[1].length));
-                arr.push([match[2].slice(1, -1)]);
+                arr.push([match[2].slice(1, -1).trim()]);
                 str = str.substr(match.index + match[0].length);
             }
             if (str) {
@@ -1126,7 +1139,7 @@ if (typeof define !== 'function') {
             //Unescape \{ and  \}
             arr.forEach(function (s, i) {
                 var ss = Li.isArray(s) ? s[0] : s;
-                ss = ss.replace(/\\{/g, '{').replace(/\\}/g, '}');
+                ss = ss.replace(/\\\{/g, '{').replace(/\\\}/g, '}');
                 if (Li.isArray(s)) {
                     s[0] = ss;
                 } else {
