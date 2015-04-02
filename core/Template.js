@@ -32,8 +32,6 @@ if (typeof define !== 'function') {
     /**
      * @param {String|DocumentFragment} template If string, then it is better if the HTML is balanced, else it probably won't be correctly converted to DOM.
      * @param {Object} cfg
-     * @param {Object} cfg.noConflict Will ensure Htmlizer doesn't conflict with KnockoutJS. i.e data-htmlizer attribute will be used and
-     * containerless statements beginning and ending with "ko" prefix will be ignored.
      */
     function Htmlizer(template, cfg) {
         this.cfg = cfg;
@@ -76,10 +74,10 @@ if (typeof define !== 'function') {
                                 //Why not just track the text node (using parent node and child index)?
                                 if (item[0] !== '/' && !(/^\w+:/).test(item)) {
                                     item = 'text: ' + item;
-                                    arr.splice(i + 1, 0, document.createComment('/hz')); //auto close the statement
+                                    arr.splice(i + 1, 0, document.createComment('/li')); //auto close the statement
                                     autoClosed = true;
                                 }
-                                item = (item[0] === '/' ? '/hz' : 'hz ' + item);
+                                item = (item[0] === '/' ? '/li' : 'li ' + item);
                                 arr[i] = document.createComment(item);
                                 if (autoClosed) {
                                     i += 1;
@@ -103,7 +101,7 @@ if (typeof define !== 'function') {
                 depth = this.depth,
                 id = 1,
                 getId = function () {
-                    return 'hz-' + id++;
+                    return 'li-' + id++;
                 },
                 blockNodes, tempFrag;
 
@@ -120,7 +118,7 @@ if (typeof define !== 'function') {
                             classRef = Lui.getClass(className);
                         }
 
-                        var bindOpts = node.getAttribute(this.noConflict ? 'data-htmlizer' : 'data-bind');
+                        var bindOpts = node.getAttribute('data-bind');
                         if (bindOpts) {
                             this.checkForConflictingBindings(bindOpts, classRef);
                             bindings = util.parseObjectLiteral(bindOpts);
@@ -144,11 +142,6 @@ if (typeof define !== 'function') {
                     //HTML comment node
                     if (node.nodeType === 8) {
                         var stmt = node.data.trim(), match;
-
-                        //Ignore all containerless statements beginning with "ko" if noConflict = true.
-                        if (this.noConflict && (/^(ko |\/ko$)/).test(stmt)) {
-                            return;
-                        }
 
                         var block = util.findBlockFromStartNode(blocks, node);
                         if (block) {
@@ -213,17 +206,12 @@ if (typeof define !== 'function') {
                 if (isOpenTag && node.nodeType === 8) {
                     var stmt = node.data.trim(), match;
 
-                    //Ignore all containerless statements beginning with "ko" if noConflict = true.
-                    if (this.noConflict && (/^(ko |\/ko$)/).test(stmt)) {
-                        return;
-                    }
-
-                    if ((match = stmt.match(/^(?:ko|hz)[ ]+(\w+):/))) {
+                    if ((match = stmt.match(/^li[ ]+(\w+):/))) {
                         stack.unshift({
                             key: match[1],
                             start: node
                         });
-                    } else if ((match = stmt.match(/^\/(ko|hz)$/))) {
+                    } else if ((match = stmt.match(/^\/(li)$/))) {
                         block = stack.shift();
                         if (block) {
                             block.end = node;
@@ -781,9 +769,9 @@ if (typeof define !== 'function') {
                         stack.push(node);
                         tStack.push(tNode);
 
-                        var bindOpts = node.getAttribute(this.tpl.noConflict ? 'data-htmlizer' : 'data-bind');
+                        var bindOpts = node.getAttribute('data-bind');
                         if (bindOpts) {
-                            node.removeAttribute(this.tpl.noConflict ? 'data-htmlizer' : 'data-bind');
+                            node.removeAttribute('data-bind');
                             this.addNodeInfo(node, tNode);
                         }
 
@@ -831,17 +819,12 @@ if (typeof define !== 'function') {
                     if (node.nodeType === 8) {
                         var stmt = node.data.trim();
 
-                        //Ignore all containerless statements beginning with "ko" if noConflict = true.
-                        if (this.tpl.noConflict && (/^(ko |\/ko$)/).test(stmt)) {
-                            return;
-                        }
-
                         //Add node to this.nodeInfoList[].
                         this.addNodeInfo(node, tNode);
 
-                        if ((/^(?:ko|hz) /).test(stmt)) {
+                        if ((/^li /).test(stmt)) {
                             commentStack.push(node);
-                        } else if ((/^\/(?:ko|hz)$/).test(stmt)) {
+                        } else if ((/^\/li$/).test(stmt)) {
                             var startNode = commentStack.pop();
                             this.getNodeInfo(startNode).blockEndNode = node;
                             this.getNodeInfo(node).blockStartNode = startNode;
@@ -1119,7 +1102,7 @@ if (typeof define !== 'function') {
 
     var util = Htmlizer.util = {
         regex: {
-            commentStatment: /^(?:ko|hz)[ ]+(\w+):(.+)/
+            commentStatment: /^li[ ]+(\w+):(.+)/
         },
 
         /**

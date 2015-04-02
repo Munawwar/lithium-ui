@@ -236,60 +236,6 @@ describe('run container-less "with" binding test', function () {
     });
 });
 
-describe('run no conflict test', function () {
-    var html = fetch('noconflict-tpl.html'),
-        outputHtml = (new Htmlizer(html, {noConflict: true})).toString({
-            btnText: 'Howdy!',
-            cls: 'btn btn-default' //bootstrap 3 button css class
-        }),
-        df = htmlToDocumentFragment(outputHtml);
-
-    var btnCount = 0, firstBtnHasNoDataHtmlizer = true, secondBtnHasDataBind = true;
-    traverse(df, df, function (node, isOpenTag) {
-        if (isOpenTag && node.nodeType === 1 && node.nodeName === "BUTTON") {
-            btnCount += 1;
-            if (btnCount === 1 && node.getAttribute('data-htmlizer')) {
-                firstBtnHasNoDataHtmlizer = false;
-            }
-            if (btnCount === 2 && !node.getAttribute('data-bind')) {
-                secondBtnHasDataBind = false;
-            }
-        }
-    });
-
-    it('it should have 2 buttons', function () {
-        assert.equal(2, btnCount);
-    });
-    it('of which first button shouldn\'t have data-htmlizer attribute', function () {
-        assert.equal(true, firstBtnHasNoDataHtmlizer);
-    });
-    it('and second button should have data-bind attribute', function () {
-        assert.equal(true, secondBtnHasDataBind);
-    });
-});
-
-describe('run no conflict sub-template test', function () {
-    var html = fetch('noconflict-subtemplate-tpl.html'),
-        outputHtml = (new Htmlizer(html, {noConflict: true})).toString({
-            items: [{
-                name: 'item1',
-                subItems: [{
-                    name: 'subitem1'
-                }, {
-                    name: 'subitem2'
-                }]
-            }, {
-                name: 'item2'
-            }, {
-                name: 'item3'
-            }]
-        }),
-        df = htmlToDocumentFragment(outputHtml);
-    it('it should have 6 HTMLElements', function () {
-        assert.equal(6, countElements(df));
-    });
-});
-
 describe('run template binding test', function () {
     var html = fetch('template.html'),
         subtplhtml = fetch('files/subtemplate.html'),
@@ -299,6 +245,7 @@ describe('run template binding test', function () {
             subtpl: new Htmlizer(subtplhtml)
         }),
         df = htmlToDocumentFragment(outputHtml);
+    console.log(outputHtml);
     it('div should have h3 tag', function () {
         assert.equal('H3', df.firstChild.childNodes[1].tagName);
     });
