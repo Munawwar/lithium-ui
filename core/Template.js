@@ -205,7 +205,7 @@ if (typeof define !== 'function') {
                         return;
                     }
 
-                    if ((match = stmt.match(/^(?:ko|hz)[ ]+(\w+)[ :]/))) {
+                    if ((match = stmt.match(/^(?:ko|hz)[ ]+([^:]+):/))) {
                         stack.unshift({
                             key: match[1],
                             start: node
@@ -1106,7 +1106,7 @@ if (typeof define !== 'function') {
 
     var util = Htmlizer.util = {
         regex: {
-            commentStatment: /(?:ko|hz)[ ]+(\w+)[ :](.+)/
+            commentStatment: /(?:ko|hz)[ ]+([^:]+):(.+)/
         },
 
         /**
