@@ -1,11 +1,11 @@
-<div data-bind="foreach: {data: items, as: 'obj'}">
-    <div data-bind="text: $data.name"></div>
-    <!-- li foreach: {data: subItems, as: 'obj2' } -->
-        <span data-bind="text: obj.name"></span>
+<div li-foreach="{data: items, as: 'obj'}">
+    <div>{$data.name}</div>
+    {foreach: \{data: subItems, as: 'obj2' \}}
+        <span>{obj.name}</span>
         <span> - </span>
-        <span data-bind="text: obj2.name"></span>
+        <span>{obj2.name}</span>
         <span> - </span>
-        <span data-bind="text: name"></span>
-    <!-- /li -->
-    <div data-bind="text: name"></div>
+        <span>{name}</span>
+    {/}
+    <div>{name}</div>
 </div>

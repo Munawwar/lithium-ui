@@ -1,6 +1,6 @@
-<p data-bind="with: obj">
-    <span data-bind="text: val"></span><br/>
-    <span data-bind="text: $data.val"></span><br/>
-    <span data-bind="text: $parent.obj.val"></span>
-    <span data-bind="text: $root.obj.val"></span>
+<p li-with="obj">
+    <span>{val}</span><br/>
+    <span>{$data.val}</span><br/>
+    <span>{$parent.obj.val}</span>
+    <span>{$root.obj.val}</span>
 </p>

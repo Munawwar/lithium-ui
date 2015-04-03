@@ -182,6 +182,9 @@ describe('run binding context test', function () {
             }
         }
     });
+    it('All sub-tests passed', function () {
+         assert.equal(7, count);
+    });
 });
 
 describe('run "ifnot" binding test', function () {

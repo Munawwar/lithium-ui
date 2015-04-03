@@ -1,11 +1,11 @@
 <div>
     {if: btnText[0]}
         {if: btnText.length > 0}
-        <button data-bind="attr: {class: cls}">{btnText}</button>
+        <button class={cls}>{btnText}</button>
         {/}
     {/}
     {if: btnText.length &lt; 0}
-        <button data-bind="attr: {class: cls}">{btnText}</button>
+        <button class={cls}>{btnText}</button>
     {/}
     <p>Test</p>
 </div>

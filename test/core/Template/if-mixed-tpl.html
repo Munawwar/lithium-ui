@@ -1,5 +1,5 @@
-<div data-bind="if: btnText.length < 0">
-    <!-- li if: btnText.length > 0 -->
-        <button data-bind="text: btnText, attr: {class: cls}"></button>
-    <!-- /li -->
+<div li-if="btnText.length < 0">
+    {if: btnText.length > 0}
+        <button class={cls}>{btnText}</button>
+    {/}
 </div>

@@ -109,8 +109,7 @@ if (typeof define !== 'function') {
             traverse(frag, frag, function (node, isOpenTag) {
                 if (isOpenTag) {
                     depth += 1;
-                    var nodeInfo = {},
-                        bindings;
+                    var nodeInfo = {};
                     if (node.nodeType === 1) { //element
                         var classRef;
                         if (node.nodeName.indexOf('-') > -1) {
@@ -118,14 +117,13 @@ if (typeof define !== 'function') {
                             classRef = Lui.getClass(className);
                         }
 
-                        var bindOpts = node.getAttribute('data-bind');
-                        if (bindOpts) {
-                            this.checkForConflictingBindings(bindOpts, classRef);
-                            bindings = util.parseObjectLiteral(bindOpts);
+                        var bindings = util.getBindingsAsObject(node);
+                        if (bindings) {
+                            this.checkForConflictingBindings(bindings, classRef);
                             node._id = getId();
                             nodeInfo.node = node;
                             nodeInfo.depth = depth;
-                            nodeInfo.binding = bindOpts;
+                            nodeInfo.bindings = bindings;
                             if (bindings.foreach || bindings['with'] || bindings['if'] || bindings.ifnot) {
                                 tempFrag = util.moveToNewFragment(util.slice(node.childNodes));
                                 nodeInfo.subTpl = new Htmlizer(tempFrag, $.extend({depth: depth}, this.cfg));
@@ -233,9 +231,9 @@ if (typeof define !== 'function') {
          * @param {String} bindOpts Bindings as string
          * @private
          */
-        checkForConflictingBindings: function (bindOpts, isComponent) {
+        checkForConflictingBindings: function (bindings, isComponent) {
             var conflict = [];
-            util.forEachObjectLiteral(bindOpts, function (binding) {
+            Object.keys(bindings).forEach(function (binding) {
                 if (isComponent) {
                     if (binding !== 'attr') {
                         conflict.push(binding);
@@ -580,9 +578,9 @@ if (typeof define !== 'function') {
                 }
             },
             attr: {
-                init: function (node, binding, expr) {
+                init: function (node, binding, attrMap) {
                     if (node.nodeType === 1) {
-                        util.forEachObjectLiteral(expr.slice(1, -1), function (attr, value) {
+                        Li.forEach(attrMap, function (value, attr) {
                             var val = this.evaluate({binding: binding, attr: attr}, value, node);
                             if (typeof val === 'string' || typeof val === 'number') {
                                 node.setAttribute(attr, val);
@@ -602,10 +600,10 @@ if (typeof define !== 'function') {
                     }
                 }
             },
-            css: {
+            class: {
                 init: function (node, binding, expr) {
                     if (node.nodeType === 1) {
-                        util.forEachObjectLiteral(expr.slice(1, -1), function (className, expr) {
+                        util.forEachObjectLiteral(expr, function (className, expr) {
                             var val = this.evaluate({binding: binding, className: className}, expr, node);
                             if (val) {
                                 $(node).addClass(className);
@@ -632,7 +630,7 @@ if (typeof define !== 'function') {
                 return {
                     init: function (node, binding, expr) {
                         if (node.nodeType === 1) {
-                            util.forEachObjectLiteral(expr.slice(1, -1), function (prop, expr) {
+                            util.forEachObjectLiteral(expr, function (prop, expr) {
                                 var val = this.evaluate({binding: binding, prop: prop}, expr, node) || null;
                                 node.style.setProperty(prop.replace(/[A-Z]/g, toCssProp), val);
                             }, this);
@@ -769,14 +767,14 @@ if (typeof define !== 'function') {
                         stack.push(node);
                         tStack.push(tNode);
 
-                        var bindOpts = node.getAttribute('data-bind');
-                        if (bindOpts) {
-                            node.removeAttribute('data-bind');
+                        var bindings = this.tpl.getBindingInfo(tNode).bindings;
+                        if (bindings) {
                             this.addNodeInfo(node, tNode);
                         }
 
                         var ret;
-                        util.forEachObjectLiteral(bindOpts, function (binding, value) {
+                        //util.forEachObjectLiteral(bindOpts, function (binding, value) {
+                        Li.forEach(bindings || {}, function (value, binding) {
                             if (this.bindingHandler[binding]) {
                                 control = this.bindingHandler[binding].init.call(this,
                                     node, binding, value, tNode, blocks) || {};
@@ -1102,16 +1100,19 @@ if (typeof define !== 'function') {
 
     var util = Htmlizer.util = {
         regex: {
+            placeholder: /(^|[^\\])(\{(?:\\\}|[^\}])+\})/, //Without escaping braces: /(^|[^\\])({(?:\\}|[^}])+})/
+            placeholders: /(^|[^\\])(\{(?:\\\}|[^\}])+\})/g,
+            stylePlaceholders: /(?:^|;)[ ]*([\w\-]+)[ ]*:[ ]*(\{(?:\\\}|[^\}])+\})[ ]*(?:;|$)/g,
             commentStatment: /^li[ ]+(\w+):(.+)/
         },
 
         /**
-         * Find paceholders from a string
-         * @return {Array} Array of strings split at placholder
+         * Find placeholders from a string
+         * @return {Array} Array of strings split at placeholder
          */
         findPlaceHolders: function (str) {
             var match, arr = [];
-            while ((match = str.match(/(^|[^\\])(\{(?:\\\}|[^\}])+\})/))) { //Without escaping braces: /(^|[^\\])({(?:\\}|[^}])+})/
+            while ((match = str.match(util.regex.placeholder))) {
                 arr.push(str.substring(0, match.index + match[1].length));
                 arr.push([match[2].slice(1, -1).trim()]);
                 str = str.substr(match.index + match[0].length);
@@ -1121,8 +1122,7 @@ if (typeof define !== 'function') {
             }
             //Unescape \{ and  \}
             arr.forEach(function (s, i) {
-                var ss = Li.isArray(s) ? s[0] : s;
-                ss = ss.replace(/\\\{/g, '{').replace(/\\\}/g, '}');
+                var ss = util.unescapeBraces(Li.isArray(s) ? s[0] : s);
                 if (Li.isArray(s)) {
                     s[0] = ss;
                 } else {
@@ -1158,6 +1158,36 @@ if (typeof define !== 'function') {
          */
         slice: function (arrlike, index) {
             return Array.prototype.slice.call(arrlike, index);
+        },
+
+        /**
+         * @private
+         */
+        unescapePlaceholder: function (str) {
+            return str.slice(1, -1).replace(/\\\{/g, '{').replace(/\\\}/g, '}');
+        },
+
+        /**
+         * @private
+         */
+        unescapeBraces: function (str) {
+            return str.replace(/\\\{/g, '{').replace(/\\\}/g, '}');
+        },
+
+        /**
+         *
+         */
+        getBindingsAsObject: function (node) {
+            var bindings = {};
+            util.slice(node.attributes).forEach(function (attr) {
+                if (attr.name.substr(0, 3) === 'li-') {
+                    bindings[attr.name.substr(3)] = attr.value;
+                } else if (attr.value[0] === '{' && attr.value.slice(-1) === '}') { //normal attribute
+                    bindings.attr = bindings.attr || {};
+                    bindings.attr[attr.name] = util.unescapePlaceholder(attr.value);
+                }
+            });
+            return bindings;
         },
 
         /**

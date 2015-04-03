@@ -1,8 +1,8 @@
 <div>
-    <!-- li foreach: items -->
-        <div data-bind="text: name"></div>
-        <!-- li foreach: subItems -->
-            <div data-bind="text: name"></div>
-        <!-- /li -->
-    <!-- /li -->
+    {foreach: items}
+        <div>{name}</div>
+        {foreach: subItems}
+            <div>{name}</div>
+        {/}
+    {/}
 </div>
