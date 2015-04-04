@@ -34,10 +34,11 @@ define(['jquery-node', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium
          */
         extend: function (type, baseClass, protoObj) {
             protoObj.type = type;
-            var typeLowerCase = type.toLowerCase();
-            this.componentClasses[typeLowerCase] = Li.extend(baseClass, protoObj);
+            var typeLowerCase = type.toLowerCase(),
+                classRef = Li.extend(baseClass, protoObj);
+            this.componentClasses[typeLowerCase] = classRef;
 
-            var proto = this.getClass(typeLowerCase).prototype,
+            var proto = classRef.prototype,
                 P = function () {};
             P.prototype = proto;
             var inst = new P();
@@ -54,7 +55,7 @@ define(['jquery-node', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium
             if (Li.isFunction(inst.afterExtend)) {
                 inst.afterExtend(proto);
             }
-            return this.getClass(typeLowerCase);
+            return classRef;
         },
 
         /**
@@ -77,7 +78,7 @@ define(['jquery-node', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium
          * Check if type is an observable.
          */
         isObservable: function (o) {
-            return (Li.isObject(o) && o.isLuiObservable);
+            return (Li.isFunction(o) && o.isLuiObservable);
         },
 
         /**

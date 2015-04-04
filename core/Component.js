@@ -190,7 +190,8 @@ define([
             this.attachListeners();
         },
         /**
-         * Rebinds listeners.
+         * Rebinds DOM event listeners.
+         * @private
          */
         attachListeners: (function () {
             function bindToDom($el, listeners, scope) {
@@ -209,6 +210,7 @@ define([
                         if (specificListeners && listeners !== specificListeners) {
                             return;
                         }
+                        var context = listeners.scope || this;
                         Li.forEach(listeners, function (funcOrObj, prop) {
                             if (prop === 'scope') {
                                 return;
@@ -216,10 +218,16 @@ define([
                             if (prop[0] === '(' && prop.slice(-1) === ')') { //using css selector
                                 if (this.el) {
                                     var $els = $(prop.slice(1, -1), this.el);
-                                    bindToDom($els, funcOrObj, listeners.scope || this);
+                                    bindToDom($els, funcOrObj, context);
                                 }
-                            } else if (Li.isFunction(funcOrObj)) { //component event
-                                this.on(prop, funcOrObj, listeners.scope || this);
+                            } else if (Li.isFunction(funcOrObj)) {
+                                if (prop[0] !== '$') { //root element event
+                                    if (!funcOrObj._scoped_) {
+                                        funcOrObj = listeners[prop] = Li.bind(funcOrObj, context);
+                                        funcOrObj._scoped_ = true;
+                                    }
+                                    $(this.el).on(prop, funcOrObj);
+                                }
                             } else if (Li.isObject(funcOrObj)) { //find reference
                                 //Find the property being referenced
                                 var ns = prop, obj = this;
@@ -232,10 +240,10 @@ define([
                                 });
                                 if (obj) {
                                     if (obj instanceof Lui.Component) {
-                                        funcOrObj.scope = listeners.scope || this;
+                                        funcOrObj.scope = context;
                                         obj.attachListeners(funcOrObj);
                                     } else { //assume HTMLElement
-                                        bindToDom($(obj), funcOrObj, listeners.scope || this);
+                                        bindToDom($(obj), funcOrObj, context);
                                     }
                                 }
                             }
@@ -258,16 +266,14 @@ define([
          *
          * Example:
          * {
-         *   afterrender: function () { //this is a component event },
-         *   "el" : {
-         *      click: function () { //this is a dom event }
-         *   },
+         *   $afterrender: function () { //this is a component event },
+         *   click: function () { //this is a dom event },
          *   "(.navigation)": {
          *      click: function () { //this is a dom event }
          *   }
          * }
          */
-        addListeners: function (listeners, dontAttach) {
+        on: function (listeners, dontAttach) {
             //Push to this.listeners
             var pos = this.listeners.indexOf(listeners);
             if (pos < 0) {
@@ -289,8 +295,10 @@ define([
                         });
                         if (obj && obj instanceof Lui.Component) {
                             funcOrObj.scope = listeners.scope || this;
-                            obj.addListeners(funcOrObj, true);
+                            obj.on(funcOrObj, true);
                         }
+                    } else if (prop[0] === '$') { //component event
+                        this.subscribe(prop, funcOrObj, listeners.scope || this);
                     }
                 }, this);
                 if (!dontAttach) {
@@ -301,7 +309,7 @@ define([
         /**
          * Removes listeners
          */
-        removeListeners: function (listeners) {
+        off: function (listeners) {
             //Push to this.listeners
             var pos = this.listeners.indexOf(listeners);
             if (pos > -1) {
@@ -322,15 +330,19 @@ define([
                             }
                         });
                         if (obj && obj instanceof Lui.Component) {
-                            obj.removeListeners(funcOrObj);
+                            obj.off(funcOrObj);
                         }
+                    } else if (prop[0] === '$') { //component event
+                        this.unsubscribe(prop, funcOrObj);
                     }
                 }, this);
                 this.listeners.splice(pos, 1);
             }
         },
         /**
+         * Detach DOM events
          * @param {Object} [specificListeners] Specific listener object to detach. When not provided, detaches all listeners.
+         * @private
          */
         detachListeners: function (specificListeners) {
             if (this.listeners) {
@@ -349,8 +361,10 @@ define([
                                     $els.off(event, fn);
                                 });
                             }
-                        } else if (Li.isFunction(funcOrObj)) { //component event
-                            this.off(prop, funcOrObj);
+                        } else if (Li.isFunction(funcOrObj)) {
+                            if (prop[0] !== '$') { //root element event
+                                $(this.el).off(prop, funcOrObj);
+                            }
                         } else if (Li.isObject(funcOrObj)) { //find reference
                             //Find the property being referenced
                             var ns = prop, obj = this;
@@ -374,6 +388,17 @@ define([
                     }, this);
                 }, this);
             }
+        },
+        /**
+         * Overrides Li.Publisher's trigger method.
+         */
+        trigger: function () {
+            //Add $ to all event names if not exists.
+            var args = Li.slice(arguments);
+            if (args[0][0] !== '$') {
+                args[0] = '$' + args[0];
+            }
+            this.super(args);
         },
         statics: {
             id: 1,
