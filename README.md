@@ -26,8 +26,8 @@ define(['lui/core/Box', 'tpl!./myform.ko'], function (Lui) {
         constructor: function (config) {
             this.super(arguments);
           
-            this.addListeners({
-              "submitBtn.el": { //listen to events on root element of component
+            this.on({
+              "submitBtn": { //listen to events on root element of component
                   click: function () {
                       //Update observable
                       this.name($('.namefield', this.el)[0].value);
@@ -36,6 +36,8 @@ define(['lui/core/Box', 'tpl!./myform.ko'], function (Lui) {
                   }
               },
               scope: this
+              //Alternatively, use event delegation and add click event to root element of this component.
+              //click: function () {...}
             });
         }
     });
