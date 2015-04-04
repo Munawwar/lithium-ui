@@ -286,15 +286,7 @@ if (typeof define !== 'function') {
                         cmp = new classRef(cfg);
                         //Resolve reference using ref attribute
                         if (cfg.ref && cfg.parent) {
-                            var backsRegEx = /\.\.\//g,
-                                backs = cfg.ref.match(backsRegEx);
-                            cfg.ref = cfg.ref.replace(backsRegEx, '');
-
                             var rel = cfg.parent;
-                            for (backs = (backs ? backs.length : 0); backs > 0; backs -= 1) {
-                                rel = rel.parent;
-                            }
-
                             cfg.ref.split('.').slice(0, -1).forEach(function (part) {
                                 rel = rel[part];
                             });
@@ -744,6 +736,16 @@ if (typeof define !== 'function') {
                             control = this.bindingHandler.component.init.call(this, node, tNode, classRef);
                             if (control.domTraverse) {
                                 ret = control.domTraverse;
+                            }
+                        } else {
+                            var parent = this.context.$root,
+                                ref = node.getAttribute('ref');
+                            if (ref && parent) {
+                                ref.split('.').slice(0, -1).forEach(function (part) {
+                                    parent = parent[part];
+                                });
+                                parent[ref.split('.').slice(-1)[0]] = node;
+                                node.removeAttribute('ref');
                             }
                         }
 
