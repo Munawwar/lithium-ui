@@ -51,6 +51,6 @@ Use the component in another template.
 
 Tutorial
 ------
-1. [Hello world](wiki/Tutorial-1-Hello-World)
-2. [Writing components](wiki/Tutorial-2-Write-a-Component)
-3. [Data-Binding](wiki/Tutorial-3-Data-Binding)
+1. [Hello world](https://github.com/Munawwar/lithium-ui/wiki/Tutorial-1-Hello-World)
+2. [Writing components](https://github.com/Munawwar/lithium-ui/wiki/Tutorial-2-Write-a-Component)
+3. [Data-Binding](https://github.com/Munawwar/lithium-ui/wiki/Tutorial-3-Data-Binding)
