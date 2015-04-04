@@ -1,7 +1,7 @@
 lithium-ui
 ==========
 
-A UI framework inspired by Ext's component architecture and Knockout's template syntax.
+A thin framework for building UI. Templating syntax inspired by KnockoutJS.
 
 ### Teaser
 Template
