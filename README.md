@@ -36,7 +36,8 @@ define(['lui/core/Box', 'tpl!./myform.ko'], function (Lui) {
                   }
               },
               scope: this
-              //Alternatively, use event delegation and add click event to root element of this component.
+              //Alternatively, use event delegation and add
+              //the click handler to root element of this component.
               //click: function () {...}
             });
         }
