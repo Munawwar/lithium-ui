@@ -269,11 +269,22 @@ if (typeof define !== 'function') {
         bindingHandler: {
             component: {
                 init: function (node, tNode, classRef) {
-                    var cfg, cmp;
                     node.innerHTML = tNode.innerHTML;
                     if (classRef) {
+                        var cfg = {}, cmp;
                         //Parse node to a config
                         if (classRef.prototype.makeConfigFromView) {
+                            Li.slice(node.attributes).forEach(function (attr) {
+                                var value = attr.value;
+                                if (value[0] === '{' && value.slice(-1) === '}') {
+                                    value = saferEval.call(null, value.slice(1, -1), this.context, this.data, node);
+                                }
+                                if (attr.name === 'class') {
+                                    cfg.cls = value;
+                                } else if (attr.name !== 'data-bind' && attr.name !== 'type') {
+                                    cfg[attr.name] = value;
+                                }
+                            });
                             cfg = classRef.prototype.makeConfigFromView(node, cfg);
                         } else {
                             cfg = {

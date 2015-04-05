@@ -79,17 +79,10 @@ define([
          * @param {HTMLElement} el Component's root element in the static view implementation.
          * @protected
          */
-        makeConfigFromView: function (element) {
-            var cfg = {
+        makeConfigFromView: function (element, cfg) {
+            $.extend(cfg, {
                 type: this.type,
                 innerTpl: element.innerHTML.trim() || undefined
-            };
-            Li.slice(element.attributes).forEach(function (attr) {
-                if (attr.name === 'class') {
-                    cfg.cls = attr.value;
-                } else if (attr.name !== 'data-bind' && attr.name !== 'type') {
-                    cfg[attr.name] = attr.value;
-                }
             });
             if (cfg.innerTpl) {
                 cfg.innerTpl = Li.dom(cfg.innerTpl);
