@@ -907,7 +907,7 @@ if (typeof define !== 'function') {
             if (this.firstChild) {
                 this.toDocumentFragment(); //if rendered, move nodes from document to DocumentFragment
             }
-            this.retired = false;
+            this.retired = true;
         },
 
         /**
