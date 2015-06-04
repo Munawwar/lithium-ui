@@ -906,6 +906,17 @@ if (typeof define !== 'function') {
         retire: function () {
             if (this.firstChild) {
                 this.toDocumentFragment(); //if rendered, move nodes from document to DocumentFragment
+
+                //Reset everything so that GC can free memory.
+                this.fragment = null;
+                this.firstChild = null;
+                this.lastChild = null;
+
+                this.nodeInfoList = []; //will contain the binding information for each node.
+                this.nodeMap = {}; //used to quickly map a node to it's nodeInfo.
+
+                this.components = null;
+                this.componentMap = null;
             }
             this.retired = true;
         },
