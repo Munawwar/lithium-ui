@@ -290,6 +290,23 @@ describe('run no conflict sub-template test', function () {
     });
 });
 
+describe('run template binding test', function () {
+    var html = fetch('template.html'),
+        subtplhtml = fetch('files/subtemplate.html'),
+        outputHtml = (new Htmlizer(html)).toString({
+            name: 'Franklin',
+            credits: 250,
+            subtpl: new Htmlizer(subtplhtml)
+        }),
+        df = htmlToDocumentFragment(outputHtml);
+    it('div should have h3 tag', function () {
+        assert.equal('H3', df.firstChild.childNodes[1].tagName);
+    });
+    it('h3 should have text as "Franklin"', function () {
+        assert.equal('Franklin', df.firstChild.childNodes[1].firstChild.nodeValue);
+    });
+});
+
 /*Utility functions*/
 function fetch(pathToTextFile) {
     return fs.readFileSync(path.resolve(__dirname, pathToTextFile), {encoding: 'utf8'});
