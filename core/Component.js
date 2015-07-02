@@ -19,7 +19,7 @@ define([
         /**
          * Outer render template
          * @param {Lui.Template|undefined} tpl
-         * if undefined, then script tag in document with data-outer="<component type>" is searched.
+         * if undefined, then script tag in document with id="component-type-outer" is searched.
          *
          * If instance of Lui.Template, then that is used directly.
          * Use Lui.findTemplate() to find and load a template (in a script tag) using attribute and type.
@@ -28,7 +28,7 @@ define([
         /**
          * Inner render template
          * @param {undefined|String|Lui.Template|null} tpl
-         * if undefined, then script tag in document with data-outer="<component type>" is searched.
+         * if undefined, then script tag in document with id="component-type-inner" is searched.
          *
          * If instance of Lui.Template, then that is used directly.
          * Use Lui.findTemplate() to find and load a template (in a script tag) using attribute and type.
@@ -64,11 +64,12 @@ define([
             //Note: When Lui.Component is being created, it's afterExtend method is called before Lui.Component is available in the Lui namespace.
             //Therefore, use the Lui.getClass() method.
             if (proto === Lui.getClass('Lui.Component').prototype || (proto instanceof Lui.Component)) {
-                tpl = Lui.findTemplate('data-outer', proto.type);
+                var prefix = proto.type.toLowerCase().replace(/\./g, '-');
+                tpl = Lui.findTemplate('id', prefix + '-outer');
                 if (tpl) { //not to override prototype, if template doesn't exist
                     proto.outerTpl = tpl;
                 }
-                tpl = Lui.findTemplate('data-inner', proto.type);
+                tpl = Lui.findTemplate('id', prefix + '-inner');
                 if (tpl) {
                     proto.innerTpl = tpl;
                 }
