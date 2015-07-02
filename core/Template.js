@@ -68,17 +68,26 @@ if (typeof define !== 'function') {
                             var item = arr[i];
                             if (Li.isArray(item)) {
                                 item = item[0];
-                                var autoClosed = false;
+                                var autoClosed = false, ignore = false;
                                 //if binding not specified, then assume text binding
                                 //FIXME: This is a sub-optimal solution. Why add comment nodes?
                                 //Why not just track the text node (using parent node and child index)?
                                 if (item[0] !== '/' && !(/^\w+:/).test(item)) {
-                                    item = 'text: ' + item;
-                                    arr.splice(i + 1, 0, document.createComment('/li')); //auto close the statement
                                     autoClosed = true;
+                                    //Convert simple case to li-text binding rather than using ugly comments between text nodes.
+                                    if (arr.length === 1 && node.parentNode.childNodes.length === 1) {
+                                        node.parentNode.setAttribute('li-text', item);
+                                        arr[i] = document.createTextNode('');
+                                        ignore = true;
+                                    } else {
+                                        item = 'text: ' + item;
+                                        arr.splice(i + 1, 0, document.createComment('/li')); //auto close the statement
+                                    }
                                 }
                                 item = (item[0] === '/' ? '/li' : 'li ' + item);
-                                arr[i] = document.createComment(item);
+                                if (!ignore) {
+                                    arr[i] = document.createComment(item);
+                                }
                                 if (autoClosed) {
                                     i += 1;
                                 }
@@ -1113,7 +1122,9 @@ if (typeof define !== 'function') {
         findPlaceHolders: function (str) {
             var match, arr = [];
             while ((match = str.match(util.regex.placeholder))) {
-                arr.push(str.substring(0, match.index + match[1].length));
+                if (match[1].length) {
+                    arr.push(str.substring(0, match.index + match[1].length));
+                }
                 arr.push([match[2].slice(1, -1).trim()]);
                 str = str.substr(match.index + match[0].length);
             }

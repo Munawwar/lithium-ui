@@ -33,8 +33,8 @@ describe('run container-less text binding test', function () {
             btnText: 'Click here'
         }),
         df = htmlToDocumentFragment(outputHtml);
-    it('button element should have 3 child nodes', function () {
-        assert.equal(3, df.firstChild.childNodes.length);
+    it('button element should have 1 child node', function () {
+        assert.equal(1, df.firstChild.childNodes.length);
     });
     it('and it should be a text node with text = "Click here"', function () {
         assert.equal('Click here', df.firstChild.textContent.trim());
