@@ -6,7 +6,10 @@ define(['./lui',
     'jquery-node',
     '../lib/lithium/src/lithium',
     '../lib/lithium/src/lithium.dom'], function (Lui, $, Li) {
-    Lui.Observable = function (initVal) {
+    /**
+     * Observable primitive value
+     */
+    Lui.ObservablePrimitive = function (initVal) {
         var value,
             nodeBindings = [],
             uniqueNodes = {},
@@ -42,12 +45,15 @@ define(['./lui',
             };
 
         observable.isLuiObservable = true;
+        observable.isLuiPrimitive = true;
 
         observable(initVal);
         return observable;
     };
 
-
+    /**
+     * Observable array.
+     */
     Lui.ObservableArray = function (initVal) {
         var value = [],
             nodeBindings = [],
@@ -227,10 +233,22 @@ define(['./lui',
         });
 
         observable.isLuiObservable = true;
-        observable.isLuiObservableArray = true;
+        observable.isLuiArray = true;
 
         observable(initVal);
         return observable;
+    };
+
+    /**
+     * Function to detect initial type and create the appropriate Observable type.
+     * Only two observable types are available Lui.ObservablePrimitive and Lui.ObservableArray.
+     */
+    Lui.Observable = function (initVal) {
+        if (Li.isArray(initVal)) {
+            return Lui.ObservableArray(initVal);
+        } else {
+            return Lui.ObservablePrimitive(initVal);
+        }
     };
 
     function removeUnusedAndIterate(nodeBindings, uniqueNodes, callback, scope) {

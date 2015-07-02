@@ -96,7 +96,7 @@ define([
             //Make own copy of observable from prototype.
             this._observables.forEach(function (prop) {
                 var val = this[prop];
-                this[prop] = val.isLuiObservableArray ? Lui.ObservableArray(val()) : Lui.Observable(val());
+                this[prop] = Lui.Observable(val());
             }, this);
             this.set(cfg);
             this.view = (new Lui.Template.View(this.outerTpl, this));

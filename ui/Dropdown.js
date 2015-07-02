@@ -13,7 +13,7 @@ define([
          * @cfg {Array[]} options Array of [value, display text] arrays.
          * Used only for first render.
          */
-        options: Lui.ObservableArray(),
+        options: Lui.Observable([]),
         /**
          * @cfg {Number} [defaultOption=0]
          */
