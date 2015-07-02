@@ -267,7 +267,7 @@ if (typeof define !== 'function') {
 
     Htmlizer.View.prototype = {
         bindingHandler: {
-            component: {
+            componenttag: {
                 init: function (node, tNode, classRef) {
                     node.innerHTML = tNode.innerHTML;
                     if (classRef) {
@@ -305,7 +305,7 @@ if (typeof define !== 'function') {
                             delete cfg.ref;
                         }
 
-                        //Add to components list
+                        //Add to components list for rendering later
                         this.components = this.components || [];
                         this.components.push({cmp: cmp, node: node});
 
@@ -325,6 +325,26 @@ if (typeof define !== 'function') {
                             cfg[attr] = node.getAttribute(attr);
                         }
                         cmp.set(cfg);
+                    }
+                }
+            },
+            component: {
+                init: function (node, binding, expr, tNode, blocks) {
+                    if (node.nodeType === 8) {
+                        var cmp = this.evaluate(binding, expr, node);
+                        if (cmp instanceof Lui.Component) {
+                            cmp.set({parent: this.context.$root});
+
+                            //Add to components list for rendering later
+                            this.components = this.components || [];
+                            this.components.push({cmp: cmp, node: node});
+
+                            this.componentMap = this.componentMap || {};
+                            this.componentMap[node._uid] = cmp;
+                        }
+
+                        var block = util.findBlockFromStartNode(blocks, tNode);
+                        return {ignoreTillNode: block.end};
                     }
                 }
             },
@@ -548,7 +568,7 @@ if (typeof define !== 'function') {
                         } else { //undefined, null, false
                             node.removeAttribute(extraInfo.attr);
                         }
-                        this.bindingHandler.component.update.call(this, node, extraInfo.attr);
+                        this.bindingHandler.componenttag.update.call(this, node, extraInfo.attr);
                     }
                 }
             },
@@ -571,7 +591,7 @@ if (typeof define !== 'function') {
                         } else {
                             $(node).removeClass(extraInfo.className);
                         }
-                        this.bindingHandler.component.update.call(this, node, 'class');
+                        this.bindingHandler.componenttag.update.call(this, node, 'class');
                     }
                 }
             },
@@ -596,7 +616,7 @@ if (typeof define !== 'function') {
                             } else { //undefined, null, false
                                 node.style.removeProperty(extraInfo.prop.replace(/[A-Z]/g, toCssProp));
                             }
-                            this.bindingHandler.component.update.call(this, node, 'style');
+                            this.bindingHandler.componenttag.update.call(this, node, 'style');
                         }
                     }
                 };
@@ -744,7 +764,7 @@ if (typeof define !== 'function') {
 
                         var classRef;
                         if (node.nodeName.indexOf('-') > -1 && (classRef = Lui.getClass(node.nodeName.replace(/-/g, '.')))) {
-                            control = this.bindingHandler.component.init.call(this, node, tNode, classRef);
+                            control = this.bindingHandler.componenttag.init.call(this, node, tNode, classRef);
                             if (control.domTraverse) {
                                 ret = control.domTraverse;
                             }
