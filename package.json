@@ -1,16 +1,16 @@
 {
-    "name": "lithium-ui-template",
+    "name": "lithium-ui",
     "author": "munawwar",
     "description": "Test suite for Lithium UI templating engine",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "main": "core/util/Template.js",
     "dependencies": {
-        "jquery-node": "0.0.1"
+        "jquery-node": "0.1.0"
     },
     "devDependencies": {
         "mocha": "1.18.2",
         "amdefine": "0.1.0",
-        "jsdom": "0.10.3"
+        "jsdom": "3.1.2"
     },
     "directories": {
         "test": "test"
