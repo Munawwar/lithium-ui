@@ -1,4 +1,4 @@
-<script type="text/html" data-outer="Lui.Alert">
+<script type="text/html" id="lui-alert-outer">
     <div data-bind="attr: {id: id, data-type: type, class: getCssClass(), style: style}">
         <span class="fa fa-exclamation-circle icon"></span>
         <button type="button" class="close" aria-hidden="true">&times;</button>
