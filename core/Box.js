@@ -1,9 +1,9 @@
-define(['./Component'], function (Lui) {
+define(['./Component'], function (Li) {
 
     /**
      * Previously Box and Component were different. But now it is same.
      */
-    Lui.Box = Lui.extend('Lui.Box', Lui.Component, {});
+    Li.Box = Li.extend('Li.Box', Li.Component, {});
 
-    return Lui;
+    return Li;
 });

@@ -9,11 +9,11 @@ if (typeof define !== 'function') {
         './util/js-object-literal-parse',
         './Observable',
         '../lib/lithium/src/lithium',
-        '../lib/lithium/src/lithium.dom'], function ($, parseObjectLiteral, Lui, Li) {
-        Lui.Template = factory.call(this, saferEval, $, parseObjectLiteral, Lui, Li);
-        return Lui;
+        '../lib/lithium/src/lithium.dom'], function ($, parseObjectLiteral, Li) {
+        Li.Template = factory.call(this, saferEval, $, parseObjectLiteral, Li);
+        return Li;
     }.bind(this));
-}(function (saferEval, $, parseObjectLiteral, Lui, Li) {
+}(function (saferEval, $, parseObjectLiteral, Li) {
     //var window = document.defaultView;
 
     function unwrap(str) {
@@ -75,7 +75,7 @@ if (typeof define !== 'function') {
                         var classRef;
                         if (node.nodeName.indexOf('-') > -1) {
                             var className = node.nodeName.replace(/-/g, '.');
-                            classRef = Lui.getClass(className);
+                            classRef = Li.getClass(className);
                         }
 
                         var bindOpts = node.getAttribute(this.noConflict ? 'data-htmlizer' : 'data-bind');
@@ -226,10 +226,10 @@ if (typeof define !== 'function') {
     };
 
     /**
-     * @param {Lui.Template} template Lui.Template instance
+     * @param {Li.Template} template Li.Template instance
      * @param {Object} data Any data
      * @param {Object} context [Context] in which this view should run. Used internally.
-     * @param {Lui.Template.View} [parentView] parent of this view. Used internally.
+     * @param {Li.Template.View} [parentView] parent of this view. Used internally.
      */
     Htmlizer.View = function (template, data, context, parentView) {
         this.tpl = template;
@@ -332,7 +332,7 @@ if (typeof define !== 'function') {
                 init: function (node, binding, expr, tNode, blocks) {
                     if (node.nodeType === 8) {
                         var cmp = this.evaluate(binding, expr, node);
-                        if (cmp instanceof Lui.Component) {
+                        if (cmp instanceof Li.Component) {
                             cmp.set({parent: this.context.$root});
 
                             //Add to components list for rendering later
@@ -763,7 +763,7 @@ if (typeof define !== 'function') {
                         }, this);
 
                         var classRef;
-                        if (node.nodeName.indexOf('-') > -1 && (classRef = Lui.getClass(node.nodeName.replace(/-/g, '.')))) {
+                        if (node.nodeName.indexOf('-') > -1 && (classRef = Li.getClass(node.nodeName.replace(/-/g, '.')))) {
                             control = this.bindingHandler.componenttag.init.call(this, node, tNode, classRef);
                             if (control.domTraverse) {
                                 ret = control.domTraverse;
@@ -992,7 +992,7 @@ if (typeof define !== 'function') {
                 var newContext = this.getNewContext(this.context, this.data);
                 //foreach special properties
                 newContext.$data = newContext.$rawData = item;
-                newContext.$index = Lui.Observable(index + startIndex);
+                newContext.$index = Li.Observable(index + startIndex);
 
                 if (as) {
                     newContext[as] = item;
@@ -1010,7 +1010,7 @@ if (typeof define !== 'function') {
             }, this);
 
             //Update index of items that come after last inserted/removed value.
-            if (Lui) { //No need to do anything on on NodeJS
+            if (Li) { //No need to do anything on on NodeJS
                 for (var i = startIndex + items.length; i < info.views.length; i += 1) {
                     info.views[i].context.$index(i);
                 }
@@ -1051,7 +1051,7 @@ if (typeof define !== 'function') {
 
             var value = saferEval.call(null, expr, this.context, this.data, node);
 
-            if (value && Lui.isObservable(value)) {
+            if (value && Li.isObservable(value)) {
                 value = value();
             }
 

@@ -1,11 +1,11 @@
 //FIXME: This class is broken at the moment. Need to rewrite this to use the new architecture.
-define(['./Cards'], function (Lui) {
+define(['./Cards'], function (Li) {
 
     /**
      * A container that swtiches between different inner components.
      * You can use Box to achieve layouts.
      */
-    Lui.Tabs = Lui.extend('Lui.Tabs', Lui.Box, {
+    Li.Tabs = Li.extend('Li.Tabs', Li.Box, {
         /**
          * @protected
          */
@@ -30,7 +30,7 @@ define(['./Cards'], function (Lui) {
         buttons: [],
 
         /**
-         * Items to passed to Lui.Cards instance
+         * Items to passed to Li.Cards instance
          */
         cards: [],
 
@@ -55,5 +55,5 @@ define(['./Cards'], function (Lui) {
         }
     });
 
-    return Lui;
+    return Li;
 });

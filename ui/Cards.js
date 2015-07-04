@@ -1,10 +1,10 @@
-define(['../core/Box'], function (Lui) {
+define(['../core/Box'], function (Li) {
 
     /**
      * A container that swtiches between different inner components.
      * You can use Box to achieve layouts.
      */
-    Lui.Cards = Lui.extend('Lui.Cards', Lui.Box, {
+    Li.Cards = Li.extend('Li.Cards', Li.Box, {
         /**
          * Active item
          */
@@ -36,5 +36,5 @@ define(['../core/Box'], function (Lui) {
         }
     });
 
-    return Lui;
+    return Li;
 });

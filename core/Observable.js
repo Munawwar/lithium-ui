@@ -5,18 +5,18 @@ if (typeof define !== 'function') {
 define(['./lui',
     'jquery-node',
     '../lib/lithium/src/lithium',
-    '../lib/lithium/src/lithium.dom'], function (Lui, $, Li) {
+    '../lib/lithium/src/lithium.dom'], function (Li, $) {
     /**
      * Observable primitive value
      */
-    Lui.ObservablePrimitive = function (initVal) {
+    Li.ObservablePrimitive = function (initVal) {
         var value,
             nodeBindings = [],
             uniqueNodes = {},
             observable = function (val) {
                 //Check whether value is called from a template or not.
                 var view;
-                if ((view = Lui.Template.View.currentlyEvaluating)) {
+                if ((view = Li.Template.View.currentlyEvaluating)) {
                     var node = view.currentlyEvaluating.node;
                     if (!uniqueNodes[node._uid] && !view.retired) {
                         uniqueNodes[node._uid] = view.currentlyEvaluating;
@@ -44,8 +44,8 @@ define(['./lui',
                 }
             };
 
-        observable.isLuiObservable = true;
-        observable.isLuiPrimitive = true;
+        observable.isLiObservable = true;
+        observable.isLiPrimitive = true;
 
         observable(initVal);
         return observable;
@@ -54,14 +54,14 @@ define(['./lui',
     /**
      * Observable array.
      */
-    Lui.ObservableArray = function (initVal) {
+    Li.ObservableArray = function (initVal) {
         var value = [],
             nodeBindings = [],
             uniqueNodes = {},
             trackDependency = function () {
                 //Check whether value is called from a template or not.
                 var view;
-                if ((view = Lui.Template.View.currentlyEvaluating)) {
+                if ((view = Li.Template.View.currentlyEvaluating)) {
                     var node = view.currentlyEvaluating.node;
                     if (!uniqueNodes[node._uid] && !view.retired) {
                         uniqueNodes[node._uid] = view.currentlyEvaluating;
@@ -232,8 +232,8 @@ define(['./lui',
             //TODO: Implement removeAll([items...]) like KO
         });
 
-        observable.isLuiObservable = true;
-        observable.isLuiArray = true;
+        observable.isLiObservable = true;
+        observable.isLiArray = true;
 
         observable(initVal);
         return observable;
@@ -241,13 +241,13 @@ define(['./lui',
 
     /**
      * Function to detect initial type and create the appropriate Observable type.
-     * Only two observable types are available Lui.ObservablePrimitive and Lui.ObservableArray.
+     * Only two observable types are available Li.ObservablePrimitive and Li.ObservableArray.
      */
-    Lui.Observable = function (initVal) {
+    Li.Observable = function (initVal) {
         if (Li.isArray(initVal)) {
-            return Lui.ObservableArray(initVal);
+            return Li.ObservableArray(initVal);
         } else {
-            return Lui.ObservablePrimitive(initVal);
+            return Li.ObservablePrimitive(initVal);
         }
     };
 
@@ -272,5 +272,5 @@ define(['./lui',
         }
     }
 
-    return Lui;
+    return Li;
 });

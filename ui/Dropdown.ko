@@ -1,4 +1,4 @@
-<script type="text/html" id="lui-dropdown-outer">
+<script type="text/html" id="li-dropdown-outer">
     <select data-bind="attr: {id: id, data-type: type, class: getCssClass(), style: style}">
         <!-- ko foreach: options -->
             <option data-bind="value: $data[0], text: $data[1]"></option>

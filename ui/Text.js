@@ -1,11 +1,11 @@
-define(['../core/Component', 'tpl!./Text.ko'], function (Lui) {
+define(['../core/Component', 'tpl!./Text.ko'], function (Li) {
     /**
      * Text field.
      */
-    Lui.Text = Lui.extend('Lui.Text', Lui.Component, {
-        cls: Lui.Observable('form-control'),
+    Li.Text = Li.extend('Li.Text', Li.Component, {
+        cls: Li.Observable('form-control'),
         autocomplete: [],
-        placeholder: Lui.Observable(''),
+        placeholder: Li.Observable(''),
         getValue: function () {
             if (this.el) {
                 return this.el.value;
@@ -51,5 +51,5 @@ define(['../core/Component', 'tpl!./Text.ko'], function (Lui) {
         }
     });
 
-    return Lui;
+    return Li;
 });

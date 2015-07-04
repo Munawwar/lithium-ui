@@ -3,17 +3,17 @@ define([
     '../lib/lithium/src/lithium',
     'tpl!./Dropdown.ko',
     'css!./Dropdown.css'
-], function (Lui, Li) {
+], function (Li) {
 
     /**
      * Dropdown.
      */
-    Lui.Dropdown = Lui.extend('Lui.Dropdown', Lui.Component, {
+    Li.Dropdown = Li.extend('Li.Dropdown', Li.Component, {
         /**
          * @cfg {Array[]} options Array of [value, display text] arrays.
          * Used only for first render.
          */
-        options: Lui.Observable([]),
+        options: Li.Observable([]),
         /**
          * @cfg {Number} [defaultOption=0]
          */
@@ -50,5 +50,5 @@ define([
         }
     });
 
-    return Lui;
+    return Li;
 });

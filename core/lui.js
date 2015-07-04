@@ -4,11 +4,56 @@ if (typeof define !== 'function') {
 
 define(['jquery-node', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium.extras'], function ($, Li) {
 
-    var Lui = {
-        version: '0.1.0',
+    /**
+     * Create the class using baseClass and proto paramters.
+     *
+     * If type is sent as parameter, class type will be registered with Li as a component
+     * so that it can be used in HTML views with custom tags.
+     * This automatically also adds the 'type' as a string to prototype of class (which Li.Component uses in rendered markup).
+     * @param {String} [type] Unique name (including namespace) to be used for the new class. eg 'Li.Box'.
+     * If this paramter isn't passed, then the new class to be created is not treated as a component.
+     * @param {Function} baseClass
+     * @param {Object} proto Prototype to use for creating the new class.
+     */
+    Li.extend = (function () {
+        var oldFunc = Li.extend;
+        return function (type, baseClass, protoObj) {
+            if (arguments.length < 3) {
+                return oldFunc.apply(Li, arguments);
+            }
+
+            //If three parameters are given then the class is to be treated as a component.
+            protoObj.type = type;
+            var typeLowerCase = type.toLowerCase(),
+                classRef = oldFunc.call(Li, baseClass, protoObj);
+            this.componentClasses[typeLowerCase] = classRef;
+
+            var proto = classRef.prototype,
+                P = function () {};
+            P.prototype = proto;
+            var inst = new P();
+
+            //Find all observables from prototype and note them down in _observables.
+            //A Component instance can use _observables to make it's own copy of these observables.
+            proto._observables = [];
+            for (var prop in inst) {
+                if (Li.isObservable(inst[prop])) {
+                    proto._observables.push(prop);
+                }
+            }
+
+            if (Li.isFunction(inst.afterExtend)) {
+                inst.afterExtend(proto);
+            }
+            return classRef;
+        };
+    }());
+
+    Li.mix(Li, {
+        uiVersion: '0.1.0',
 
         /**
-         * Holds all classes inherited through Lui.extend.
+         * Holds all classes inherited through Li.extend.
          * @private
          */
         componentClasses: {},
@@ -25,40 +70,6 @@ define(['jquery-node', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium
         },
 
         /**
-         * Uses Li.extend() to create the class using baseClass and proto, and at the same time
-         * register the class type with Lui so that it can be used in HTML views parsed by Lui.
-         * This automatically also adds the 'type' as a string to prototype of class (which Lui.Component uses in rendered markup).
-         * @param {String} type Unique name (including namespace) to be used for the new class. eg 'Lui.Box'.
-         * @param {Function} baseClass
-         * @param {Object} proto Prototype to use for creating the new class.
-         */
-        extend: function (type, baseClass, protoObj) {
-            protoObj.type = type;
-            var typeLowerCase = type.toLowerCase(),
-                classRef = Li.extend(baseClass, protoObj);
-            this.componentClasses[typeLowerCase] = classRef;
-
-            var proto = classRef.prototype,
-                P = function () {};
-            P.prototype = proto;
-            var inst = new P();
-
-            //Find all observables from prototype and note them down in _observables.
-            //A Component instance can use _observables to make it's own copy of these observables.
-            proto._observables = [];
-            for (var prop in inst) {
-                if (Lui.isObservable(inst[prop])) {
-                    proto._observables.push(prop);
-                }
-            }
-
-            if (Li.isFunction(inst.afterExtend)) {
-                inst.afterExtend(proto);
-            }
-            return classRef;
-        },
-
-        /**
          * Finds template in script tag.
          * @private
          */
@@ -69,7 +80,7 @@ define(['jquery-node', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium
             tplTag = tplTag[tplTag.length - 1];
             if (tplTag) {
                 var text = tplTag.firstChild.nodeValue.trim();
-                tpl = new Lui.Template(text);
+                tpl = new Li.Template(text);
             }
             return tpl;
         },
@@ -78,7 +89,7 @@ define(['jquery-node', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium
          * Check if type is an observable.
          */
         isObservable: function (o) {
-            return (Li.isFunction(o) && o.isLuiObservable);
+            return (Li.isFunction(o) && o.isLiObservable);
         },
 
         /**
@@ -86,7 +97,7 @@ define(['jquery-node', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium
          */
         toObservable: function (obj) {
             Li.forEach(obj, function (val, key) {
-                obj[key] = Lui.Observable(val);
+                obj[key] = Li.Observable(val);
             });
             return obj;
         },
@@ -101,11 +112,11 @@ define(['jquery-node', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium
             }
             var ret = {};
             Li.forEach(obj, function (val, key) {
-                ret[key] = (Lui.isObservable(val) ? val() : val);
+                ret[key] = (Li.isObservable(val) ? val() : val);
             });
             return ret;
         }
-    };
+    });
 
-    return Lui;
+    return Li;
 });

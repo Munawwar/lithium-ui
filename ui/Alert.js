@@ -5,14 +5,14 @@ define([
     'jquery',
     'css!./Alert.css',
     'tpl!./Alert.ko'
-], function (Lui, $) {
+], function (Li, $) {
     /**
      * Alert.
      */
-    Lui.Alert = Lui.extend('Lui.Alert', Lui.Component, {
+    Li.Alert = Li.extend('Li.Alert', Li.Component, {
         html: 'Alert!',
         alertType: 'warning',
-        cls: Lui.Observable('alert-stick-top'),
+        cls: Li.Observable('alert-stick-top'),
 
         closeBtn: true,
 
@@ -60,5 +60,5 @@ define([
         }
     });
 
-    return Lui;
+    return Li;
 });

@@ -5,12 +5,12 @@ define([
     './Template',
     './Observable',
     'tpl!./Component.ko'
-], function (Lui, $, Li) {
+], function (Li, $) {
 
     /**
      * Base class for all components.
      */
-    Lui.Component = Lui.extend('Lui.Component', Li.Publisher, {
+    Li.Component = Li.extend('Li.Component', Li.Publisher, {
         /**
          * Root (top most) element of this component
          * @readonly
@@ -18,20 +18,20 @@ define([
         el: null,
         /**
          * Outer render template
-         * @param {Lui.Template|undefined} tpl
+         * @param {Li.Template|undefined} tpl
          * if undefined, then script tag in document with id="component-type-outer" is searched.
          *
-         * If instance of Lui.Template, then that is used directly.
-         * Use Lui.findTemplate() to find and load a template (in a script tag) using attribute and type.
+         * If instance of Li.Template, then that is used directly.
+         * Use Li.findTemplate() to find and load a template (in a script tag) using attribute and type.
          */
         outerTpl: undefined,
         /**
          * Inner render template
-         * @param {undefined|String|Lui.Template|null} tpl
+         * @param {undefined|String|Li.Template|null} tpl
          * if undefined, then script tag in document with id="component-type-inner" is searched.
          *
-         * If instance of Lui.Template, then that is used directly.
-         * Use Lui.findTemplate() to find and load a template (in a script tag) using attribute and type.
+         * If instance of Li.Template, then that is used directly.
+         * Use Li.findTemplate() to find and load a template (in a script tag) using attribute and type.
          *
          * If null, then no template. Some components don't have different "inner" and "outer", (eg component with a single void tag like <input>).
          */
@@ -39,11 +39,11 @@ define([
         /**
          * CSS class to use on {@link #el}.
          */
-        cls: Lui.Observable(''),
+        cls: Li.Observable(''),
         /**
          * Extra CSS class to be added by view
          */
-        extraCls: Lui.Observable(''),
+        extraCls: Li.Observable(''),
         /**
          * Inline CSS style to apply on {@link #el}.
          */
@@ -53,23 +53,23 @@ define([
         //Note: afterExtend() and makeConfigFromView() cannot be static methods since they are taken from the prototype chain.
 
         /**
-         * Called after Lui.extend() succeeds. Called exactly once for a class.
+         * Called after Li.extend() succeeds. Called exactly once for a class.
          * @param {Object} proto Prototype object of this class.
          * @protected
          */
         afterExtend: function (proto) {
             var tpl;
             //Search for outerTpl and innerTpl script tags and initialize them if they exist. And then override prototype.
-            // if Lui.Component or extends Lui.Component.
-            //Note: When Lui.Component is being created, it's afterExtend method is called before Lui.Component is available in the Lui namespace.
-            //Therefore, use the Lui.getClass() method.
-            if (proto === Lui.getClass('Lui.Component').prototype || (proto instanceof Lui.Component)) {
+            // if Li.Component or extends Li.Component.
+            //Note: When Li.Component is being created, it's afterExtend method is called before Li.Component is available in the Li namespace.
+            //Therefore, use the Li.getClass() method.
+            if (proto === Li.getClass('Li.Component').prototype || (proto instanceof Li.Component)) {
                 var prefix = proto.type.toLowerCase().replace(/\./g, '-');
-                tpl = Lui.findTemplate('id', prefix + '-outer');
+                tpl = Li.findTemplate('id', prefix + '-outer');
                 if (tpl) { //not to override prototype, if template doesn't exist
                     proto.outerTpl = tpl;
                 }
-                tpl = Lui.findTemplate('id', prefix + '-inner');
+                tpl = Li.findTemplate('id', prefix + '-inner');
                 if (tpl) {
                     proto.innerTpl = tpl;
                 }
@@ -92,14 +92,14 @@ define([
         },
 
         constructor: function (cfg) {
-            this.id = 'cmp-' + Lui.Component.getNewId();
+            this.id = 'cmp-' + Li.Component.getNewId();
             //Make own copy of observable from prototype.
             this._observables.forEach(function (prop) {
                 var val = this[prop];
-                this[prop] = Lui.Observable(val());
+                this[prop] = Li.Observable(val());
             }, this);
             this.set(cfg);
-            this.view = (new Lui.Template.View(this.outerTpl, this));
+            this.view = (new Li.Template.View(this.outerTpl, this));
         },
         /**
          * Set configuration. Call this.refresh to re-render this component with the new config.
@@ -110,7 +110,7 @@ define([
             for (var prop in cfg) {
                 var val = cfg[prop];
                 if (val !== undefined) {
-                    if (Lui.isObservable(this[prop]) && this.hasOwnProperty(prop)) {
+                    if (Li.isObservable(this[prop]) && this.hasOwnProperty(prop)) {
                         this[prop](val);
                     } else {
                         this[prop] = val;
@@ -120,7 +120,7 @@ define([
 
             //TODO: Is the ability to override inner template of a single instance needed?
             if (cfg.innerTpl) {
-                this.innerTpl = new Lui.Template(cfg.innerTpl);
+                this.innerTpl = new Li.Template(cfg.innerTpl);
             }
 
             this.listeners = this.listeners || [];
@@ -233,7 +233,7 @@ define([
                                     }
                                 });
                                 if (obj) {
-                                    if (obj instanceof Lui.Component) {
+                                    if (obj instanceof Li.Component) {
                                         funcOrObj.scope = context;
                                         obj.attachListeners(funcOrObj);
                                     } else { //assume HTMLElement
@@ -287,7 +287,7 @@ define([
                                 obj = null;
                             }
                         });
-                        if (obj && obj instanceof Lui.Component) {
+                        if (obj && obj instanceof Li.Component) {
                             funcOrObj.scope = listeners.scope || this;
                             obj.on(funcOrObj, true);
                         }
@@ -323,7 +323,7 @@ define([
                                 obj = null;
                             }
                         });
-                        if (obj && obj instanceof Lui.Component) {
+                        if (obj && obj instanceof Li.Component) {
                             obj.off(funcOrObj);
                         }
                     } else if (prop[0] === '$') { //component event
@@ -370,7 +370,7 @@ define([
                                 }
                             });
                             if (obj) {
-                                if (obj instanceof Lui.Component) {
+                                if (obj instanceof Li.Component) {
                                     obj.detachListeners(funcOrObj);
                                 } else { //assume HTMLElement
                                     Li.forEach(funcOrObj, function (fn, event) {
@@ -397,10 +397,10 @@ define([
         statics: {
             id: 1,
             getNewId: function () {
-                return Lui.Component.id++;
+                return Li.Component.id++;
             }
         }
     });
 
-    return Lui;
+    return Li;
 });

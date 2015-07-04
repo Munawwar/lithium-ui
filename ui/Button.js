@@ -1,18 +1,18 @@
-define(['../core/Component', '../core/Observable', 'tpl!./Button.ko'], function (Lui) {
+define(['../core/Component', '../core/Observable', 'tpl!./Button.ko'], function (Li) {
 
     /**
      * Button.
      */
-    Lui.Button = Lui.extend('Lui.Button', Lui.Component, {
-        cls: Lui.Observable('btn btn-default'),
+    Li.Button = Li.extend('Li.Button', Li.Component, {
+        cls: Li.Observable('btn btn-default'),
         /**
          * Text to display on button
          */
-        label: Lui.Observable('Button'),
+        label: Li.Observable('Button'),
         /**
          * Disabled when true.
          */
-        disabled: Lui.Observable(false),
+        disabled: Li.Observable(false),
         /**
          * @override
          */
@@ -32,5 +32,5 @@ define(['../core/Component', '../core/Observable', 'tpl!./Button.ko'], function 
         }
     });
 
-    return Lui;
+    return Li;
 });
