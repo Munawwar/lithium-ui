@@ -10,7 +10,7 @@ Template
     <div class="hbox">
       <input type="text" class="flex namefield form-control"
         placeholder="Your name" data-bind="value: name" />
-      <lui-button ref="submitBtn">Submit</lui-button>
+      <li-button ref="submitBtn">Submit</li-button>
     </div>
 </div>
 ```
@@ -19,9 +19,9 @@ Component
 /**
  * A Form window
  */
-define(['lui/core/Box', 'tpl!./myform.ko'], function (Lui) {
-    return Lui.extend('app.form', Lui.Box, {
-        name: Lui.Observable(''), //An observable..like KnockoutJS
+define(['lui/core/Box', 'tpl!./myform.ko'], function (Li) {
+    return Li.extend('app.form', Li.Box, {
+        name: Li.Observable(''), //An observable..like KnockoutJS
         
         constructor: function (config) {
             this.super(arguments);
