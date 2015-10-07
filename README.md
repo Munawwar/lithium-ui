@@ -3,6 +3,15 @@ lithium-ui
 
 A thin framework for building UI. Templating syntax inspired by KnockoutJS.
 
+### Why use Lithium UI?
+
+Higher performance and lesser bloat compared to most libraries including KnockoutJS or ReactJS (especially on mobile) without sacrificing convinience of writing code or maintainability.
+
+#### How is lithium UI doing this?
+- Knowing exactly which data should affect which part of the DOM gives the high performance. This is achieved through KO-like templating engine and KO-like observables (React seems [terrible on mobile](https://aerotwist.com/blog/react-plus-performance-equals-what/) BTW).
+- One-way binding gives high performance comparable to KO (Remember [Angular 1](https://www.quora.com/Why-is-the-two-way-data-binding-being-dropped-in-Angular-2)?)
+- One-way binding puts you in control of your application. (You don't need to place breakpoints in the library code to figure out what-is-updating-what. It is easier to debug your own code than mine, of course).
+
 ### Teaser
 Template
 ```html
