@@ -655,8 +655,10 @@ if (typeof define !== 'function') {
                         var val = this.evaluate(binding, expr, node);
                         if (val) {
                             node.setAttribute('checked', 'checked');
+                            node.checked = true;
                         } else {
                             node.removeAttribute('checked');
+                            node.checked = false;
                         }
                     }
                 },
