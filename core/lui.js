@@ -2,7 +2,7 @@ if (typeof define !== 'function') {
     var define = require('amdefine')(module);
 }
 
-define(['jquery-node', '../lib/lithium/src/lithium', '../lib/lithium/src/lithium.extras'], function ($, Li) {
+define(['jquery-node', './base/lithium'], function ($, Li) {
 
     /**
      * Create the class using baseClass and proto paramters.

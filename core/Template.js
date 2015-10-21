@@ -8,8 +8,7 @@ if (typeof define !== 'function') {
     define(['jquery-node',
         './util/js-object-literal-parse',
         './Observable',
-        '../lib/lithium/src/lithium',
-        '../lib/lithium/src/lithium.dom'], function ($, parseObjectLiteral, Li) {
+        './base/lithium'], function ($, parseObjectLiteral, Li) {
         Li.Template = factory.call(this, saferEval, $, parseObjectLiteral, Li);
         return Li;
     }.bind(this));

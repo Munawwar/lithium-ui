@@ -1,6 +1,5 @@
 define([
     '../core/Component',
-    '../lib/lithium/src/lithium',
     'tpl!./Dropdown.ko',
     'css!./Dropdown.css'
 ], function (Li) {

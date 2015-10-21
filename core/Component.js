@@ -1,7 +1,7 @@
 define([
     './lui',
     'jquery',
-    '../lib/lithium/src/lithium.pubsub',
+    './base/lithium.pubsub',
     './Template',
     './Observable',
     'tpl!./Component.ko'

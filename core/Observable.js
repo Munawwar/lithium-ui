@@ -4,8 +4,7 @@ if (typeof define !== 'function') {
 
 define(['./lui',
     'jquery-node',
-    '../lib/lithium/src/lithium',
-    '../lib/lithium/src/lithium.dom'], function (Li, $) {
+    './base/lithium'], function (Li, $) {
     /**
      * Observable primitive value
      */
