@@ -252,6 +252,9 @@ if (typeof define !== 'function') {
         this.components = null;
         this.componentMap = null;
 
+        this.retired = false;
+        this.rendered = false;
+
         //Partially render the view, as Components and sub-components need to be constructed before render.
         this.toDocumentFragment();
     };
@@ -701,6 +704,7 @@ if (typeof define !== 'function') {
             }
         },
         /**
+         * Partial render. Renders everything except sub-components.
          * @private
          */
         toDocumentFragment: function () {
@@ -848,6 +852,11 @@ if (typeof define !== 'function') {
          * Renders and returns a DocumentFragment.
          */
         render: function () {
+            if (this.rendered) {
+                //Move nodes from document to fragment and return fragment.
+                return this.toDocumentFragment();
+            }
+
             //Render components
             (this.components || []).forEach(function (item) {
                 var parent = item.node.parentNode,
@@ -871,6 +880,7 @@ if (typeof define !== 'function') {
                 }
             }, this);
 
+            this.rendered = true;
             return this.fragment;
         },
 
@@ -922,7 +932,7 @@ if (typeof define !== 'function') {
         },
 
         /**
-         * Removs view from document and marks this view as unused.
+         * Removes view from document and marks this view as unused.
          */
         retire: function () {
             if (this.firstChild) {
@@ -940,6 +950,7 @@ if (typeof define !== 'function') {
                 this.componentMap = null;
             }
             this.retired = true;
+            this.rendered = false;
         },
 
         /**
