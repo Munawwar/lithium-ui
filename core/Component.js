@@ -95,8 +95,10 @@ define([
             this.id = 'cmp-' + Li.Component.getNewId();
             //Make own copy of observable from prototype.
             this._observables.forEach(function (prop) {
-                var val = this[prop];
-                this[prop] = Li.Observable(val());
+                if (!this.hasOwnProperty(prop)) {
+                    var val = this[prop];
+                    this[prop] = Li.Observable(val());
+                }
             }, this);
             this.listeners = {};
             this.set(cfg);
@@ -109,8 +111,6 @@ define([
          * Set configuration. Call this.refresh to re-render this component with the new config.
          */
         set: function (cfg) {
-            this.cfg = this.cfg || {};
-
             for (var prop in cfg) {
                 var val = cfg[prop];
                 if (val !== undefined) {
@@ -209,7 +209,7 @@ define([
                     newFunc._scoped_ = true;
                     newFunc._uid_ = func._uid_;
                 }
-                $el.on(event, func);
+                $el.on(event, this.listeners[key]);
             }
             return function (specificListeners) {
                 specificListeners = specificListeners || this.listeners;
