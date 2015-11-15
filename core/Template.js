@@ -276,6 +276,8 @@ if (typeof define !== 'function') {
                         var cfg = {}, cmp;
                         //Parse node to a config
                         if (classRef.prototype.makeConfigFromView) {
+                            //FIXME: The limitation of using attributes is that all values are treated as strings and integer or mixed values etc cannot be used.
+                            //Maybe use params binding like KO?
                             Li.slice(node.attributes).forEach(function (attr) {
                                 var value = attr.value;
                                 if (value[0] === '{' && value.slice(-1) === '}') {
@@ -1214,7 +1216,7 @@ if (typeof define !== 'function') {
     if (arguments.length === 4) {
         try {
             return (new Function('$context', '$data', '$element', 'with($context){with($data){return ' + arguments[0] + '}}'))(arguments[1] || {}, arguments[2] || {}, arguments[3]);
-        } catch (e) {}
+        } catch (e) {console.warn(e);}
     } else {
         throw new Error('Expression evaluator needs at least 4 arguments.');
     }
