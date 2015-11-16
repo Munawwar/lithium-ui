@@ -1,7 +1,14 @@
 <script type="text/html" id="li-dropdown-outer">
-    <select data-bind="attr: {id: id, data-type: type, class: getCssClass(), style: style}">
-        <!-- ko foreach: options -->
-            <option data-bind="value: $data[0], text: $data[1]"></option>
-        <!-- /ko -->
-    </select>
+    <div data-bind="attr: {id: id, data-type: type, class: getCssClass(), style: style}">
+        <span class="caret" dat-bind="css: {disabled: disabled}">▼</span>
+        <input type="text" class="select-dropdown" ref="inputEl" readonly="true" data-bind="attr: {data-activates: 'select-options-' + id}, value: getTextForValue(getValue())">
+        <ul class="dropdown-content select-dropdown" ref="ulEl" style="width: 322px; left: 0px; position: absolute; top: 0px; opacity: 1; display: none;"
+            data-bind="foreach: options, attr: {id: 'select-options-' + id}">
+            <li data-bind="css: {active: $data.value === $root.getValue(), disabled: $root.disabled() || $data.disabled()},
+                attr: {data-value: $data.value}"><span data-bind="text: $data.text"></span></li>
+        </ul>
+        <select class="initialized" ref="selectEl" data-bind="foreach: options">
+            <option data-bind="value: $data.value, text: $data.text, attr: {selected: $data.value === $root.getValue() ? 'selected' : null}"></option>
+        </select>
+    </div>
 </script>
