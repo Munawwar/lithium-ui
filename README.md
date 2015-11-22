@@ -11,11 +11,11 @@ LUI has two parts
 
 - Higher performance (especially on mobile) and lesser bloat compared to most libraries (including KnockoutJS or ReactJS) without sacrificing convinience of writing components or maintainability.
 
-- One-way binding puts you in control of your application. (You don't need to place breakpoints in the library code to figure out what-is-updating-what. It is easier to debug your own code than mine, of course).
+- One-way binding puts *you* in control of your application. Easier to debug.
 
 #### How is lithium UI doing this?
-- Knowing exactly which data should affect which part of the DOM gives the high performance. This is achieved through KO-like templating engine and KO-like observables (React's performance [doesn't seem that impressive on mobile](https://aerotwist.com/blog/react-plus-performance-equals-what/) BTW).
-- One-way binding gives high performance comparable to KO (Remember [Angular 1](https://www.quora.com/Why-is-the-two-way-data-binding-being-dropped-in-Angular-2)?)
+- Knowing exactly which data should affect which part of the DOM gives the high performance. This is achieved through KO-like templating engine and KO-like observables.
+- One-way binding gives higher performance compared to KO.
 
 ### Teaser
 Template
