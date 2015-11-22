@@ -38,9 +38,9 @@ define([
 
         constructor: function (cfg) {
             //Initialize value
-            var initialValue = cfg.options.filter(function (option) {
+            var initialValue = (cfg.options.filter(function (option) {
                 return option.selected;
-            })[0].value;
+            })[0] || {}).value;
             initialValue = initialValue || cfg.options[this.defaultOption].value;
             this.value = Li.Observable(initialValue);
 
