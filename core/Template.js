@@ -360,6 +360,8 @@ if (typeof define !== 'function') {
                             var view = this.makeView(tpl, this.context, this.data, node),
                                 tempFrag = view.toDocumentFragment();
                             node.parentNode.insertBefore(tempFrag, node.nextSibling);
+                        } else {
+                            console.warn('Sub-template "' + expr.trim() + '" for component ' + this.context.$root.type + ' is undefined');
                         }
                         node.parentNode.removeChild(node);
                         var block = util.findBlockFromStartNode(blocks, tNode);
