@@ -276,19 +276,9 @@ if (typeof define !== 'function') {
                         var cfg = {}, cmp;
                         //Parse node to a config
                         if (classRef.prototype.makeConfigFromView) {
-                            //FIXME: The limitation of using attributes is that all values are treated as strings and integer or mixed values etc cannot be used.
-                            //Maybe use params binding like KO?
-                            Li.slice(node.attributes).forEach(function (attr) {
-                                var value = attr.value;
-                                if (value[0] === '{' && value.slice(-1) === '}') {
-                                    value = saferEval.call(null, value.slice(1, -1), this.context, this.data, node);
-                                }
-                                if (attr.name === 'class') {
-                                    cfg.cls = value;
-                                } else if (attr.name !== 'data-bind' && attr.name !== 'type') {
-                                    cfg[attr.name] = value;
-                                }
-                            });
+                            if (node.hasAttribute('params')) {
+                                cfg = this.parseObjectLiteral(node.getAttribute('params'))
+                            }
                             cfg = classRef.prototype.makeConfigFromView(node, cfg);
                         } else {
                             cfg = {

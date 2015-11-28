@@ -81,6 +81,14 @@ define([
          * @protected
          */
         makeConfigFromView: function (element, cfg) {
+            //Accept standard HTML attributes like class and style
+            if (element.hasAttribute('class')) {
+                cfg.extraCls = element.getAttribute('class');
+            }
+            if (element.hasAttribute('style')) {
+                cfg.style = element.getAttribute('style');
+            }
+
             $.extend(cfg, {
                 type: this.type,
                 innerTpl: element.innerHTML.trim() || undefined
