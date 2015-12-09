@@ -1,3 +1,4 @@
+/*global console*/
 /*jslint evil: true*/
 
 if (typeof define !== 'function') {
@@ -277,7 +278,7 @@ if (typeof define !== 'function') {
                         //Parse node to a config
                         if (classRef.prototype.makeConfigFromView) {
                             if (node.hasAttribute('params')) {
-                                cfg = this.parseObjectLiteral(node.getAttribute('params'))
+                                cfg = this.parseObjectLiteral(node.getAttribute('params'));
                             }
                             cfg = classRef.prototype.makeConfigFromView(node, cfg);
                         } else {
