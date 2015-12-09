@@ -1,11 +1,22 @@
 lithium-ui
 ==========
 
-A thin framework for building UI. Templating syntax inspired by KnockoutJS.
+A thin framework for building UI for web apps. Templating syntax inspired by KnockoutJS.
 
-LUI has two parts
-1. Core (the minumum require to write your own components)
-2. Components (a set of UI components)
+LUI has two parts:
+
+1. Core (the minumum required to write your own components)
+2. Components (a set of UI components inspired from [materializecss](materializecss.com))
+
+### Quick overview
+
+Out-of-the-box LUI gives:
+- Classes and classical inheritance methods.
+- Ability to write component view with HTML and data binding (using KnockoutJS inspired template engine and observables).
+- Ability to write your own UI components and also inherit any component.
+- Ability to use custom elements for any component in view markup.
+- AMD support
+- [CSS3 flexbox helper classes](https://github.com/Munawwar/flex-helper) for faster, simpler layouting.
 
 ### Why use Lithium UI?
 
@@ -46,17 +57,13 @@ define(['lui/core/Box', 'tpl!./myform.ko'], function (Li) {
                       console.log('Data submitted: ' + this.name());
                       this.submitBtn.disable();
                   }
-              },
-              scope: this
-              //Alternatively, use event delegation and add
-              //the click handler to root element of this component.
-              //click: function () {...}
+              }
             });
         }
     });
 });
 ```
-Use the component in another template.
+Use the component in another template now:
 ```html
 <app-form></app-form>
 ```
