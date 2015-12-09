@@ -551,7 +551,7 @@ if (typeof define !== 'function') {
                         util.forEachObjectLiteral(expr.slice(1, -1), function (attr, value) {
                             var val = this.evaluate({binding: binding, attr: attr}, value, node);
                             if (typeof val === 'string' || typeof val === 'number') {
-                                node.setAttribute(attr, val);
+                                node.setAttribute(attr, val + '');
                             }
                         }, this);
                     }
@@ -560,7 +560,7 @@ if (typeof define !== 'function') {
                     if (node.nodeType === 1) {
                         var val = this.evaluate(binding, expr, node);
                         if (val || typeof val === 'string' || typeof val === 'number') {
-                            node.setAttribute(extraInfo.attr, val);
+                            node.setAttribute(extraInfo.attr, val + '');
                         } else { //undefined, null, false
                             node.removeAttribute(extraInfo.attr);
                         }
@@ -608,7 +608,7 @@ if (typeof define !== 'function') {
                         if (node.nodeType === 1) {
                             var val = this.evaluate(binding, expr, node);
                             if (val || typeof val === 'string' || typeof val === 'number') {
-                                node.style.setProperty(extraInfo.prop.replace(/[A-Z]/g, toCssProp), val);
+                                node.style.setProperty(extraInfo.prop.replace(/[A-Z]/g, toCssProp), val + '');
                             } else { //undefined, null, false
                                 node.style.removeProperty(extraInfo.prop.replace(/[A-Z]/g, toCssProp));
                             }
