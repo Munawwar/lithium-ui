@@ -4,7 +4,7 @@ define(['./libs', '../core/Component', '../core/Observable', 'tpl!./Button.ko'],
      * Button.
      */
     Li.Button = Li.extend('Li.Button', Li.Component, {
-        cls: Li.Observable('btn waves-effect waves-light'),
+        cls: Li.Observable('waves-effect waves-light'),
         /**
          * Text to display on button
          */
