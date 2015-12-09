@@ -1,4 +1,4 @@
-lithium-ui
+Lithium UI
 ==========
 
 A thin framework for building UI for web apps. Templating syntax inspired by KnockoutJS.
