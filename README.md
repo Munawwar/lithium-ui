@@ -8,11 +8,11 @@ LUI has two parts:
 1. Core (the minumum required to write your own components)
 2. Components (a set of UI components inspired from [materializecss](materializecss.com))
 
-### Quick overview
+### What's in the package?
 
-Out-of-the-box LUI gives:
-- Classes and classical inheritance methods.
-- Ability to write component view with HTML and data binding (using KnockoutJS inspired template engine and observables).
+Out-of-the-box LUI gives you:
+- Classes and classical inheritance API.
+- Ability to write component view with HTML and data binding (using KnockoutJS inspired templating engine and observables).
 - Ability to write your own UI components and also inherit any component.
 - Ability to use custom elements for any component in view markup.
 - AMD support
