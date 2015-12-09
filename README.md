@@ -9,7 +9,9 @@ LUI has two parts
 
 ### Why use Lithium UI?
 
-- Higher performance (especially on mobile) and lesser bloat compared to most libraries (including KnockoutJS or ReactJS) without sacrificing convinience of writing components or maintainability.
+- Team members may have different coding styles and JavaScript's flexibility has it's costs when a standard style isn't agreed upon. LUI sets a style/pattern for UI programming that you and team members would use.
+
+- Higher performance (especially on mobile) and lesser bloat compared to most libraries (including KnockoutJS or most DOM diff-patch libraries) without sacrificing maintainability or convinience of writing components.
 
 - One-way binding puts *you* in control of your application. Easier to debug.
 
