@@ -15,10 +15,6 @@ LUI has two parts
 
 - One-way binding puts *you* in control of your application. Easier to debug.
 
-#### How is lithium UI doing this?
-- Knowing exactly which data should affect which part of the DOM gives the high performance. This is achieved through KO-like templating engine and KO-like observables.
-- One-way binding gives higher performance compared to KO.
-
 ### Teaser
 Template
 ```html
