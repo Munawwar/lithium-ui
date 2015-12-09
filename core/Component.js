@@ -47,8 +47,7 @@ define([
         /**
          * Inline CSS style to apply on {@link #el}.
          */
-        //undefined because, empty string would cause empty style attribute to be rendered by htmlizer.
-        style: undefined,
+        style: Li.Observable(null),
 
         //Note: afterExtend() and makeConfigFromView() cannot be static methods since they are taken from the prototype chain.
 
@@ -117,8 +116,49 @@ define([
         },
         /**
          * Set configuration. Call this.refresh to re-render this component with the new config.
+         * @param {Object} cfg
+         * @param {String} cfg.removeClasses A string of CSS classes to remove from component root element's class attribute.
+         * @param {String} cfg.removeStyles A string of CSS properties to remove from component root element's style attribute.
          */
         set: function (cfg) {
+            /*Handle special configs*/
+            if (cfg.removeClasses) {
+                var existingClasses = {};
+                this.cls().split(' ').forEach(function (cls) {
+                    existingClasses[cls.trim()] = 1;
+                });
+                //Remove classes
+                cfg.removeClasses.split(' ').forEach(function (cls) {
+                    delete existingClasses[cls.trim()];
+                });
+                //Generate class attribute
+                var newClasses = '';
+                Li.forEach(existingClasses, function (cls) {
+                    newClasses += cls + ' ';
+                });
+                this.cls(newClasses.trim());
+                delete cfg.removeClasses;
+            }
+            if (cfg.removeStyles) {
+                var existingStyles = Li.util.parseStyleAttribute(this.style() || '');
+                cfg.removeStyles.split(' ').forEach(function (style) {
+                    delete existingStyles[style.trim()];
+                });
+                //Generate style attribute
+                var style = '';
+                Li.forEach(existingStyles, function (prop, val) {
+                    style += prop + ': ' + val + '; ';
+                });
+                this.style(style.trim());
+                delete cfg.removeStyles;
+            }
+
+            //TODO: Is the ability to override inner template of a single instance needed?
+            if (cfg.innerTpl) {
+                this.innerTpl = new Li.Template(cfg.innerTpl);
+            }
+
+            //Handle the rest
             for (var prop in cfg) {
                 var val = cfg[prop];
                 if (val !== undefined) {
@@ -128,11 +168,6 @@ define([
                         this[prop] = val;
                     }
                 }
-            }
-
-            //TODO: Is the ability to override inner template of a single instance needed?
-            if (cfg.innerTpl) {
-                this.innerTpl = new Li.Template(cfg.innerTpl);
             }
         },
         /**

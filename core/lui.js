@@ -115,6 +115,60 @@ define(['jquery-node', './base/lithium'], function ($, Li) {
                 ret[key] = (Li.isObservable(val) ? val() : val);
             });
             return ret;
+        },
+
+        util: {
+            /**
+             * Parses string that could go into a tag's style attribute. Assumes valid CSS syntax.
+             * Also assumes no duplicate CSS property.
+             *
+             * This handles semicolons, escaped characters and paranthesis that could be within a URI string.
+             */
+            parseStyleAttribute: function (str) {
+                var css = {}, prop, val, pos, c, len, state = {};
+
+                while (str) {
+                    pos = str.indexOf(':');
+                    prop = str.slice(0, pos).trim();
+                    str = str.slice(pos + 1);
+
+                    val = '';
+                    len = str.length;
+                    for (pos = 0; ; pos += 1) {
+                        if (pos >= len) {
+                            break;
+                        }
+                        c = str[pos];
+                        //Handle URL bracket
+                        if (c === '(' && !state.openBracket && !state.openQuote) {
+                            state.openBracket = 1;
+                        }
+                        if (c === ')' && state.openBracket && !state.openQuote) {
+                            delete state.openBracket;
+                        }
+                        //Handle quotes
+                        if (c === "'" || c == '"') {
+                            if (!state.openQuote) {
+                                state[c] = 1;
+                                state.openQuote = 1;
+                            } else if (str[pos - 1] !== '\\') {
+                                delete state[c];
+                                delete state.openQuote;
+                            }
+                        }
+                        //Stop on ;
+                        if (c === ';' && !state.openQuote) {
+                            break;
+                        }
+                        val += c;
+                    }
+                    val = val.trim();
+                    css [prop] = val;
+                    str = str.slice(pos + 1);
+                }
+
+                return css;
+            }
         }
     });
 
