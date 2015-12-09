@@ -281,11 +281,8 @@ if (typeof define !== 'function') {
                                 cfg = this.parseObjectLiteral(node.getAttribute('params'));
                             }
                             cfg = classRef.prototype.makeConfigFromView(node, cfg);
-                        } else {
-                            cfg = {
-                                type: classRef.prototype.type
-                            };
                         }
+                        cfg.type = classRef.prototype.type;
                         cfg.parent = this.context.$root;
 
                         //Create instance from config

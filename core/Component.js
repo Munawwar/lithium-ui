@@ -49,13 +49,14 @@ define([
          */
         style: Li.Observable(null),
 
-        //Note: afterExtend() and makeConfigFromView() cannot be static methods since they are taken from the prototype chain.
 
         /**
          * Called after Li.extend() succeeds. Called exactly once for a class.
+         * IMPORTANT Note: This method is used like a static method. So don't use 'this' keyword inside it.
          * @param {Object} proto Prototype object of this class.
          * @protected
          */
+        //Note: afterExtend() and makeConfigFromView() cannot be static methods since they are taken from the prototype chain.
         afterExtend: function (proto) {
             var tpl;
             //Search for outerTpl and innerTpl script tags and initialize them if they exist. And then override prototype.
@@ -75,10 +76,12 @@ define([
             }
         },
         /**
-         * Read a <component> HTML element and generate corresponding component config.
+         * Read a <component> custom HTML element and generate corresponding component config.
+         * IMPORTANT Note: This method is used like a static method. So don't use 'this' keyword inside it.
          * @param {HTMLElement} el Component's root element in the static view implementation.
          * @protected
          */
+        //Note: afterExtend() and makeConfigFromView() cannot be static methods since they are taken from the prototype chain.
         makeConfigFromView: function (element, cfg) {
             //Accept standard HTML attributes like class and style
             if (element.hasAttribute('class')) {
@@ -89,7 +92,6 @@ define([
             }
 
             $.extend(cfg, {
-                type: this.type,
                 innerTpl: element.innerHTML.trim() || undefined
             });
             if (cfg.innerTpl) {
