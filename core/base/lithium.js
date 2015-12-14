@@ -480,58 +480,21 @@
         },
 
         /**
-         * Converts DOM to HTML string
-         * @param {DocumentFragment} frag
-         * @return {String}
-         * @method toHTML
-         */
-        toHTML: (function () {
-            function unwrap(str) {
-                var o = {};
-                str.split(',').forEach(function (val) {
-                    o[val] = true;
-                });
-                return o;
-            }
-            var voidTags = unwrap('area,base,basefont,br,col,command,embed,frame,hr,img,input,keygen,link,meta,param,source,track,wbr');
-
-            return function (frag) {
-                var html = '';
-                Li.traverse(frag, frag, function (node, isOpenTag) {
-                    if (node.nodeType === 1) {
-                        var tag = node.nodeName.toLowerCase();
-                        if (isOpenTag) {
-                            html += '<' + tag;
-                            Li.slice(node.attributes).forEach(function (attr) {
-                                html += ' ' + attr.name + '="' + attr.value.replace(/"/g, '&quot;') + '"';
-                            });
-                            html += (voidTags[tag] ? '/>' : '>');
-                        } else if (!voidTags[tag]) {
-                            html += '</' + tag + '>';
-                        }
-                    }
-                    if (isOpenTag && node.nodeType === 3) {
-                        var text = node.nodeValue || '';
-                        //escape <,> and &. Except text node inside script or style tag.
-                        if (!(/^(?:script|style)$/i).test(node.parentNode.nodeName)) {
-                            text = text.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;");
-                        }
-                        html += text;
-                    }
-                    if (isOpenTag && node.nodeType === 8) {
-                        html += '<!-- ' + node.data.trim() + ' -->';
-                    }
-                }, this);
-                return html;
-            };
-        }()),
-
-        /**
          * jQuery's index() method doesn't return the child index properly for non-element nodes (like text node, comment).
          * @method childIndex
          */
         childIndex: function (node) {
             return Li.slice(node.parentNode.childNodes).indexOf(node);
+        },
+
+        /**
+         * Removes a Node from it's parent.
+         * @method remove
+         */
+        remove: function (node) {
+            if (node.parentNode) {
+                node.parentNode.removeChild(node);
+            }
         }
     };
 
