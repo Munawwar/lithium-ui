@@ -1,10 +1,6 @@
 /*global console*/
 /*jslint evil: true*/
 
-if (typeof define !== 'function') {
-    var define = require('amdefine')(module);
-}
-
 (function (factory, saferEval) {
     define(['jquery-node',
         './util/js-object-literal-parse',
