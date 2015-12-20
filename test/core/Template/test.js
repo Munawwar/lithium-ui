@@ -1,18 +1,9 @@
 /*global describe, it*/
 
-require('node-amd');
-requirejs.config({
-    baseUrl: '../../../',
-    paths: {
-        'jquery': 'node_modules/jquery-node/node_modules/jquery/dist/jquery',
-        'jquery-node': 'node_modules/jquery-node/jquery-node'
-    }
-});
+require('../../setup');
 
 var assert = require("assert"),
     fs = require('fs'),
-    jquery = require('jquery-node'), //also gives document global variable
-    //window = document.defaultView,
     path = require('path');
 
 define(['core/Template'], function (Li) {
@@ -325,7 +316,7 @@ function fetch(pathToTextFile) {
 
 function htmlToDocumentFragment(html) {
     var df = document.createDocumentFragment();
-    jquery.parseHTML(html).forEach(function (node) {
+    jQuery.parseHTML(html).forEach(function (node) {
         df.appendChild(node);
     }, this);
     return df;

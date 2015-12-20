@@ -1,6 +1,7 @@
 define(['./lui',
-    'jquery-node',
-    './base/lithium'], function (Li, $) {
+    'jquery',
+    './base/lithium'
+], function (Li, $) {
     /**
      * Observable primitive value
      */

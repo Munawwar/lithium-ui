@@ -2,10 +2,11 @@
 /*jslint evil: true*/
 
 (function (factory, saferEval) {
-    define(['jquery-node',
+    define(['jquery',
         './util/js-object-literal-parse',
         './Observable',
-        './base/lithium'], function ($, parseObjectLiteral, Li) {
+        './base/lithium'
+    ], function ($, parseObjectLiteral, Li) {
         Li.Template = factory.call(this, saferEval, $, parseObjectLiteral, Li);
         return Li;
     }.bind(this));

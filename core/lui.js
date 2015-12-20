@@ -1,4 +1,4 @@
-define(['jquery-node', './base/lithium'], function ($, Li) {
+define(['jquery', './base/lithium'], function ($, Li) {
 
     /**
      * Create the class using baseClass and proto paramters.
@@ -72,8 +72,7 @@ define(['jquery-node', './base/lithium'], function ($, Li) {
         findTemplate: function (attr, type) {
             var tpl = null,
                 selector = 'script[' + attr + '="' + type + '"]',
-                tplTag = $(selector);
-            tplTag = tplTag[tplTag.length - 1];
+                tplTag = document.querySelector(selector);
             if (tplTag) {
                 var text = tplTag.firstChild.nodeValue.trim();
                 tpl = new Li.Template(text);
@@ -143,7 +142,7 @@ define(['jquery-node', './base/lithium'], function ($, Li) {
                             delete state.openBracket;
                         }
                         //Handle quotes
-                        if (c === "'" || c == '"') {
+                        if (c === "'" || c === '"') {
                             if (!state.openQuote) {
                                 state[c] = 1;
                                 state.openQuote = 1;
