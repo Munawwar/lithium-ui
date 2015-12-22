@@ -11,23 +11,23 @@ LUI has two parts:
 ### What's in the package?
 
 Out-of-the-box LUI gives:
-- Modular component classes...
-- ..inlcuding ability to write your own UI components and also inherit any component.
+- Modular components...
+- ..including ability to write your own UI components and also inherit any component.
 - HTML view with data binding (using KnockoutJS inspired templating engine and observables).
-- Any & all components can be used as custom element.
+- All components can be used as custom elements in view markup by default.
 - AMD support.
 - [CSS3 flexbox helper classes](https://github.com/Munawwar/flex-helper) for faster, simpler layouting.
 
 ### Why use Lithium UI?
 
-- Team members may have different coding styles and JavaScript's flexibility has it's costs when a standard style isn't agreed upon. LUI sets a style/pattern for UI programming that you and team members would use.
+- Team members may have different coding styles and JavaScript's flexibility has it's costs when a standard style isn't agreed upon. LUI sets a pattern for UI programming that you and team members would use.
 
 - Higher performance (especially on mobile) and lesser bloat compared to most libraries (including KnockoutJS or most DOM diff-patch libraries) without sacrificing maintainability or convinience of writing components.
 
 - One-way binding puts *you* in control of your application. Easier to debug.
 
 ### Teaser
-Template
+Template (myform.ko)
 ```html
 <div style="positon:absolute; width:500px;">
     <div class="hbox">
@@ -37,7 +37,7 @@ Template
     </div>
 </div>
 ```
-Component
+Component (App/Form.js)
 ```javascript
 /**
  * A Form window
