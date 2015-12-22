@@ -20,11 +20,11 @@ Out-of-the-box LUI gives:
 
 ### Why use Lithium UI?
 
-- Team members may have different coding styles and JavaScript's flexibility has it's costs when a standard style isn't agreed upon. LUI sets a pattern for UI programming that you and team members would use.
+- Patterns: Team members may have different coding styles and JavaScript's flexibility has it's costs when a standard style isn't agreed upon. LUI sets a pattern for UI programming that you and team members would use.
 
-- Higher performance (especially on mobile) and lesser bloat compared to most libraries (including KnockoutJS or most DOM diff-patch libraries) without sacrificing maintainability or convinience of writing components.
+- Performance & footprint: Higher performance (especially on mobile) and lesser bloat compared to most libraries (including KnockoutJS or most DOM diff-patch libraries) without sacrificing maintainability or convinience of writing components.
 
-- One-way binding puts *you* in control of your application. Easier to debug.
+- One-way binding: Puts *you* in control of your application. Easier to debug.
 
 ### Teaser
 Template (myform.ko)
