@@ -10,12 +10,12 @@ LUI has two parts:
 
 ### What's in the package?
 
-Out-of-the-box LUI gives you:
-- Classes and classical inheritance API.
-- Ability to write component view with HTML and data binding (using KnockoutJS inspired templating engine and observables).
-- Ability to write your own UI components and also inherit any component.
-- Ability to use custom elements for any component in view markup.
-- AMD support
+Out-of-the-box LUI gives:
+- Modular component classes...
+- ..inlcuding ability to write your own UI components and also inherit any component.
+- HTML view with data binding (using KnockoutJS inspired templating engine and observables).
+- Any & all components can be used as custom element.
+- AMD support.
 - [CSS3 flexbox helper classes](https://github.com/Munawwar/flex-helper) for faster, simpler layouting.
 
 ### Why use Lithium UI?
