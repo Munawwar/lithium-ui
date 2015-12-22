@@ -1,7 +1,7 @@
 Lithium UI
 ==========
 
-A thin framework for building UI for web apps. Templating syntax inspired by KnockoutJS.
+A thin framework for building UI for single page web apps. Templating syntax inspired by KnockoutJS.
 
 LUI has two parts:
 
@@ -50,7 +50,7 @@ define(['lui/core/Box', 'tpl!./myform.ko'], function (Li) {
             this.super(arguments);
 
             this.on({
-              "submitBtn": { //listen to events on root element of component
+              "submitBtn": { //listen to events on button
                   click: function () {
                       //Update observable
                       this.name($('.namefield', this.el)[0].value);
