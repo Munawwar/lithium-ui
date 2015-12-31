@@ -142,7 +142,7 @@ define([
                 delete cfg.removeClasses;
             }
             if (cfg.removeStyles) {
-                var existingStyles = Li.util.parseStyleAttribute(this.style() || '');
+                var existingStyles = Li.parseStyleAttribute(this.style() || '');
                 cfg.removeStyles.split(' ').forEach(function (style) {
                     delete existingStyles[style.trim()];
                 });

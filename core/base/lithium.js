@@ -268,6 +268,19 @@
         },
 
         /**
+         * Get all values from an object (that contains key:value pairs).
+         * @param {Object} obj The object to iterate through.
+         * @method values
+         */
+        values: function (object) {
+            var values = [];
+            Li.forEach(object, function (item) {
+                values.push(item);
+            });
+            return values;
+        },
+
+        /**
          * Adds properties (and methods) to a function's prototype.
          * Note: You won't be warned if you overwrite an existing method/property.
          * @method augment
@@ -371,38 +384,6 @@
         },
 
         /**
-         * Move properties from one object to another.<br/>
-         * Property is only moved if source.hasOwnProperty(property) is true.
-         * @param {Object} target Object to which properties are to be moved
-         * @param {Object} source Object from which properties are to moved.
-         * @param {Array[string]} props Array of properties to move.
-         * @return {Object} target Returns target object
-         * @method move
-         */
-        move: function (target, source, props) {
-            props.forEach(function (prop) {
-                if (source.hasOwnProperty(prop)) {
-                    target[prop] = source[prop];
-                    delete source[prop];
-                }
-            });
-            return target;
-        },
-
-        /**
-         * Delete undefined properties from object
-         * @param {Object} obj
-         */
-        compact: function (obj) {
-            Object.keys(obj).forEach(function (key) {
-                if (!Li.isDefined(obj[key])) {
-                    delete obj[key];
-                }
-            });
-            return obj;
-        },
-
-        /**
          * Generates an unique alpha-numeric identifier.<br/>
          * To get the same permutation as RFC-4122 use len=24.
          * @param [len=10] Length of the UUID.
@@ -495,33 +476,58 @@
             if (node.parentNode) {
                 node.parentNode.removeChild(node);
             }
-        }
-    };
-
-    /**
-     * String related functions
-     * @class Li.string
-     * @static
-     */
-    Li.string = {
-        /**
-         * Encodes &,<,> and ".
-         * @method htmlEncode
-         * @param {String} html
-         * @return {String} HTML encoded String.
-         */
-        htmlEncode: function (html) {
-            return html.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
         },
 
         /**
-         * Decodes string encoded by htmlEncode
-         * @method htmlDecode
-         * @param {String} html
-         * @return {String} HTML decoded String.
+         * Parses string that could go into a tag's style attribute. Assumes valid CSS syntax.
+         * Also assumes no duplicate CSS property.
+         *
+         * This handles semicolons, escaped characters and paranthesis that could be within a URI string.
          */
-        htmlDecode: function (html) {
-            return html.replace(/&gt;/g, ">").replace(/&lt;/g, "<").replace(/&quot;/g, '"').replace(/&amp;/g, "&");
+        parseStyleAttribute: function (str) {
+            var css = {}, prop, val, pos, c, len, state = {};
+
+            while (str) {
+                pos = str.indexOf(':');
+                prop = str.slice(0, pos).trim();
+                str = str.slice(pos + 1);
+
+                val = '';
+                len = str.length;
+                for (pos = 0; ; pos += 1) {
+                    if (pos >= len) {
+                        break;
+                    }
+                    c = str[pos];
+                    //Handle URL bracket
+                    if (c === '(' && !state.openBracket && !state.openQuote) {
+                        state.openBracket = 1;
+                    }
+                    if (c === ')' && state.openBracket && !state.openQuote) {
+                        delete state.openBracket;
+                    }
+                    //Handle quotes
+                    if (c === "'" || c === '"') {
+                        if (!state.openQuote) {
+                            state[c] = 1;
+                            state.openQuote = 1;
+                        } else if (str[pos - 1] !== '\\') {
+                            delete state[c];
+                            delete state.openQuote;
+                        }
+                    }
+                    //Stop on ;
+                    if (c === ';' && !state.openQuote) {
+                        break;
+                    }
+                    val += c;
+                }
+                val = val.trim();
+                css [prop] = val;
+                str = str.slice(pos + 1);
+            }
+
+            return css;
         }
     };
 
