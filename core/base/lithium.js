@@ -107,11 +107,7 @@
          * @method isElement
          */
         isElement: function (obj) {
-            try {
-                return (obj instanceof HTMLElement);
-            } catch (e) { //IE8
-                return (typeof obj === 'object' && obj.nodeType === 1);
-            }
+            return (obj instanceof HTMLElement);
         },
 
         /**
@@ -196,7 +192,6 @@
          * @return {Function} Returns the derived constructor (the same derived.constructor).
          * @method extend
          */
-        //TODO: Use Object.create after dropping support for IE8.
         extend: (function () {
             function superFunc(args) {
                 var fn = superFunc.caller;
@@ -206,7 +201,6 @@
                 var fn = superClassFunc.caller;
                 return fn._baseclass_;
             }
-            var P = function () {}; //proxy
             return function (baseC, derived) {
                 derived = derived || {};
                 //constructor property always exists, hence the hasOwnProperty check.
@@ -215,8 +209,7 @@
                     }, //'C' suffix is for 'Constructor'
                     statics = derived.statics;
 
-                P.prototype = baseC.prototype;
-                derivedC.prototype = new P();
+                derivedC.prototype = Object.create(baseC.prototype);
                 derivedC.super = baseC.prototype;
                 derivedC.prototype.super = superFunc;
                 derivedC.prototype.superclass = superClassFunc;
@@ -247,7 +240,7 @@
          * Iterate through an array or object.<br/>
          * Iterates through an object's properties and calls the given callback for each (enumerable) property.
          *
-         * Note: For arrays, this method calls Array.forEach, so for IE8 you must include lithium.ie.lang module.
+         * Note: For arrays, this method calls Array.forEach.
          * @param {Object} obj The array/object to iterate through.
          * @param {Function} callback Callback function. Value, index/key and a reference to the array/object are sent as parameters (in order) to the callback.
          * @param {Object} [context] Optional The value of the 'this' keyword within the callback.
@@ -366,21 +359,7 @@
             var len = array.length, i, arr;
             from = from || 0;
             end = end || len;
-            try {
-                return Array.prototype.slice.call(array, from, end);
-            } catch (e) {
-                //Array.slice doesn't work on NodeList on IE8.
-                if (from < 0) {
-                    from += len;
-                }
-                if (end < 0) {
-                    end += len;
-                }
-                for (i = from, len = array.length, arr = []; i < end && i < len; i += 1) {
-                    arr.push(array[i]);
-                }
-                return arr;
-            }
+            return Array.prototype.slice.call(array, from, end);
         },
 
         /**
