@@ -1030,6 +1030,7 @@
         },
 
         /**
+         * Evaluate a JS expression for a binding on a node.
          * @private
          */
         evaluate: function (binding, expr, node) {
@@ -1203,7 +1204,9 @@
     if (arguments.length === 4) {
         try {
             return (new Function('$context', '$data', '$element', 'with($context){with($data){return ' + arguments[0] + '}}'))(arguments[1] || {}, arguments[2] || {}, arguments[3]);
-        } catch (e) {console.warn(e);}
+        } catch (e) {
+            console.warn('Warning: ' + e.stack);
+        }
     } else {
         throw new Error('Expression evaluator needs at least 4 arguments.');
     }

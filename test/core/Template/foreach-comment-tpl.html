@@ -1,7 +1,7 @@
 <div>
     <!-- ko foreach: items -->
         <div data-bind="text: name"></div>
-        <!-- ko foreach: subItems -->
+        <!-- ko foreach: $data.subItems -->
             <div data-bind="text: name"></div>
         <!-- /ko -->
     <!-- /ko -->
