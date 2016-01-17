@@ -17,6 +17,7 @@ Out-of-the-box LUI gives:
 - All components can be used as custom elements in view markup by default.
 - AMD support.
 - [CSS3 flexbox helper classes](https://github.com/Munawwar/flex-helper) for faster, simpler layouting.
+- node.js testability (with jsdom and node-amd).
 
 ### Why use Lithium UI?
 
