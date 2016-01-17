@@ -1,7 +1,5 @@
 /*global describe, it*/
 
-require('../../setup');
-
 var assert = require("assert"),
     fs = require('fs'),
     path = require('path');

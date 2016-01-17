@@ -185,7 +185,7 @@ define([
          */
         renderSelf: function (target, childIndex) {
             target.insertBefore(this.view.render(), target.childNodes[childIndex]);
-            this.el = $('#' + this.id, target)[0];
+            this.el = target.querySelector('#' + this.id, target);
         },
         /**
          * Render component to target HTMLElement.
