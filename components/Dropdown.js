@@ -62,8 +62,8 @@ define([
         /**
          * Overrides base class method.
          */
-        makeConfigFromView: function (element) {
-            var cfg = this.super(arguments);
+        makeConfigFromView: function (element, cfg) {
+            cfg = this.super(arguments);
             cfg.options = [];
             Li.slice(cfg.innerTpl.querySelectorAll('option')).forEach(function (el) {
                 var option = {

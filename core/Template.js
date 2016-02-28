@@ -275,7 +275,11 @@
                         //Parse node to a config
                         if (classRef.prototype.makeConfigFromView) {
                             if (node.hasAttribute('params')) {
-                                cfg = this.parseObjectLiteral(node.getAttribute('params'));
+                                cfg = util.parseObjectLiteral(node.getAttribute('params'));
+                                //Convert to right data type (like integers).
+                                Li.forEach(cfg, function (expr, key) {
+                                    cfg[key] = saferEval.call(null, expr, this.context, this.data, node);
+                                }, this);
                             }
                             cfg = classRef.prototype.makeConfigFromView(node, cfg);
                         }
@@ -285,13 +289,13 @@
                         //Create instance from config
                         cmp = new classRef(cfg);
                         //Resolve reference using ref attribute
-                        if (cfg.ref && cfg.parent) {
+                        var ref = node.getAttribute('ref');
+                        if (ref && cfg.parent) {
                             var rel = cfg.parent;
-                            cfg.ref.split('.').slice(0, -1).forEach(function (part) {
+                            ref.split('.').slice(0, -1).forEach(function (part) {
                                 rel = rel[part];
                             });
-                            rel[cfg.ref.split('.').slice(-1)[0]] = cmp;
-                            delete cfg.ref;
+                            rel[ref.split('.').slice(-1)[0]] = cmp;
                         }
 
                         //Add to components list for rendering later

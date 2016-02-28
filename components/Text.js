@@ -24,11 +24,10 @@ define(['../core/Component', 'tpl!./Text.ko'], function (Li) {
         /**
          * @override
          */
-        makeConfigFromView: function (target) {
-            var cfg = this.super(arguments),
-                value = target.textContent;
-            if (value) {
-                cfg.value = value;
+        makeConfigFromView: function (target, cfg) {
+            cfg = this.super(arguments);
+            if (cfg.value === undefined) {
+                cfg.value = target.textContent || cfg.value; //if no text, set back to undefined
             }
             return cfg;
         },

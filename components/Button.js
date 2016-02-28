@@ -33,10 +33,14 @@ define(['./libs', '../core/Component', '../core/Observable', 'tpl!./Button.ko'],
         /**
          * @override
          */
-        makeConfigFromView: function (target) {
-            var cfg = this.super(arguments);
-            cfg.text = (target.firstChild || {}).nodeValue;
-            cfg.disabled = target.hasAttribute('disabled');
+        makeConfigFromView: function (target, cfg) {
+            cfg = this.super(arguments);
+            if (cfg.text === undefined) {
+                cfg.text = (target.firstChild || {}).nodeValue;
+            }
+            if (cfg.disabled === undefined) {
+                cfg.disabled = target.hasAttribute('disabled');
+            }
             return cfg;
         },
 
