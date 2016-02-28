@@ -5,12 +5,12 @@
     "version": "0.1.0",
     "main": "core/util/Template.js",
     "dependencies": {
-        "jquery-node": "0.1.0"
+        "jquery-node": "0.2.0"
     },
     "devDependencies": {
-        "mocha": "1.18.2",
+        "mocha": "2.4.5",
         "node-amd": "0.3.0",
-        "jsdom": "3.1.2"
+        "jsdom": "8.0.4"
     },
     "directories": {
         "test": "test"
