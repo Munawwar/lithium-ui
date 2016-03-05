@@ -174,6 +174,7 @@
          * @param {Arguments} [...]
          * @method mix
          */
+        //TODO: This is same as Object.assign() now. Is this needed?
         mix: function (target) {
             Li.slice(arguments, 1).forEach(function (obj) {
                 Object.keys(obj).forEach(function (key) {
@@ -292,20 +293,6 @@
             if (statics) {
                 delete properties.statics;
                 Li.mix(classRef, statics);
-            }
-        },
-
-        /**
-         * @param {String} path
-         * @method namespace
-         * @example Li.namespace('mynamespace.ui.widgets');
-         */
-        namespace: function (path) {
-            var part = (function () {return this; }()), temp;
-            path = path.split('.');
-            while ((temp = path.shift())) {
-                part[temp] = part[temp] || {};
-                part = part[temp];
             }
         },
 
