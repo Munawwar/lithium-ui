@@ -168,21 +168,25 @@
         },
 
         /**
-         * Copies properties of given object(s) into a target object. Only does a shallow copy.
-         * @param {Object} target Target object into which properties of source object is copies to.
-         * @param {Object} source One or more objects from which the properties are taken from.
-         * @param {Arguments} [...]
+         * Same as Object.assign(). Check MDN for documentation for Object.assign().
          * @method mix
          */
-        //TODO: This is same as Object.assign() now. Is this needed?
-        mix: function (target) {
-            Li.slice(arguments, 1).forEach(function (obj) {
-                Object.keys(obj).forEach(function (key) {
-                    target[key] = obj[key];
-                });
-            });
-            return target;
-        },
+        mix: (function () {
+            /*Polyfill Object.assign*/
+            if (!Object.assign) { // IE 11
+                Object.assign = function (target) {
+                    Li.slice(arguments, 1).forEach(function (obj) {
+                        if (obj !== undefined && obj !== null) {
+                            Object.keys(obj).forEach(function (key) {
+                                target[key] = obj[key];
+                            });
+                        }
+                    });
+                    return target;
+                };
+            }
+            return Object.assign;
+        }()),
 
         /**
          * Classical inheritence, where only prototype is inherited.
