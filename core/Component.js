@@ -227,74 +227,82 @@ define([
         postRender: function (target) {
             this.attachListeners();
         },
-        unwrapListeners: function (listeners) {
-            var unwrapedListeners = {};
-            Li.forEach(listeners, function (funcOrObj, prop) {
-                if (Li.isObject(funcOrObj)) { // reference
-                    //Identify unique listeners
-                    Li.forEach(funcOrObj, function (func, eventname) {
-                        func._uid_ = func._uid_ || Li.uuid();
-                        unwrapedListeners[prop + '#' + eventname + '#' + func._uid_] = func;
-                    }, this);
-                } else if (Li.isFunction(funcOrObj)) { // DOM and pubsub listeners
-                    funcOrObj._uid_ = funcOrObj._uid_ || Li.uuid();
-                    unwrapedListeners[prop + '#' + funcOrObj._uid_] = funcOrObj;
-                }
-            }, this);
-            return unwrapedListeners;
-        },
+        unwrapListeners: (function () {
+            function bind(func, context) {
+                var newFunc = func.bind(context);
+                newFunc._bound_ = true;
+                newFunc._uid_ = func._uid_;
+                return newFunc;
+            }
+            return function (listeners) {
+                var unwrapedListeners = {};
+                Li.forEach(listeners, function (funcOrObj, prop) {
+                    if (prop === 'scope') {
+                        return;
+                    }
+                    if (Li.isObject(funcOrObj)) { // reference
+                        //Identify unique listeners
+                        Li.forEach(funcOrObj, function (func, eventname) {
+                            func._uid_ = func._uid_ || Li.uuid();
+                            if (!func._bound_) { // FIXME: It is very rare for a need for a function
+                                //to be bound to multiple contexts. However if a need arises, then this check won't allow it.
+                                func = (funcOrObj[eventname] = bind(func, listeners.scope || this));
+                            }
+                            unwrapedListeners[prop + '#' + eventname + '#' + func._uid_] = func;
+                        }, this);
+                    } else if (Li.isFunction(funcOrObj)) { // DOM and pubsub listeners
+                        funcOrObj._uid_ = funcOrObj._uid_ || Li.uuid();
+                        if (prop[0] !== '$' && !funcOrObj._bound_) { //DOM events needs context binding
+                            funcOrObj = (listeners[prop] = bind(funcOrObj, listeners.scope || this));
+                        }
+                        unwrapedListeners[prop + '#' + funcOrObj._uid_] = funcOrObj;
+                    }
+                }, this);
+                return unwrapedListeners;
+            };
+        }()),
         /**
          * Rebinds DOM event listeners.
          * @private
          */
-        attachListeners: (function () {
-            function bindToDom($el, event, key, func) {
-                if (!func._scoped_) {
-                    var newFunc = this.listeners[key] = Li.bind(func, this);
-                    newFunc._scoped_ = true;
-                    newFunc._uid_ = func._uid_;
-                }
-                $el.on(event, this.listeners[key]);
-            }
-            return function (specificListeners) {
-                specificListeners = specificListeners || this.listeners;
+        attachListeners: function (specificListeners) {
+            specificListeners = specificListeners || this.listeners;
 
-                this.detachListeners(specificListeners);
-                Li.forEach(specificListeners, function (func, key) {
-                    var props = key.split('#'),
-                        ref, eventname;
-                    if (props.length > 2) { // a reference
-                        ref = props[0];
-                        eventname = props[1];
+            this.detachListeners(specificListeners);
+            Li.forEach(specificListeners, function (func, key) {
+                var props = key.split('#'),
+                    ref, eventname;
+                if (props.length > 2) { // a reference
+                    ref = props[0];
+                    eventname = props[1];
 
-                        //Find the property being referenced
-                        var ns = ref, obj = this;
-                        ns.split('.').forEach(function (part) {
-                            if (obj && Li.isDefined(obj[part])) {
-                                obj = obj[part];
-                            } else {
-                                obj = null;
-                            }
-                        });
-
-                        if (obj) {
-                            if (obj instanceof Li.Component) {
-                                var list = {};
-                                list[eventname] = func;
-                                obj.attachListeners(list);
-                            } else { //assume HTMLElement
-                                bindToDom.call(this, $(obj), eventname, key, func);
-                            }
+                    //Find the property being referenced
+                    var ns = ref, obj = this;
+                    ns.split('.').forEach(function (part) {
+                        if (obj && Li.isDefined(obj[part])) {
+                            obj = obj[part];
+                        } else {
+                            obj = null;
                         }
-                    } else {
-                        eventname = props[0];
-                        if (eventname[0] !== '$') { //if not pupsub event
-                            bindToDom.call(this, $(this.el), eventname, key, func);
+                    });
+
+                    if (obj) {
+                        if (obj instanceof Li.Component) {
+                            var list = {};
+                            list[eventname] = func;
+                            obj.attachListeners(list);
+                        } else { //assume HTMLElement
+                            $(obj).on(eventname, func);
                         }
                     }
-                }, this);
-            };
-        }()),
+                } else {
+                    eventname = props[0];
+                    if (eventname[0] !== '$') { //if not pupsub event
+                        $(this.el).on(eventname, func);
+                    }
+                }
+            }, this);
+        },
         /**
          * Adds listeners.
          *
@@ -304,16 +312,11 @@ define([
          * 1. Component event: Use "event name" => function () {...}, to register event on component. Note that this isn't DOM event.
          * 2. Reference: Add listeners to a property of this component. Use "propertyName": { <event handlers> }.
          * Property being referenced could be an instance of a component or a DOM element.
-         * 3. CSS selector: Use a CSS selector to find elements within this component's DOM, and attach events to them.
-         * Place the CSS selector in paranthesis like so "(css selector)" => { <event handlers etc> }.
          *
          * Example:
          * {
          *   $afterrender: function () { //this is a component event },
-         *   click: function () { //this is a dom event },
-         *   "(.navigation)": {
-         *      click: function () { //this is a dom event }
-         *   }
+         *   click: function () { //this is a dom event }
          * }
          * @param {Boolean} dontAttach If true, won't attach listeners to DOM. A call to this.attachListeners will be required to attach listeners to DOM.
          */
