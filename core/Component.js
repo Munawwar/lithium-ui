@@ -361,7 +361,7 @@ define([
         /**
          * Removes listeners
          */
-        off: function (listeners) {
+        off: function (listeners, dontDetach) {
             listeners = this.unwrapListeners(listeners);
 
             //Remove non-DOM events
@@ -397,6 +397,9 @@ define([
 
                 delete this.listeners[key];
             }, this);
+            if (!dontDetach) {
+                this.detachListeners(listeners);
+            }
         },
         /**
          * Detach DOM events
