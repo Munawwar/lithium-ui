@@ -1,7 +1,7 @@
 define([
     'jquery',
     './base/lithium',
-    './base/lithium.events'
+    './base/lithium.advanced',
 ], function ($, Li) {
 
     /**
