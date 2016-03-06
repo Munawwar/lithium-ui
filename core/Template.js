@@ -58,10 +58,6 @@
             var frag = this.frag,
                 blocks = this.getVirtualBlocks(),
                 depth = this.depth,
-                id = 1,
-                getId = function () {
-                    return 'hz-' + id++;
-                },
                 blockNodes, tempFrag;
             traverse(frag, frag, function (node, isOpenTag) {
                 if (isOpenTag) {
@@ -79,7 +75,6 @@
                         if (bindOpts) {
                             this.checkForConflictingBindings(bindOpts, classRef);
                             bindings = util.parseObjectLiteral(bindOpts);
-                            node._id = getId();
                             nodeInfo.node = node;
                             nodeInfo.depth = depth;
                             nodeInfo.binding = bindOpts;
@@ -88,7 +83,7 @@
                                 nodeInfo.subTpl = new Htmlizer(tempFrag, $.extend({depth: depth}, this.cfg));
                             }
                             this.nodeInfoList.push(nodeInfo);
-                            this.nodeMap[node._id] = nodeInfo;
+                            this.nodeMap[Li.getUID(node)] = nodeInfo;
                         }
 
                         if (classRef) { //do not add component inner config to nodeInfoList
@@ -107,7 +102,6 @@
 
                         var block = util.findBlockFromStartNode(blocks, node);
                         if (block) {
-                            node._id = getId();
                             nodeInfo.node = node;
                             nodeInfo.depth = depth;
                             nodeInfo.block = block;
@@ -120,7 +114,7 @@
                                 nodeInfo.subTpl = new Htmlizer(tempFrag, $.extend({depth: depth}, this.cfg));
                             }
                             this.nodeInfoList.push(nodeInfo);
-                            this.nodeMap[node._id] = nodeInfo;
+                            this.nodeMap[Li.getUID(node)] = nodeInfo;
                         }
                     }
                 } else {
@@ -133,7 +127,7 @@
          * Get binding and other information for a given node in template DocumentFragment.
          */
         getBindingInfo: function (node) {
-            return this.nodeMap[node._id];
+            return this.nodeMap[Li.getUID(node)];
         },
 
         /**
@@ -257,12 +251,6 @@
         this.toDocumentFragment();
     };
 
-    Htmlizer.View.uid = (function () {
-        var id = 1;
-        return function () {
-            return '' + id++;
-        };
-    }());
     Htmlizer.View.saferEval = saferEval;
 
     Htmlizer.View.prototype = {
@@ -303,14 +291,14 @@
                         this.components.push({cmp: cmp, node: node});
 
                         this.componentMap = this.componentMap || {};
-                        this.componentMap[node._uid] = cmp;
+                        this.componentMap[Li.getUID(node)] = cmp;
 
                         return {domTraverse: 'continue'}; //ignore inner content
                     }
                 },
                 update: function (node, attr) {
                     var cmp;
-                    if (this.componentMap && (cmp = this.componentMap[node._uid])) {
+                    if (this.componentMap && (cmp = this.componentMap[Li.getUID(node)])) {
                         var cfg = {};
                         if (attr === 'class') {
                             cfg.cls = node.getAttribute(attr);
@@ -333,7 +321,7 @@
                             this.components.push({cmp: cmp, node: node});
 
                             this.componentMap = this.componentMap || {};
-                            this.componentMap[node._uid] = cmp;
+                            this.componentMap[Li.getUID(node)] = cmp;
                         }
 
                         var block = util.findBlockFromStartNode(blocks, tNode);
@@ -958,8 +946,7 @@
             };
             this.nodeInfoList.push(nodeInfo);
 
-            node._uid = Htmlizer.View.uid();
-            this.nodeMap[node._uid] = nodeInfo;
+            this.nodeMap[Li.getUID(node)] = nodeInfo;
         },
 
         /**
@@ -967,7 +954,7 @@
          * @param {Node} node Node in View
          */
         getNodeInfo: function (node) {
-            return this.nodeMap[node._uid];
+            return this.nodeMap[Li.getUID(node)];
         },
 
         /**

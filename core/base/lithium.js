@@ -368,6 +368,22 @@
             return hypenate ? id : id.replace(/-/g, '');
         },
 
+        /**
+         * Send in any object (including function, DOM Nodes or whatever) and get a unique id.
+         * If you send the object again, the same id will be returned as the last time.
+         * This does not leak memory.
+         * @method getUID
+         */
+        getUID: function getUID(obj) {
+            if (!obj._uid_) {
+                Object.defineProperty(obj, '_uid_', {
+                    value: Li.uuid(),
+                    enumerable: false
+                });
+            }
+            return obj._uid_;
+        },
+
 
         /*Dom helpers*/
         /**

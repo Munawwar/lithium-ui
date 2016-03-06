@@ -1,4 +1,8 @@
-define(['jquery', './base/lithium'], function ($, Li) {
+define([
+    'jquery',
+    './base/lithium',
+    './base/lithium.events'
+], function ($, Li) {
 
     /**
      * Create the class using baseClass and proto paramters.
