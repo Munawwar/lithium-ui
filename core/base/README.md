@@ -2,10 +2,11 @@
 
 Lithium adds the following useful APIs to be used along with jQuery:
 
-1. Data type assertion: isDefined,isElement...
-2. Things like bind,inherit,namespace...
-3. Publisher-subscriber pattern that can be used to communicate between loosly coupled modules/components.
-4. Browser detection (which is still useful for fixing certain bugs or for statistics).
+1. Data type assertion: isDefined, isElement etc.
+2. Classes and inheritance.
+3. Event handling with context binding.
+4. Publisher-subscriber pattern that can be used to communicate between loosly coupled modules/components.
+5. Browser detection (which is still useful for fixing certain bugs or for statistics).
 
 Lithium depends on jQuery. Lithium is seperated into modules, so you use only what you need.
 
@@ -15,17 +16,13 @@ Latest Chrome,Firefox,Safari,Opera,MS Edge and IE9+.
 
 ## Usage
 
-Lithium is split into 5 modules:
+Lithium is split into 3 modules:
 
 lithium.js - Core (other modules depends on this module).
 
 lithium.pubsub.js - Publisher-Subscriber.
 
 lithium.browser.js - Browser detection.
-
-lithium.dom.js - Advanced DOM utilities
-
-lithium.extras.js - Contains additional utility methods.
 
 ## API
 
@@ -41,11 +38,24 @@ Li.isNaN(val) - Returns true if val is NaN.
 
 Similarly Li.isObject, Li.isArray, Li.isFunction, Li.isNumber, Li.isFinite, Li.isBoolean, Li.isString.
 
+### Event handling with context/scope binding
+
+* Li.on(element, type, fn, context) - Adds event handler to element, with bounded function (internally uses jQuery.on()). It can simply be removed using Li.off().
+
+    <pre><code>var context = {
+        onclick: function () {
+            console.log(this ===  context); //true
+        }
+    };
+    Li.on(element, 'click', context.onclick, context);</code></pre>
+
+* Li.off(element, type, fn, context) - Pass the same arguments as you passed to Li.on() to remove a context bound event listener.
+
+    Normally, if you we to use function.bind() function, you'd need to keep a reference to the new function to remove the event listener later. But this API eliminates that (and without leaking memory).
+
+    <pre><code>Li.off(element, 'click', context.onclick, context);</code></pre>
+
 ### Patterns
-
-* Li.namespace(string) - Creates a global namespace.
-
-  ``Li.namespace('app.utils');``
 
 * Li.extend(base, obj) - Classical inheritence
 
@@ -79,15 +89,15 @@ Similarly Li.isObject, Li.isArray, Li.isFunction, Li.isNumber, Li.isFinite, Li.i
 
 * Li.format(formatString, ...) - A quick string format method
 
-  <pre><code>Li.format('&lt;div class="{0}"&gt;&lt;/div&gt;, 'box');
+    <pre><code>Li.format('&lt;div class="{0}"&gt;&lt;/div&gt;, 'box');
   Li.format('&lt;div class="{cls}"&gt;&lt;/div&gt;, {cls: 'box'});
   //Both returns '&lt;div class="box"&gt;&lt;/div&gt;'</code></pre>
 
 * Li.dom(htmlString, ...) - Converts htmlString to DOM, inserts them into a document fragment and returns the fragment.
 
-  Internally this uses Li.format for string formatting.
+    Internally this uses Li.format for string formatting.
 
-  <pre><code>var df = Li.dom('&lt;div class="{cls}" data-id="{id}"&gt;&lt;/div&gt;', {cls: 'box', id: Li.uuid()}); //DocumentFragment
+    <pre><code>var df = Li.dom('&lt;div class="{cls}" data-id="{id}"&gt;&lt;/div&gt;', {cls: 'box', id: Li.uuid()}); //DocumentFragment
   document.body.appendChild(df);</code></pre>
 
 * Publisher-Subscriber
@@ -124,17 +134,7 @@ Similarly Li.isObject, Li.isArray, Li.isFunction, Li.isNumber, Li.isFinite, Li.i
     //man1 says: Yay! Free food!
     //man2 says: Yay! Free food!</code></pre>
 
-* Li.lbind(fn [, context, args...]) - Binds context and arguments to a function (like the [JS.1.8.1 Function.bind](https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Function/bind)). Argument list is prepended to fn.
-
-    <pre><code>element.onclick = Li.lbind(function (val, e) {
-      console.log(this ===  element); //true
-      console.log(val); //10
-      console.log(e); //If IE9+, you'll get event.
-    }, element, 10);</code></pre>
-
-* Li.rbind - Same as lbind, except that arguments are appended to fn arugment list.
 * Li.uuid([len=10, hypenate=false]) - Returns a random UID with length 'len' and hyphenated if hypenate=true, as string.
-* Li.string.htmlEncode and Li.string.htmlDecode - Encodes/Decodes >,<," and &.
 
 ### Browser Detection
 
