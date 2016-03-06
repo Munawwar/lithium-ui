@@ -51,7 +51,7 @@ Similarly Li.isObject, Li.isArray, Li.isFunction, Li.isNumber, Li.isFinite, Li.i
 
 * Li.off(element, type, fn, context) - Pass the same arguments as you passed to Li.on() to remove a context bound event listener.
 
-    Normally, if you we to use function.bind() function, you'd need to keep a reference to the new function to remove the event listener later. But this API eliminates that (and without leaking memory).
+    Normally, if you were to use function.bind(), you'd need to keep a reference to the new function created to remove the event listener later. But this API eliminates that (and without leaking memory).
 
     <pre><code>Li.off(element, 'click', context.onclick, context);</code></pre>
 
