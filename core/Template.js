@@ -243,6 +243,8 @@
 
         this.components = null;
         this.componentMap = null;
+        this.exprEvaluatorCache = {}; //cache function for each expression, so that it doesn't need to
+        //be eval'ed all the time.
 
         this.retired = false;
         this.rendered = false;
@@ -266,7 +268,7 @@
                                 cfg = util.parseObjectLiteral(node.getAttribute('params'));
                                 //Convert to right data type (like integers).
                                 Li.forEach(cfg, function (expr, key) {
-                                    cfg[key] = saferEval.call(null, expr, this.context, this.data, node);
+                                    cfg[key] = saferEval.call(this.getRootView(), expr, this.context, this.data, node);
                                 }, this);
                             }
                             cfg = classRef.prototype.makeConfigFromView(node, cfg);
@@ -1042,7 +1044,7 @@
                 extraInfo: extraInfo
             };
 
-            var value = saferEval.call(null, expr, this.context, this.data, node);
+            var value = saferEval.call(this.getRootView(), expr, this.context, this.data, node);
 
             if (value && Li.isObservable(value)) {
                 value = value();
@@ -1089,6 +1091,22 @@
             info.views.push(view);
 
             return view;
+        },
+
+        /**
+         * Find the root View object.
+         * Most View's are in fact sub-views/intermediate views. So this is useful for debugging as well.
+         * @private
+         */
+        getRootView: function () {
+            if (!this.rootView) {
+                var root = this;
+                while (root.parentView) {
+                    root = root.parentView;
+                }
+                this.rootView = root;
+            }
+            return this.rootView;
         }
     };
 
@@ -1193,8 +1211,12 @@
 }, function () {
     //Templates could be attempting to reference undefined variables. Hence try catch is required.
     if (arguments.length === 4) {
+        var evaluator;
+        if (!(evaluator = this.exprEvaluatorCache[arguments[0]])) {
+            evaluator = this.exprEvaluatorCache[arguments[0]] = new Function('$context', '$data', '$element', 'with($context){with($data){return ' + arguments[0] + '}}');
+        }
         try {
-            return (new Function('$context', '$data', '$element', 'with($context){with($data){return ' + arguments[0] + '}}'))(arguments[1] || {}, arguments[2] || {}, arguments[3]);
+            return evaluator(arguments[1] || {}, arguments[2] || {}, arguments[3]);
         } catch (e) {
             console.warn('Warning: ' + e.stack);
         }
