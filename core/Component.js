@@ -101,6 +101,8 @@ define([
         },
 
         constructor: function (cfg) {
+            this.super();
+
             this.id = 'cmp-' + Li.Component.getNewId();
             //Make own copy of observable from prototype.
             this._observables.forEach(function (prop) {
@@ -350,7 +352,7 @@ define([
                 } else {
                     eventname = props[0];
                     if (eventname[0] === '$') { //component event
-                        this.subscribe(eventname, func);
+                        this.subscribe(eventname.slice(1), func);
                     }
                 }
             }, this);
@@ -396,7 +398,7 @@ define([
                     } else {
                         eventname = props[0];
                         if (eventname[0] === '$') { //component event
-                            this.unsubscribe(eventname, func);
+                            this.unsubscribe(eventname.slice(1), func);
                         }
                     }
 
@@ -447,17 +449,6 @@ define([
                     }
                 }
             }, this);
-        },
-        /**
-         * Overrides Li.Publisher's trigger method.
-         */
-        trigger: function () {
-            //Add $ to all event names if not exists.
-            var args = Li.slice(arguments);
-            if (args[0][0] !== '$') {
-                args[0] = '$' + args[0];
-            }
-            this.super(args);
         },
         statics: {
             id: 1,
