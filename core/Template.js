@@ -314,9 +314,30 @@
             component: {
                 init: function (node, binding, expr, tNode, blocks) {
                     if (node.nodeType === 8) {
-                        var cmp = this.evaluate(binding, expr, node);
+                        expr = expr.trim();
+                        var val;
+                        if (expr[0] === '{') {
+                            var inner = util.parseObjectLiteral(expr);
+                            val = {
+                                ref: this.evaluate(binding, inner.ref, node),
+                                params: util.parseObjectLiteral(inner.params || '')
+                            };
+                            if (val.params) {
+                                //Convert to right data type (like integers).
+                                Li.forEach(val.params, function (expr, key) {
+                                    val.params[key] = saferEval.call(this.getRootView(), expr, this.context, this.data, node);
+                                }, this);
+                            }
+                        } else {
+                            val = {
+                                ref: this.evaluate(binding, expr, node),
+                                params: {}
+                            };
+                        }
+
+                        var cmp = val.ref;
                         if (cmp instanceof Li.Component) {
-                            cmp.set({parent: this.context.$root});
+                            cmp.set(Li.mix(val.params, {parent: this.context.$root}));
 
                             //Add to components list for rendering later
                             this.components = this.components || [];
