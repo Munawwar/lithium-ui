@@ -169,7 +169,7 @@ define([
                 });
                 //Generate new class attribute
                 var newClasses = '';
-                Li.forEach(existingClasses, function (cls) {
+                Li.forEach(existingClasses, function (v, cls) {
                     newClasses += cls + ' ';
                 });
                 obs(newClasses.trim());
@@ -194,7 +194,7 @@ define([
                 });
                 //Generate class attribute
                 var newClasses = '';
-                Li.forEach(existingClasses, function (cls) {
+                Li.forEach(existingClasses, function (v, cls) {
                     newClasses += cls + ' ';
                 });
                 obs(newClasses.trim());
@@ -220,7 +220,7 @@ define([
                     });
                     //Generate style attribute
                     var styleString = '';
-                    Li.forEach(existingStyles, function (prop, val) {
+                    Li.forEach(existingStyles, function (val, prop) {
                         styleString += prop + ': ' + val + '; ';
                     });
                     obs(styleString.trim()); //I have a feeling that this will cause background images
@@ -243,7 +243,7 @@ define([
                 });
                 //Generate style attribute
                 var styleString = '';
-                Li.forEach(existingStyles, function (prop, val) {
+                Li.forEach(existingStyles, function (val, prop) {
                     styleString += prop + ': ' + val + '; ';
                 });
                 obs(styleString.trim());
