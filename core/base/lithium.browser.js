@@ -23,7 +23,7 @@
         it, match,
         name, version, OS, OSVersion,
         browserList = [
-            [/edge.([\d\.]+), 'MSEdge'],
+            [/edge.([\d\.]+)/, 'MSEdge'],
             [/iemobile.([\d\.]+)/, 'IEMobile'],
             [/msie.([\d\.]+)/, 'IE'],
             [/trident.+rv.([\d\.]+)/, 'IE'],
@@ -104,6 +104,19 @@
         OS: OS,
         OSVersion: OSVersion
     };
+
+    //Add browser-specifc class to body
+    $(document).ready(function () {
+        var name = Li.browser.name.toLowerCase(),
+            version = parseInt(Li.browser.version, 10);
+        $(document.body).addClass(name);
+        if (Li.isIE || Li.isMSEdge) {
+            $(document.body).addClass(name + version);
+        }
+        if (Li.isWebKit) {
+            $(document.body).addClass('webkit');
+        }
+    });
 
     return Li;
 }));
