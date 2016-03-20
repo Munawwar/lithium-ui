@@ -14,8 +14,8 @@ define(['./lui',
                 var view;
                 if ((view = Li.Template.View.currentlyEvaluating)) {
                     var node = view.currentlyEvaluating.node;
-                    if (!uniqueNodes[node._uid] && !view.retired) {
-                        uniqueNodes[node._uid] = view.currentlyEvaluating;
+                    if (!uniqueNodes[Li.getUID(node)] && !view.retired) {
+                        uniqueNodes[Li.getUID(node)] = view.currentlyEvaluating;
                         nodeBindings.push(view.currentlyEvaluating);
                     }
                 }
@@ -59,8 +59,8 @@ define(['./lui',
                 var view;
                 if ((view = Li.Template.View.currentlyEvaluating)) {
                     var node = view.currentlyEvaluating.node;
-                    if (!uniqueNodes[node._uid] && !view.retired) {
-                        uniqueNodes[node._uid] = view.currentlyEvaluating;
+                    if (!uniqueNodes[Li.getUID(node)] && !view.retired) {
+                        uniqueNodes[Li.getUID(node)] = view.currentlyEvaluating;
                         nodeBindings.push(view.currentlyEvaluating);
                     }
                 }
@@ -256,7 +256,7 @@ define(['./lui',
             } else {
                 bindingsToRemove = bindingsToRemove || [];
                 bindingsToRemove.push(index);
-                delete uniqueNodes[info.node._uid];
+                delete uniqueNodes[Li.getUID(info.node)];
             }
         }, this);
 
