@@ -79,7 +79,7 @@
                             nodeInfo.depth = depth;
                             nodeInfo.binding = bindOpts;
                             if (bindings.foreach || bindings['with'] || bindings['if'] || bindings.ifnot) {
-                                tempFrag = util.moveToNewFragment(util.slice(node.childNodes));
+                                tempFrag = util.moveToNewFragment(Li.slice(node.childNodes));
                                 nodeInfo.subTpl = new Htmlizer(tempFrag, $.extend({depth: depth}, this.cfg));
                             }
                             this.nodeInfoList.push(nodeInfo);
@@ -912,7 +912,7 @@
                     var tag = node.nodeName.toLowerCase();
                     if (isOpenTag) {
                         html += '<' + tag;
-                        util.slice(node.attributes).forEach(function (attr) {
+                        Li.slice(node.attributes).forEach(function (attr) {
                             html += ' ' + attr.name + '="' + attr.value.replace(/"/g, '&quot;') + '"';
                         });
                         html += (voidTags[tag] ? '/>' : '>');
@@ -1154,13 +1154,6 @@
                 frag.appendChild(n);
             });
             return frag;
-        },
-
-        /**
-         * @private
-         */
-        slice: function (arrlike, index) {
-            return Array.prototype.slice.call(arrlike, index);
         },
 
         /**

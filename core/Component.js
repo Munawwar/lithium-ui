@@ -4,6 +4,7 @@ define([
     './base/lithium.pubsub',
     './Template',
     './Observable',
+
     'tpl!./Component.ko'
 ], function (Li, $) {
 
@@ -136,8 +137,7 @@ define([
                 delete cfg.addClass;
             }
 
-            //TODO: Is the ability to override inner template of a single instance needed?
-            if (cfg.innerTpl) {
+            if (cfg.innerTpl) { // Child elements
                 this.innerTpl = new Li.Template(cfg.innerTpl);
             }
 
@@ -153,6 +153,7 @@ define([
                 }
             }
         },
+
         /**
          * Add CSS classes to element.
          * @param {String} classes CSS classes as string. If any class already exists, it won't be added.
@@ -263,6 +264,7 @@ define([
         renderSelf: function (target, childIndex) {
             target.insertBefore(this.view.render(), target.childNodes[childIndex]);
             this.el = target.querySelector('#' + this.id, target);
+            Object.defineProperty(this.el, 'liComponent', {value: this});
         },
         /**
          * Render component to target HTMLElement.
