@@ -241,8 +241,7 @@
         this.nodeInfoList = []; //will contain the binding information for each node.
         this.nodeMap = {}; //used to quickly map a node to it's nodeInfo.
 
-        this.components = null;
-        this.componentMap = null;
+        this.components = [];
         this.exprEvaluatorCache = {}; //cache function for each expression, so that it doesn't need to
         //be eval'ed all the time.
 
@@ -289,18 +288,14 @@
                         }
 
                         //Add to components list for rendering later
-                        this.components = this.components || [];
                         this.components.push({cmp: cmp, node: node});
-
-                        this.componentMap = this.componentMap || {};
-                        this.componentMap[Li.getUID(node)] = cmp;
 
                         return {domTraverse: 'continue'}; //ignore inner content
                     }
                 },
                 update: function (node, attr) {
-                    var cmp;
-                    if (this.componentMap && (cmp = this.componentMap[Li.getUID(node)])) {
+                    var cmp = node.liComponent;
+                    if (cmp) {
                         var cfg = {};
                         if (attr === 'class') {
                             cfg.cls = node.getAttribute(attr);
@@ -340,11 +335,7 @@
                             cmp.set(Li.mix(val.params, {parent: this.context.$root}));
 
                             //Add to components list for rendering later
-                            this.components = this.components || [];
                             this.components.push({cmp: cmp, node: node});
-
-                            this.componentMap = this.componentMap || {};
-                            this.componentMap[Li.getUID(node)] = cmp;
                         }
 
                         var block = util.findBlockFromStartNode(blocks, tNode);
@@ -862,7 +853,7 @@
             }
 
             //Render components
-            (this.components || []).forEach(function (item) {
+            this.components.forEach(function (item) {
                 var parent = item.node.parentNode,
                     index = Li.childIndex(item.node);
                 item.cmp.render(parent, index);
@@ -892,7 +883,7 @@
          * Get all components used by this view and sub-views.
          */
         getComponents: function () {
-            var components = (this.components || []).slice().map(function (o) {
+            var components = this.components.map(function (o) {
                 return o.cmp;
             });
             this.nodeInfoList.forEach(function (info) {
@@ -950,8 +941,7 @@
                 this.nodeInfoList = []; //will contain the binding information for each node.
                 this.nodeMap = {}; //used to quickly map a node to it's nodeInfo.
 
-                this.components = null;
-                this.componentMap = null;
+                this.components = [];
             }
             this.retired = true;
             this.rendered = false;
@@ -968,7 +958,6 @@
                 tNode: tNode
             };
             this.nodeInfoList.push(nodeInfo);
-
             this.nodeMap[Li.getUID(node)] = nodeInfo;
         },
 
