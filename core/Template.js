@@ -242,6 +242,7 @@
         this.nodeMap = {}; //used to quickly map a node to it's nodeInfo.
 
         this.components = [];
+        this.componentMap = {};
         this.exprEvaluatorCache = {}; //cache function for each expression, so that it doesn't need to
         //be eval'ed all the time.
 
@@ -289,12 +290,13 @@
 
                         //Add to components list for rendering later
                         this.components.push({cmp: cmp, node: node});
+                        this.componentMap[Li.getUID(node)] = cmp;
 
                         return {domTraverse: 'continue'}; //ignore inner content
                     }
                 },
                 update: function (node, attr) {
-                    var cmp = node.liComponent;
+                    var cmp = this.componentMap[Li.getUID(node)];
                     if (cmp) {
                         var cfg = {};
                         if (attr === 'class') {
@@ -336,6 +338,7 @@
 
                             //Add to components list for rendering later
                             this.components.push({cmp: cmp, node: node});
+                            this.componentMap[Li.getUID(node)] = cmp;
                         }
 
                         var block = util.findBlockFromStartNode(blocks, tNode);
@@ -942,6 +945,7 @@
                 this.nodeMap = {}; //used to quickly map a node to it's nodeInfo.
 
                 this.components = [];
+                this.componentMap = {};
             }
             this.retired = true;
             this.rendered = false;
@@ -958,6 +962,7 @@
                 tNode: tNode
             };
             this.nodeInfoList.push(nodeInfo);
+
             this.nodeMap[Li.getUID(node)] = nodeInfo;
         },
 
