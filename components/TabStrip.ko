@@ -1,0 +1,8 @@
+<script type="text/html" id="li-tabstrip-outer">
+    <div data-bind="attr: {id: id, data-type: type, class: getCssClass(), style: style}">
+        <div ref="tabsEl" class="tabs">
+            <!-- ko template: innerTpl --><!-- /ko -->
+        </div>
+        <div class="indicator" ref="indicatorEl"></div>
+    </div>
+</script>

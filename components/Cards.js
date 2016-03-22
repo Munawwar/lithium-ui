@@ -10,9 +10,12 @@ define(['../core/Box'], function (Li) {
          */
         activeItem: 0,
 
-        postRender: function () {
-            this.super(arguments);
-            this.setActiveItem(this.activeItem);
+        /**
+         * @param {HTMLElemen} el
+         */
+        addCard: function (el) {
+            el.style.display = 'none';
+            this.el.appendChild(el);
         },
 
         /**
@@ -20,19 +23,27 @@ define(['../core/Box'], function (Li) {
          */
         setActiveItem: function (itemNumber) {
             if (this.el) {
-                var items = Li.slice(this.el.children);
+                var items = Li.slice(this.el.children),
                     len = items.length;
-                if (len && itemNumber >= 0 && itemNumber < len) {
+                if (itemNumber >= 0 && itemNumber < len) {
+                    items[this.activeItem].style.display = 'none';
                     this.activeItem = itemNumber;
-                    items.forEach(function(item, i) {
-                        if (i !== itemNumber) {
-                            item.style.display = 'none';
-                        } else {
-                            item.style.removeProperty('display');
-                        }
-                    }, this);
+                    items[this.activeItem].style.removeProperty('display');
                 }
+            } else {
+                this.activeItem = itemNumber;
             }
+        },
+
+        postRender: function () {
+            this.super(arguments);
+
+            //Hide all
+            Li.slice(this.el.children).forEach(function (el) {
+                el.style.display = 'none';
+            });
+            //Unhide active one
+            this.setActiveItem(this.activeItem);
         }
     });
 
