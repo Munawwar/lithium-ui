@@ -4,7 +4,8 @@ define(['./libs', '../core/Component', '../core/Observable', 'tpl!./Button.ko'],
      * Button.
      */
     Li.Button = Li.extend('Li.Button', Li.Component, {
-        cls: Li.Observable('waves-effect waves-dark'),
+        cls: Li.Observable('waves-effect'),
+
         /**
          * Text to display on button
          */
@@ -79,7 +80,54 @@ define(['./libs', '../core/Component', '../core/Observable', 'tpl!./Button.ko'],
                 { opacity: "0", scaleX: ".4", scaleY: ".4", translateY: "40px"},
                 { duration: 80 }
             );
-        }
+        },
+
+        postRender: function () {
+            this.super(arguments);
+
+            var bgColor = window.getComputedStyle(this.el).backgroundColor;
+                sRGB = (bgColor === 'transparent' ? 'rgb(255,255,255)' : bgColor).slice(4, -1).replace(/ /g, '').split(',');
+            sRGB.forEach(function (v, i) {
+                sRGB[i] = parseInt(v, 10) / 255;
+            });
+            this.predictLightness(sRGB);
+        },
+
+        predictLightness: (function () {
+            /* Convert sRGB component to RGB component.
+             * Taken from http://stackoverflow.com/a/13558570.
+             *
+             * aka inverse gamma. Some call it "inverse sRGB companding".
+             * All the constants are taken from sRGB spec.
+             * Read about it at http://en.wikipedia.org/wiki/SRGB (I didn't understand how they derived the approximation).
+             * @param {float} c a fraction between [0, 1].
+             */
+            function linear(c) {
+                if (c <= 0.04045) {
+                    return c / 12.92;
+                } else {
+                    return Math.pow((c + 0.055) / 1.055, 2.4);
+                }
+            }
+
+            //sRGB to RGB (linear)
+            //inout keyword to "pass by reference".
+            function toRGB (sRGB) {
+                return [
+                    linear(sRGB[0]),
+                    linear(sRGB[1]),
+                    linear(sRGB[2])
+                ];
+            }
+
+            return function (sRGB) {
+                var rgb = toRGB(sRGB),
+                    luminance = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]; //the Y part of YIQ or YUV
+                this.el.classList.remove('waves-dark');
+                this.el.classList.remove('waves-light');
+                this.cls(this.el.className + ' waves-' + (luminance <= 0.5 ? 'light' : 'dark'));
+            }
+        }())
     });
 
     return Li;
