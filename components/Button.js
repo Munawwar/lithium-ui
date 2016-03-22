@@ -100,7 +100,7 @@ define(['./libs', '../core/Component', '../core/Observable', 'tpl!./Button.ko'],
              * aka inverse gamma. Some call it "inverse sRGB companding".
              * All the constants are taken from sRGB spec.
              * Read about it at http://en.wikipedia.org/wiki/SRGB (I didn't understand how they derived the approximation).
-             * @param {float} c a fraction between [0, 1].
+             * @param {Number} c A fraction between 0 and 1.
              */
             function linear(c) {
                 if (c <= 0.04045) {
@@ -111,7 +111,6 @@ define(['./libs', '../core/Component', '../core/Observable', 'tpl!./Button.ko'],
             }
 
             //sRGB to RGB (linear)
-            //inout keyword to "pass by reference".
             function toRGB (sRGB) {
                 return [
                     linear(sRGB[0]),
