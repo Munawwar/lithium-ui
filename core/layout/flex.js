@@ -76,7 +76,7 @@ define(['../base/lithium'], function (Li) {
                         return;
                     }
                     var parentStyle = window.getComputedStyle(parent),
-                        parentDim = parent[p.clientDim] - parseInt(parentStyle[p.paddingStart], 10) + parseInt(parentStyle[p.paddingEnd], 10), //exclude padding, scrollbar, border & margin.
+                        parentDim = parent[p.clientDim] - parseInt(parentStyle[p.paddingStart], 10) - parseInt(parentStyle[p.paddingEnd], 10), //exclude padding, scrollbar, border & margin.
                         children = Li.slice(parent.children),
                         flexItems = children.filter(function (el) {
                             return el.classList.contains('flex');
