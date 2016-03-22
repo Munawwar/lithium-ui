@@ -34,13 +34,12 @@
 }
 /*Stretch item along parent's main-axis*/
 .flex {
-    -ms-flex: 1;
-    flex: 1;
-}
-/* bug on webkit browsers that causes non-flex items to not respect minimum content height. Observed on chrome 49.
-   Setting flex-shrink to 0 fixes it, however it would cause bugs in firefox. So .webkit prefix class is unavoidable*/
-.webkit .flex {
-    flex: 1 0 auto;
+    /*
+        A bug on chrome 49 causes non-flex items to not respect minimum content height.
+        Setting flex-shrink to 0 fixes it, however it causes other bugs, like the flexed item isn't scrollable on overflow:scroll.
+        So the only option is a javascript fix.
+    */
+    /*flex: 1;*/
 }
 /*Stretch item along parent's cross-axis Overrides any cross-* class of parent*/
 .stretch-self {

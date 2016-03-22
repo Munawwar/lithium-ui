@@ -1,7 +1,7 @@
 define([
     'jquery',
     './base/lithium',
-    './base/lithium.browser'
+    './layout/flex'
 ], function ($, Li) {
 
     /**

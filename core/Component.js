@@ -273,7 +273,14 @@ define([
          */
         render: function (target, childIndex) {
             this.unrender();
+            //Store the root component being rendered
+            if (!Li.Component.currentRootRender) {
+                Li.Component.currentRootRender = this;
+            }
             this.renderSelf(target, childIndex);
+            if (Li.Component.currentRootRender === this) {
+                delete Li.Component.currentRootRender;
+            }
             this.postRender(target);
             this.trigger('afterrender', this);
         },
@@ -305,6 +312,9 @@ define([
          * @protected
          */
         postRender: function (target) {
+            if (!Li.Component.currentRootRender) { //recalc after root component has been rendered. This minimizes recalcs.
+                window.flexRecalc(this.el);
+            }
             this.attachListeners();
         },
 
