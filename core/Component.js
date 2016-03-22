@@ -139,6 +139,7 @@ define([
 
             if (cfg.innerTpl) { // Child elements
                 this.innerTpl = new Li.Template(cfg.innerTpl);
+                delete cfg.innerTpl;
             }
 
             //Handle the rest
@@ -262,7 +263,7 @@ define([
          * @protected
          */
         renderSelf: function (target, childIndex) {
-            target.insertBefore(this.view.render(), target.childNodes[childIndex]);
+            this.view.render(target, childIndex);
             this.el = target.querySelector('#' + this.id, target);
             Object.defineProperty(this.el, 'liComponent', {value: this});
         },

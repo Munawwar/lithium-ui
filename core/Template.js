@@ -849,37 +849,38 @@
         /**
          * Renders and returns a DocumentFragment.
          */
-        render: function () {
-            if (this.rendered) {
-                //Move nodes from document to fragment and return fragment.
-                return this.toDocumentFragment();
+        render: function (target, childIndex) {
+            //Move nodes to target.
+            if (target) {
+                target.insertBefore(this.toDocumentFragment(), target.childNodes[childIndex]);
             }
 
-            //Render components
-            this.components.forEach(function (item) {
-                var parent = item.node.parentNode,
-                    index = Li.childIndex(item.node);
-                item.cmp.render(parent, index);
-                if (item.node === this.firstChild) {
-                    this.firstChild = parent.childNodes[index];
-                }
-                if (item.node === this.lastChild) {
-                    this.lastChild = parent.childNodes[index];
-                }
-                parent.removeChild(item.node);
-            }, this);
+            if (!this.rendered) { //on first time render
+                //Render components
+                this.components.forEach(function (item) {
+                    var parent = item.node.parentNode,
+                        index = Li.childIndex(item.node);
+                    item.cmp.render(parent, index);
+                    if (item.node === this.firstChild) {
+                        this.firstChild = parent.childNodes[index];
+                    }
+                    if (item.node === this.lastChild) {
+                        this.lastChild = parent.childNodes[index];
+                    }
+                    parent.removeChild(item.node);
+                }, this);
 
-            //Call render() on sub views as well.
-            this.nodeInfoList.forEach(function (info) {
-                if (info.views) {
-                    info.views.forEach(function (view) {
-                        view.render();
-                    });
-                }
-            }, this);
+                //Call render() on sub views as well.
+                this.nodeInfoList.forEach(function (info) {
+                    if (info.views) {
+                        info.views.forEach(function (view) {
+                            view.render();
+                        });
+                    }
+                }, this);
 
-            this.rendered = true;
-            return this.fragment;
+                this.rendered = true;
+            }
         },
 
         /**
