@@ -79,7 +79,11 @@ define(['../base/lithium'], function (Li) {
                         parentDim = parent[p.clientDim] - parseInt(parentStyle[p.paddingStart], 10) - parseInt(parentStyle[p.paddingEnd], 10), //exclude padding, scrollbar, border & margin.
                         children = Li.slice(parent.children),
                         flexItems = children.filter(function (el) {
-                            return el.classList.contains('flex');
+                            var isFlex = el.classList.contains('flex');
+                            if (isFlex) {
+                                el.style[p.dim] = 'auto';
+                            }
+                            return isFlex;
                         }),
                         occupiedDim = children.reduce(function (v, el) {
                             if (!el.classList.contains('flex')) {
