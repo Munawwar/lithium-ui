@@ -1,10 +1,11 @@
 <script type="text/html" id="li-dropdown-outer">
     <div data-bind="attr: {id: id, data-type: type, class: getCssClass(), style: style}">
-        <span class="caret" dat-bind="css: {disabled: disabled}">▼</span>
-        <input type="text" class="select-dropdown" ref="inputEl" readonly="true" data-bind="attr: {data-activates: 'select-options-' + id}, value: getTextForValue(getValue())">
-        <ul class="dropdown-content select-dropdown" ref="ulEl" style="width: 322px; left: 0px; position: absolute; top: 0px; opacity: 1; display: none;"
+        <span class="caret" data-bind="css: {disabled: disabled}">▼</span>
+        <input type="text" class="select-dropdown" ref="inputEl" readonly="true"
+            data-bind="attr: {data-activates: 'select-options-' + id, disabled: $data.disabled() ? 'disabled' : null}, css: {disabled: disabled}, value: getTextForValue(getValue())">
+        <ul class="dropdown-content select-dropdown" ref="ulEl" style="width: 170px; display: none; position: absolute; left: 0px; top: 0px; opacity: 1;"
             data-bind="foreach: options, attr: {id: 'select-options-' + id}">
-            <li data-bind="css: {active: $data.value === $root.getValue(), disabled: $root.disabled() || $data.disabled()},
+            <li data-bind="css: {active: $data.value === $root.getValue(), disabled: $data.disabled},
                 attr: {data-value: $data.value}"><span data-bind="text: $data.text"></span></li>
         </ul>
         <select class="initialized" ref="selectEl" data-bind="foreach: options">
