@@ -33,14 +33,19 @@
     overflow: hidden; /*Prevent extending beyond boundaries*/
 }
 /*Stretch item along parent's main-axis*/
+/*
+    A bug on chrome 49 causes non-flex items to not respect minimum content height.
+    Setting flex-shrink to 0 fixes it, however it causes other bugs, like the flexed item isn't scrollable on overflow:scroll.
+    So the only option is a javascript fix. Will revert the code someday when chrome fixes issue.
+*/
 .flex {
-    /*
-        A bug on chrome 49 causes non-flex items to not respect minimum content height.
-        Setting flex-shrink to 0 fixes it, however it causes other bugs, like the flexed item isn't scrollable on overflow:scroll.
-        So the only option is a javascript fix.
-    */
     /*flex: 1;*/
 }
+/*Seems like the bug is less likely to be seen on a horizontal flexbox*/
+.hbox > .flex {
+    flex: 1;
+}
+
 /*Stretch item along parent's cross-axis Overrides any cross-* class of parent*/
 .stretch-self {
     align-self: stretch;

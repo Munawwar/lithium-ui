@@ -2,6 +2,8 @@
  * Flexbox's flex is broken on Chrome 49 (or even before that).
  * Non-flex items do not respect minimum content height when a flex item is around.
  * flex: 1 0 auto; was suggested as workaround, but that makes the flexed item to not have scrollbar (on overflow:scroll).
+ *
+ * This JS computes and sets height for flex items within 'vbox'es.
  */
 define(['../base/lithium'], function (Li) {
 
@@ -19,8 +21,10 @@ define(['../base/lithium'], function (Li) {
                 return found;
             };
 
-            return function (root) {
+            return function (root, force) {
                 root = root || document;
+
+                //Find all vbox elements that has flex elements inside it.
                 var parents = {},
                     els = Li.slice(root.querySelectorAll('.flex'));
                 if (root.classList && root.classList.contains('flex')) {
@@ -29,7 +33,7 @@ define(['../base/lithium'], function (Li) {
                 els.forEach(function (el) {
                     //this.elMap[Li.getUID(el)] = this.elMap[Li.getUID(el)] || {};
                     var parent = el.parentNode;
-                    if (parent.classList.contains('hbox') || parent.classList.contains('vbox')) {
+                    if (parent.classList.contains('vbox')) {
                         parents[Li.getUID(parent)] = {
                             el: parent,
                             level: this.getLevel(parent)
@@ -37,6 +41,7 @@ define(['../base/lithium'], function (Li) {
                     }
                 }, this);
 
+                //Sort vbox elements, such that top-level elements (in the DOM heirarchy) shows up first.
                 var sorted = Li.values(parents);
                 //sort decreasing order of level
                 sorted.sort(function (a, b) {
@@ -46,19 +51,8 @@ define(['../base/lithium'], function (Li) {
                     return info.el;
                 });
 
-                //Go through each parent and set width/height for each flex item
-                var hMap = {
-                    class: 'hbox',
-                    clientDim: 'clientWidth',
-                    offsetDim: 'offsetWidth',
-                    paddingStart: 'paddingLeft',
-                    paddingEnd: 'paddingRight',
-                    marginStart: 'marginLeft',
-                    marginEnd: 'marginRight',
-                    dim: 'width',
-                    ignoreMap: {}
-                },
-                vMap = {
+                //Go through each parent and set height for each flex item
+                var vMap = {
                     class: 'vbox',
                     clientDim: 'clientHeight',
                     offsetDim: 'offsetHeight',
@@ -68,11 +62,11 @@ define(['../base/lithium'], function (Li) {
                     marginEnd: 'marginBottom',
                     dim: 'height',
                     ignoreMap: {},
-                }
+                };
                 sorted.forEach(function (parent) {
-                    var p = (parent.classList.contains('hbox') ? hMap : vMap); //pointer
+                    var p = vMap; //pointer
 
-                    if (canIgnoreCalc(parent, p.ignoreMap)) {
+                    if (!force && canIgnoreCalc(parent, p.ignoreMap)) {
                         return;
                     }
                     var parentStyle = window.getComputedStyle(parent),
@@ -105,7 +99,7 @@ define(['../base/lithium'], function (Li) {
                         var oldDim = el.style[p.dim],
                             newDim = flexDim + 'px';
                         el.style[p.dim] = newDim;
-                        //For efficiency don't recalc if item is further an hbox and width hasn't changed
+                        //For efficiency don't recalc if item is further a vbox and height hasn't changed
                         if (el.classList.contains(p.class) && oldDim === newDim) {
                             p.ignoreMap[Li.getUID(el)] = true;
                         }
