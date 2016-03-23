@@ -29,23 +29,22 @@ define(['./TabStrip', './Cards'], function (Li) {
      */
     Li.TabPanel = Li.extend('Li.TabPanel', Li.Box, {
 
-        makeConfigFromView: function (element, cfg) {
-            var children = {};
-            Li.slice(element.children).forEach(function (el) {
-                children[el.nodeName.toLowerCase()] = el;
-            });
-
-            if (!children['li-tabstrip'] || !children['li-cards']) {
-                console.error('Invalid syntax for TabPanel');
-            }
-            children['li-tabstrip'].setAttribute('ref', 'tabstrip');
-            children['li-cards'].setAttribute('ref', 'cards');
-
-            return this.super(arguments);
-        },
-
         constructor: function () {
             this.super(arguments);
+
+            //Find TabStrip and Cards and set references
+            this.view.getComponents().forEach(function (cmp) {
+                if (!this.tabstrip && cmp instanceof Li.TabStrip) {
+                    this.tabstrip = cmp;
+                }
+                if (!this.cards && cmp instanceof Li.Cards) {
+                    this.cards = cmp;
+                }
+            }, this);
+
+            if (!this.tabstrip || !this.cards) {
+                console.error('TabPanel needs explicit declaration of Li.TabStrip and Li.Cards as it\'s child components.');
+            }
 
             this.setActiveTab(this.tabstrip.activeItem);
 
