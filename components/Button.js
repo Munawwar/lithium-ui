@@ -122,9 +122,10 @@ define(['./libs', '../core/Component', '../core/Observable', 'tpl!./Button.ko'],
             return function (sRGB) {
                 var rgb = toRGB(sRGB),
                     luminance = 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]; //the Y part of YIQ or YUV
-                this.el.classList.remove('waves-dark');
-                this.el.classList.remove('waves-light');
-                this.cls(this.el.className + ' waves-' + (luminance <= 0.5 ? 'light' : 'dark'));
+                this.set({
+                    addClass: 'waves-' + (luminance <= 0.5 ? 'light' : 'dark'),
+                    removeClass: 'waves-' + (luminance <= 0.5 ? 'dark' : 'light')
+                });
             }
         }())
     });
