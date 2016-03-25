@@ -9,7 +9,7 @@ define(['./libs', '../core/Component', '../core/Observable', 'tpl!./Button.ko'],
         /**
          * Text to display on button
          */
-        text: Li.Observable('Button'),
+        text: Li.Observable(''),
         /**
          * Disabled when true.
          */
@@ -43,6 +43,11 @@ define(['./libs', '../core/Component', '../core/Observable', 'tpl!./Button.ko'],
                 cfg.disabled = target.hasAttribute('disabled');
             }
             return cfg;
+        },
+
+        getCssClass: function () {
+            var cls = this.super(arguments);
+            return cls + (this.disabled() ? ' disabled' : '');
         },
 
         enable: function () {

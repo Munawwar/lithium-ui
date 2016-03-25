@@ -167,7 +167,7 @@ define([
                 var existingClasses = {};
                 //Added classes
                 obs().split(' ').concat(classes.split(' ')).forEach(function (cls) {
-                    existingClasses[cls.trim()] = 1;
+                    existingClasses[cls] = 1;
                 });
                 //Generate new class attribute
                 var newClasses = '';
@@ -188,11 +188,11 @@ define([
             if (obs) {
                 var existingClasses = {};
                 obs().split(' ').forEach(function (cls) {
-                    existingClasses[cls.trim()] = 1;
+                    existingClasses[cls] = 1;
                 });
                 //Remove classes
                 classes.split(' ').forEach(function (cls) {
-                    delete existingClasses[cls.trim()];
+                    delete existingClasses[cls];
                 });
                 //Generate class attribute
                 var newClasses = '';
@@ -334,7 +334,7 @@ define([
                     return;
                 }
                 if (Li.isObject(funcOrObj)) { // reference
-                    //Make unique signature (ignoring context/scope, since we ar enot going to allow a function on the
+                    //Make unique signature (ignoring context/scope, since we are not going to allow a function on the
                     //same event + same element to have two different contexts)
                     Li.forEach(funcOrObj, function (func, eventname) {
                         key = prop + '#' + eventname + '#' + Li.getUID(func);
