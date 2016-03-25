@@ -13,10 +13,10 @@ define(['./lui',
                 //Check whether value is called from a template or not.
                 var view;
                 if ((view = Li.Template.View.currentlyEvaluating)) {
-                    var node = view.currentlyEvaluating.node;
-                    if (!uniqueNodes[Li.getUID(node)] && !view.retired) {
-                        uniqueNodes[Li.getUID(node)] = view.currentlyEvaluating;
-                        nodeBindings.push(view.currentlyEvaluating);
+                    var info = view.currentlyEvaluating;
+                    if (!uniqueNodes[getHash(info)] && !view.retired) {
+                        uniqueNodes[getHash(info)] = info;
+                        nodeBindings.push(info);
                     }
                 }
 
@@ -58,10 +58,10 @@ define(['./lui',
                 //Check whether value is called from a template or not.
                 var view;
                 if ((view = Li.Template.View.currentlyEvaluating)) {
-                    var node = view.currentlyEvaluating.node;
-                    if (!uniqueNodes[Li.getUID(node)] && !view.retired) {
-                        uniqueNodes[Li.getUID(node)] = view.currentlyEvaluating;
-                        nodeBindings.push(view.currentlyEvaluating);
+                    var info = view.currentlyEvaluating;
+                    if (!uniqueNodes[getHash(info)] && !view.retired) {
+                        uniqueNodes[getHash(info)] = info;
+                        nodeBindings.push(info);
                     }
                 }
             },
@@ -247,6 +247,13 @@ define(['./lui',
         }
     };
 
+    /**
+     * Get unique hash for currently evaluating node and binding.
+     */
+    function getHash(currentlyEvaluating) {
+        return Li.getUID(currentlyEvaluating.node) + '#' + currentlyEvaluating.binding;
+    }
+
     function removeUnusedAndIterate(nodeBindings, uniqueNodes, callback, scope) {
         var bindingsToRemove;
         //Refresh UI
@@ -256,7 +263,7 @@ define(['./lui',
             } else {
                 bindingsToRemove = bindingsToRemove || [];
                 bindingsToRemove.push(index);
-                delete uniqueNodes[Li.getUID(info.node)];
+                delete uniqueNodes[getHash(info)];
             }
         }, this);
 
