@@ -248,7 +248,8 @@ define(['./lui',
     };
 
     /**
-     * Get unique hash for currently evaluating node and binding.
+     * Get unique hash for a node and it's binding.
+     * @param {Object} currentlyEvaluating The contents of view.currentlyEvaluating.
      */
     function getHash(currentlyEvaluating) {
         return Li.getUID(currentlyEvaluating.node) + '#' + currentlyEvaluating.binding;
