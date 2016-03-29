@@ -257,12 +257,12 @@
     Htmlizer.View.prototype = {
         bindingHandler: {
             componenttag: {
-                init: function (node, tNode, classRef) {
+                init: function (node, tNode, ClassRef) {
                     node.innerHTML = tNode.innerHTML;
-                    if (classRef) {
+                    if (ClassRef) {
                         var cfg = {}, cmp;
                         //Parse node to a config
-                        if (classRef.prototype.makeConfigFromView) {
+                        if (ClassRef.prototype.makeConfigFromView) {
                             if (node.hasAttribute('params')) {
                                 cfg = util.parseObjectLiteral(node.getAttribute('params'));
                                 //Convert to right data type (like integers).
@@ -270,13 +270,13 @@
                                     cfg[key] = saferEval.call(this.getRootView(), expr, this.context, this.data, node);
                                 }, this);
                             }
-                            cfg = classRef.prototype.makeConfigFromView(node, cfg);
+                            cfg = ClassRef.prototype.makeConfigFromView(node, cfg);
                         }
-                        cfg.type = classRef.prototype.type;
+                        cfg.type = ClassRef.prototype.type;
                         cfg.parent = this.context.$root;
 
                         //Create instance from config
-                        cmp = new classRef(cfg);
+                        cmp = new ClassRef(cfg);
                         //Resolve reference using ref attribute
                         var ref = node.getAttribute('ref');
                         if (ref && cfg.parent) {
@@ -552,22 +552,22 @@
                 init: function (node, binding, expr) {
                     if (node.nodeType === 1) {
                         util.forEachObjectLiteral(expr.slice(1, -1), function (attr, value) {
-                            var val = this.evaluate({binding: binding, attr: attr}, value, node);
+                            var val = this.evaluate(binding + '.' + attr, value, node);
                             if (typeof val === 'string' || typeof val === 'number') {
                                 node.setAttribute(attr, val + '');
                             }
                         }, this);
                     }
                 },
-                update: function (node, binding, expr, extraInfo) {
+                update: function (node, binding, expr, attr) {
                     if (node.nodeType === 1) {
                         var val = this.evaluate(binding, expr, node);
                         if (val || typeof val === 'string' || typeof val === 'number') {
-                            node.setAttribute(extraInfo.attr, val + '');
+                            node.setAttribute(attr, val + '');
                         } else { //undefined, null, false
-                            node.removeAttribute(extraInfo.attr);
+                            node.removeAttribute(attr);
                         }
-                        this.bindingHandler.componenttag.update.call(this, node, extraInfo.attr);
+                        this.bindingHandler.componenttag.update.call(this, node, attr);
                     }
                 }
             },
@@ -575,20 +575,20 @@
                 init: function (node, binding, expr) {
                     if (node.nodeType === 1) {
                         util.forEachObjectLiteral(expr.slice(1, -1), function (className, expr) {
-                            var val = this.evaluate({binding: binding, className: className}, expr, node);
+                            var val = this.evaluate(binding + '.' + className, expr, node);
                             if (val) {
                                 $(node).addClass(className);
                             }
                         }, this);
                     }
                 },
-                update: function (node, binding, expr, extraInfo) {
+                update: function (node, binding, expr, className) {
                     if (node.nodeType === 1) {
                         var val = this.evaluate(binding, expr, node);
                         if (val) {
-                            $(node).addClass(extraInfo.className);
+                            $(node).addClass(className);
                         } else {
-                            $(node).removeClass(extraInfo.className);
+                            $(node).removeClass(className);
                         }
                         this.bindingHandler.componenttag.update.call(this, node, 'class');
                     }
@@ -602,18 +602,18 @@
                     init: function (node, binding, expr) {
                         if (node.nodeType === 1) {
                             util.forEachObjectLiteral(expr.slice(1, -1), function (prop, expr) {
-                                var val = this.evaluate({binding: binding, prop: prop}, expr, node) || null;
+                                var val = this.evaluate(binding + '.' + prop, expr, node) || null;
                                 node.style.setProperty(prop.replace(/[A-Z]/g, toCssProp), val);
                             }, this);
                         }
                     },
-                    update: function (node, binding, expr, extraInfo) {
+                    update: function (node, binding, expr, prop) {
                         if (node.nodeType === 1) {
                             var val = this.evaluate(binding, expr, node);
                             if (val || typeof val === 'string' || typeof val === 'number') {
-                                node.style.setProperty(extraInfo.prop.replace(/[A-Z]/g, toCssProp), val + '');
+                                node.style.setProperty(prop.replace(/[A-Z]/g, toCssProp), val + '');
                             } else { //undefined, null, false
-                                node.style.removeProperty(extraInfo.prop.replace(/[A-Z]/g, toCssProp));
+                                node.style.removeProperty(prop.replace(/[A-Z]/g, toCssProp));
                             }
                             this.bindingHandler.componenttag.update.call(this, node, 'style');
                         }
@@ -1001,24 +1001,18 @@
 
         /**
          * Evaluate a JS expression for a binding on a node.
+         * Sets states such that Observable that are called from eval, can indentify what binding etc is being evaluated.
          * @private
          */
         evaluate: function (binding, expr, node) {
             var old = Htmlizer.View.currentlyEvaluating;
             Htmlizer.View.currentlyEvaluating = this;
 
-            var extraInfo;
-            if (typeof binding !== 'string') {
-                extraInfo = binding;
-                binding = extraInfo.binding;
-                delete extraInfo.binding;
-            }
             this.currentlyEvaluating = {
                 view: this,
                 node: node,
                 binding: binding,
-                expr: expr,
-                extraInfo: extraInfo
+                expr: expr
             };
 
             var value = saferEval.call(this.getRootView(), expr, this.context, this.data, node);

@@ -28,12 +28,7 @@ define(['./lui',
                     //TODO: For objects, use oldValue.isEqual(val);
                     if (oldValue !== val) {
                         //Refresh UI
-                        removeUnusedAndIterate(nodeBindings, uniqueNodes, function (info) {
-                            var bindingHandler = info.view.bindingHandler[info.binding];
-                            if (bindingHandler && bindingHandler.update) {
-                                bindingHandler.update.call(info.view, info.node, info.binding, info.expr, info.extraInfo);
-                            }
-                        }, this);
+                        removeUnusedAndIterate(nodeBindings, uniqueNodes, updateBinding, this);
                     }
                 } else {
                     return value;
@@ -76,12 +71,10 @@ define(['./lui',
 
                         //Refresh UI
                         removeUnusedAndIterate(nodeBindings, uniqueNodes, function (info) {
-                            var bindingHandler = info.view.bindingHandler[info.binding];
                             if (info.binding !== 'foreach') {
-                                if (bindingHandler && bindingHandler.update) {
-                                    bindingHandler.update.call(info.view, info.node, info.binding, info.expr, info.extraInfo);
-                                }
+                                updateBinding.call(this, info);
                             } else {
+                                var bindingHandler = info.view.bindingHandler[info.binding];
                                 bindingHandler.splice.call(info.view, info.node, info.binding, info.expr, 0, oldValue.length, val);
                             }
                         }, this);
@@ -108,13 +101,10 @@ define(['./lui',
 
                 //Refresh UI
                 removeUnusedAndIterate(nodeBindings, uniqueNodes, function (info) {
-                    var bindingHandler = info.view.bindingHandler[info.binding];
                     if (info.binding !== 'foreach') {
-                        if (bindingHandler && bindingHandler.update) {
-                            //TODO: Hmm..how to efficiently update?
-                            bindingHandler.update.call(info.view, info.node, info.binding, info.expr, info.extraInfo);
-                        }
+                        updateBinding.call(this, info);
                     } else {
+                        var bindingHandler = info.view.bindingHandler[info.binding];
                         bindingHandler.splice.call(info.view, info.node, info.binding, info.expr, index, removeLength, items);
                     }
                 }, this);
@@ -148,13 +138,10 @@ define(['./lui',
                 value.reverse();
                 //Refresh UI
                 removeUnusedAndIterate(nodeBindings, uniqueNodes, function (info) {
-                    var bindingHandler = info.view.bindingHandler[info.binding];
                     if (info.binding !== 'foreach') {
-                        if (bindingHandler && bindingHandler.update) {
-                            //TODO: Hmm..how to efficiently update?
-                            bindingHandler.update.call(info.view, info.node, info.binding, info.expr, info.extraInfo);
-                        }
+                        updateBinding.call(this, info);
                     } else {
+                        var bindingHandler = info.view.bindingHandler[info.binding];
                         bindingHandler.reverse.call(info.view, info.node, info.binding, info.expr);
                     }
                 }, this);
@@ -185,13 +172,10 @@ define(['./lui',
                 //Refresh UI
                 if (hasChanged) {
                     removeUnusedAndIterate(nodeBindings, uniqueNodes, function (info) {
-                        var bindingHandler = info.view.bindingHandler[info.binding];
                         if (info.binding !== 'foreach') {
-                            if (bindingHandler && bindingHandler.update) {
-                                //TODO: Hmm..how to efficiently update?
-                                bindingHandler.update.call(info.view, info.node, info.binding, info.expr, info.extraInfo);
-                            }
+                            updateBinding.call(this, info);
                         } else {
+                            var bindingHandler = info.view.bindingHandler[info.binding];
                             bindingHandler.sort.call(info.view, info.node, info.binding, info.expr, indexes);
                         }
                     }, this);
@@ -253,6 +237,15 @@ define(['./lui',
      */
     function getHash(currentlyEvaluating) {
         return Li.getUID(currentlyEvaluating.node) + '#' + currentlyEvaluating.binding;
+    }
+
+    function updateBinding(info) {
+        var binding = info.binding.split('.'),
+            subBinding = binding.slice(1).join('.'),
+            bindingHandler = info.view.bindingHandler[binding[0]];
+        if (bindingHandler && bindingHandler.update) {
+            bindingHandler.update.call(info.view, info.node, binding[0], info.expr, subBinding || undefined);
+        }
     }
 
     function removeUnusedAndIterate(nodeBindings, uniqueNodes, callback, scope) {
