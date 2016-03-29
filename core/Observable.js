@@ -11,8 +11,8 @@ define(['./lui',
             uniqueNodes = {},
             observable = function (val) {
                 //Check whether value is called from a template or not.
-                var view;
-                if ((view = Li.Template.View.currentlyEvaluating)) {
+                var view = Li.Template.View.currentlyEvaluating;
+                if (view) {
                     var info = view.currentlyEvaluating;
                     if (!uniqueNodes[getHash(info)] && !view.retired) {
                         uniqueNodes[getHash(info)] = info;
@@ -51,8 +51,8 @@ define(['./lui',
             uniqueNodes = {},
             trackDependency = function () {
                 //Check whether value is called from a template or not.
-                var view;
-                if ((view = Li.Template.View.currentlyEvaluating)) {
+                var view = Li.Template.View.currentlyEvaluating;
+                if (view) {
                     var info = view.currentlyEvaluating;
                     if (!uniqueNodes[getHash(info)] && !view.retired) {
                         uniqueNodes[getHash(info)] = info;
