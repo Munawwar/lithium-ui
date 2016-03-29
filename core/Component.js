@@ -167,7 +167,7 @@ define([
          * @param {String} classes CSS classes as string. If any class already exists, it won't be added.
          */
         addClass: function (classes) {
-            el = this.el || Li.Component.dummyEl;
+            var el = this.el || Li.Component.dummyEl;
             if (!this.el) {
                 el.className = this.cls;
             }
@@ -184,8 +184,8 @@ define([
          * Removes CSS classes from element.
          * @param {String} classes CSS classes as string.
          */
-        removeClass: function (classes, obs) {
-            el = this.el || Li.Component.dummyEl;
+        removeClass: function (classes) {
+            var el = this.el || Li.Component.dummyEl;
             if (!this.el) {
                 el.className = this.cls;
             }
@@ -207,7 +207,7 @@ define([
                 return '-' + m.toLowerCase();
             }
             return function (styles) {
-                el = this.el || Li.Component.dummyEl;
+                var el = this.el || Li.Component.dummyEl;
                 if (!this.el) {
                     el.setAttribute('style', this.style || '');
                 }
@@ -227,9 +227,9 @@ define([
         removeStyle: (function () {
             function toCssProp(m) {
                 return '-' + m.toLowerCase();
-            };
+            }
             return function (styles) {
-                el = this.el || Li.Component.dummyEl;
+                var el = this.el || Li.Component.dummyEl;
                 if (!this.el) {
                     el.setAttribute('style', this.style || '');
                 }
