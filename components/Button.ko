@@ -1,3 +1,3 @@
 <script type="text/html" id="li-button-outer">
-    <button data-bind="text: text, attr: {id: id, data-type: type, class: getCssClass(), style: style}, disable: disabled"></button>
+    <button data-bind="text: text, attr: {id: id, data-type: type, class: cls, style: style}, css: {disabled: disabled}, disable: disabled"></button>
 </script>

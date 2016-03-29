@@ -40,11 +40,11 @@ define([
         /**
          * CSS class to use on {@link #el}.
          */
-        cls: Li.Observable(''),
+        cls: '',
         /**
          * Inline CSS style to apply on {@link #el}.
          */
-        style: Li.Observable(null),
+        style: '',
 
 
         /**
@@ -101,6 +101,8 @@ define([
             this.super();
 
             this.id = 'cmp-' + Li.Component.getNewId();
+            this.cls = this.type.toLowerCase().replace(/\./g, '-') + ' ' + this.cls;
+
             //Make own copy of observable from prototype.
             this._observables.forEach(function (prop) {
                 if (!this.hasOwnProperty(prop)) {
@@ -161,109 +163,85 @@ define([
         },
 
         /**
-         * Add CSS classes to element.
+         * Add CSS classes to root element.
          * @param {String} classes CSS classes as string. If any class already exists, it won't be added.
-         * @param {Li.Observable} [obs] Any observable. By default this is equal to this.cls.
-         * Note: Make sure the observable controls the class attribute of the element (else this function won't give the desired outcome).
          */
-        addClass: function (classes, obs) {
-            obs = obs || this.cls;
-            if (obs) {
-                var existingClasses = {};
-                //Added classes
-                obs().split(' ').concat(classes.split(' ')).forEach(function (cls) {
-                    existingClasses[cls] = 1;
-                });
-                //Generate new class attribute
-                var newClasses = '';
-                Li.forEach(existingClasses, function (v, cls) {
-                    newClasses += cls + ' ';
-                });
-                obs(newClasses.trim());
+        addClass: function (classes) {
+            el = this.el || Li.Component.dummyEl;
+            if (!this.el) {
+                el.className = this.cls;
+            }
+            classes.split(' ').forEach(function (cls) {
+                if (cls) {
+                    el.classList.add(cls);
+                }
+            });
+            if (!this.el) {
+                this.cls = el.className;
             }
         },
         /**
          * Removes CSS classes from element.
          * @param {String} classes CSS classes as string.
-         * @param {Li.Observable} [obs] Any observable. By default this is equal to this.cls.
-         * Note: Make sure the observable controls the class attribute of the element (else this function won't give the desired outcome).
          */
         removeClass: function (classes, obs) {
-            obs = obs || this.cls;
-            if (obs) {
-                var existingClasses = {};
-                obs().split(' ').forEach(function (cls) {
-                    existingClasses[cls] = 1;
-                });
-                //Remove classes
-                classes.split(' ').forEach(function (cls) {
-                    delete existingClasses[cls];
-                });
-                //Generate class attribute
-                var newClasses = '';
-                Li.forEach(existingClasses, function (v, cls) {
-                    newClasses += cls + ' ';
-                });
-                obs(newClasses.trim());
+            el = this.el || Li.Component.dummyEl;
+            if (!this.el) {
+                el.className = this.cls;
+            }
+            classes.split(' ').forEach(function (cls) {
+                if (cls) {
+                    el.classList.remove(cls);
+                }
+            }, this);
+            if (!this.el) {
+                this.cls = el.className;
             }
         },
         /**
          * Added styles from element.
          * @param {Object} styles Styles as object. Each key should be camel cased and value should be string.
-         * @param {Li.Observable} [obs] Any observable. By default this is equal to this.style.
-         * Note: Make sure the observable controls the style attribute of the element (else this function won't give the desired outcome).
          */
         addStyle: (function () {
             function toCssProp(m) {
                 return '-' + m.toLowerCase();
-            };
-            return function (styles, obs) {
-                obs = obs || this.style;
-                if (obs) {
-                    var existingStyles = Li.parseStyleAttribute(obs() || '');
-                    Li.forEach(style, function (value, prop) {
-                        prop = prop.replace(/[A-Z]/g, toCssProp);
-                        existingStyles[prop] = value;
-                    });
-                    //Generate style attribute
-                    var styleString = '';
-                    Li.forEach(existingStyles, function (val, prop) {
-                        styleString += prop + ': ' + val + '; ';
-                    });
-                    obs(styleString.trim()); //I have a feeling that this will cause background images
-                    //to flicker since the style atribute gets re-written (if we start using bg images).
+            }
+            return function (styles) {
+                el = this.el || Li.Component.dummyEl;
+                if (!this.el) {
+                    el.setAttribute('style', this.style);
+                }
+                styles = Li.parseStyleAttribute(styles);
+                Li.forEach(styles, function (value, prop) {
+                    el.style.setProperty(prop.replace(/[A-Z]/g, toCssProp), value);
+                }, this);
+                if (!this.el) {
+                    this.style = el.getAttribute('style');
                 }
             };
         }()),
         /**
          * Removes styles from element.
          * @param {String} styles Styles as string separated by space.
-         * @param {Li.Observable} [obs] Any observable. By default this is equal to this.style.
-         * Note: Make sure the observable controls the style attribute of the element (else this function won't give the desired outcome).
          */
-        removeStyle: function (styles, obs) {
-            obs = obs || this.style;
-            if (obs) {
-                var existingStyles = Li.parseStyleAttribute(obs() || '');
-                styles.split(' ').forEach(function (style) {
-                    delete existingStyles[style.trim()];
-                });
-                //Generate style attribute
-                var styleString = '';
-                Li.forEach(existingStyles, function (val, prop) {
-                    styleString += prop + ': ' + val + '; ';
-                });
-                obs(styleString.trim());
-            }
-        },
-        /**
-         * @returns {String} The CSS class to be used on el by {@link #render} method.
-         * @private
-         */
-        getCssClass: function () {
-            var typeCls = this.type.toLowerCase().replace(/\./g, '-');
-            return (typeCls + ' ' + this.cls()).trim();
-        },
+        removeStyle: (function () {
+            function toCssProp(m) {
+                return '-' + m.toLowerCase();
+            };
+            return function (styles) {
+                el = this.el || Li.Component.dummyEl;
+                if (!this.el) {
+                    el.setAttribute('style', this.style);
+                }
+                styles = Li.parseStyleAttribute(styles);
+                Li.forEach(styles, function (value, prop) {
+                    el.style.removeProperty(prop.replace(/[A-Z]/g, toCssProp));
+                }, this);
+                if (!this.el) {
+                    this.style = el.getAttribute('style');
+                }
+            };
+        }()),
 
         /**
          * Return's true if component's root element is on-screen.
@@ -557,7 +535,8 @@ define([
             id: 1,
             getNewId: function () {
                 return Li.Component.id++;
-            }
+            },
+            dummyEl: Li.dom('<div></div>').firstChild
         }
     });
 

@@ -12,16 +12,14 @@ define([
     Li.Alert = Li.extend('Li.Alert', Li.Component, {
         html: 'Alert!',
         alertType: 'warning',
-        cls: Li.Observable('alert-stick-top'),
+        cls: 'alert-stick-top',
 
         closeBtn: true,
 
-        /**
-         * @override
-         */
-        getCssClass: function () {
-            var cls = this.super(arguments);
-            return cls + ' alert-' + this.alertType;
+        constructor: function () {
+            this.addClass('alert-' + this.alertType);
+
+            this.super(arguments);
         },
 
         render: function () {

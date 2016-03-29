@@ -24,7 +24,7 @@ define([
          */
         activeItem: 0,
 
-        cls: Li.Observable('tabs'),
+        cls: 'tabs',
 
         align: Li.Observable('horizontal'),
 
@@ -42,20 +42,13 @@ define([
             return this.super(arguments);
         },
 
-        /**
-         * Override
-         */
-        getCssClass: function () {
-            var cls = this.super(arguments);
-            cls += ' ' + this.align();
-            return cls;
-        },
-
         constructor: function () {
             /**
              * @event tabchanged Fires when user changes tab.
              * Doesn't fire on API called (non-user interaction) changes.
              */
+
+            this.addClass(this.align());
 
             this.super(arguments);
 

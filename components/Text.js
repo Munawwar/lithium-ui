@@ -3,7 +3,7 @@ define(['../core/Component', 'tpl!./Text.ko'], function (Li) {
      * Text field.
      */
     Li.Text = Li.extend('Li.Text', Li.Component, {
-        cls: Li.Observable('form-control'),
+        cls: 'form-control',
         autocomplete: [],
         placeholder: Li.Observable(''),
         getValue: function () {

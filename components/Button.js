@@ -4,7 +4,7 @@ define(['./libs', '../core/Component', '../core/Observable', 'tpl!./Button.ko'],
      * Button.
      */
     Li.Button = Li.extend('Li.Button', Li.Component, {
-        cls: Li.Observable('waves-effect'),
+        cls: 'waves-effect',
 
         /**
          * Text to display on button
@@ -14,22 +14,6 @@ define(['./libs', '../core/Component', '../core/Observable', 'tpl!./Button.ko'],
          * Disabled when true.
          */
         disabled: Li.Observable(false),
-
-        set: function (cfg) {
-            if (cfg.cls && cfg.cls.split(' ').indexOf('fixed-action-btn') > -1)  {
-                this.on({
-                    'mouseenter': this.openFABMenu,
-                    'mouseleave': this.closeFABMenu
-                });
-            } else {
-                this.off({
-                    'mouseenter': this.openFABMenu,
-                    'mouseleave': this.closeFABMenu
-                });
-            }
-
-            this.super([cfg]);
-        },
 
         /**
          * @override
@@ -45,9 +29,20 @@ define(['./libs', '../core/Component', '../core/Observable', 'tpl!./Button.ko'],
             return cfg;
         },
 
-        getCssClass: function () {
-            var cls = this.super(arguments);
-            return cls + (this.disabled() ? ' disabled' : '');
+        set: function (cfg) {
+            if (cfg.addClass && cfg.addClass.split(' ').indexOf('fixed-action-btn') > -1)  {
+                this.on({
+                    'mouseenter': this.openFABMenu,
+                    'mouseleave': this.closeFABMenu
+                });
+            } else {
+                this.off({
+                    'mouseenter': this.openFABMenu,
+                    'mouseleave': this.closeFABMenu
+                });
+            }
+
+            this.super([cfg]);
         },
 
         enable: function () {

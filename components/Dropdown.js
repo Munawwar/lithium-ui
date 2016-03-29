@@ -9,7 +9,7 @@ define([
      * Dropdown.
      */
     Li.Dropdown = Li.extend('Li.Dropdown', Li.Component, {
-        cls: Li.Observable('select-wrapper'),
+        cls: 'select-wrapper',
         /**
          * @cfg {Array[]} options Array of [value, display text] arrays.
          * Used only for first render.
