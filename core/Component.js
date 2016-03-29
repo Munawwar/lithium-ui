@@ -44,7 +44,7 @@ define([
         /**
          * Inline CSS style to apply on {@link #el}.
          */
-        style: '',
+        style: null,
 
 
         /**
@@ -101,7 +101,7 @@ define([
             this.super();
 
             this.id = 'cmp-' + Li.Component.getNewId();
-            this.cls = this.type.toLowerCase().replace(/\./g, '-') + ' ' + this.cls;
+            this.cls = (this.type.toLowerCase().replace(/\./g, '-') + ' ' + this.cls).trim();
 
             //Make own copy of observable from prototype.
             this._observables.forEach(function (prop) {
@@ -209,14 +209,14 @@ define([
             return function (styles) {
                 el = this.el || Li.Component.dummyEl;
                 if (!this.el) {
-                    el.setAttribute('style', this.style);
+                    el.setAttribute('style', this.style || '');
                 }
                 styles = Li.parseStyleAttribute(styles);
                 Li.forEach(styles, function (value, prop) {
                     el.style.setProperty(prop.replace(/[A-Z]/g, toCssProp), value);
                 }, this);
                 if (!this.el) {
-                    this.style = el.getAttribute('style');
+                    this.style = el.getAttribute('style') || null;
                 }
             };
         }()),
@@ -231,14 +231,14 @@ define([
             return function (styles) {
                 el = this.el || Li.Component.dummyEl;
                 if (!this.el) {
-                    el.setAttribute('style', this.style);
+                    el.setAttribute('style', this.style || '');
                 }
                 styles = Li.parseStyleAttribute(styles);
                 Li.forEach(styles, function (value, prop) {
                     el.style.removeProperty(prop.replace(/[A-Z]/g, toCssProp));
                 }, this);
                 if (!this.el) {
-                    this.style = el.getAttribute('style');
+                    this.style = el.getAttribute('style') || null;
                 }
             };
         }()),
