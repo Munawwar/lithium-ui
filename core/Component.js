@@ -110,7 +110,12 @@ define([
             }, this);
             this.listeners = {};
             this.set(cfg);
+
+            //Render in-memory
             this.view = (new Li.Template.View(this.outerTpl, this));
+            this.el = this.view.fragment.querySelector('#' + this.id);
+            Object.defineProperty(this.el, 'liComponent', {value: this});
+
             if (cfg.listeners) {
                 this.on(cfg.listeners);
             }
@@ -259,17 +264,26 @@ define([
             var typeCls = this.type.toLowerCase().replace(/\./g, '-');
             return (typeCls + ' ' + this.cls()).trim();
         },
+
         /**
-         * @protected
+         * Return's true if component's root element is on-screen.
+         * i.e. methods like getComputedStyle() can be run on it without unexpected result.
          */
-        renderSelf: function (target, childIndex) {
-            this.view.render(target, childIndex);
-            this.el = target.querySelector('#' + this.id, target);
-            Object.defineProperty(this.el, 'liComponent', {value: this});
+        isVisible: function () {
+            /* offsetParent would be null if display 'none' is set.
+               However Chrome, IE and MS Edge returns offsetParent as null for elements
+               with position 'fixed' CSS. so check whether the dimensions are zero.
+
+               This check would be inaccurate if position is 'fixed' AND dimensions were
+               intentionally set to zero. But..it is good enough for most cases.*/
+            if (!this.el || (!this.el.offsetParent && !this.el.offsetWidth && !this.el.offsetHeight)) {
+                return false;
+            }
+            return true;
         },
+
         /**
          * Render component to target HTMLElement.
-         * @protected
          */
         render: function (target, childIndex) {
             this.unrender();
@@ -277,7 +291,7 @@ define([
             if (!Li.Component.currentRootRender) {
                 Li.Component.currentRootRender = this;
             }
-            this.renderSelf(target, childIndex);
+            target.insertBefore(this.view.toDocumentFragment(), target.childNodes[childIndex]);
             if (Li.Component.currentRootRender === this) {
                 delete Li.Component.currentRootRender;
             }
@@ -286,27 +300,25 @@ define([
         },
         /**
          * Remove this component from document.
+         * Note: But it isn't removed from memory nor referenes to sub-components are removed.
+         * The nodes will be reused on render() call.
          * @protected
          */
         unrender: function () {
-            /* If you call this method from blur event, then the removal of el
-             * could cause a second blur event to fire.
-             * Hence set this.el to null before removing from document*/
-            var el = this.el;
-            this.el = null;
-            if (el && el.parentNode) {
-                el.parentNode.removeChild(el);
+            /* If you call this method from blur event, then the removal from document
+             * could cause a second blur event to fire. Hence check if already removed, before removing from document*/
+            if (this.el.parentNode && this.el.parentNode !== this.view.fragment) {
+                this.view.toDocumentFragment(); //removes elements from DOM and keeps it in-memory.
+                //TODO: I think toDocumentFragment() on view's sub-views and unrender() child components, needs to be called as well?
             }
         },
         /**
          * Refresh component. This method can only be used after rendering.
          */
         refresh: function () {
-            var el = this.el;
-            if (el && el.parentNode) {
-                this.render(el.parentNode, Li.childIndex(el));
-            }
+            this.render(this.el.parentNode, Li.childIndex(this.el));
         },
+
         /**
          * Post render processing. Mainly attaching of listeners.
          * @protected
@@ -316,6 +328,9 @@ define([
                 window.flexRecalc(this.el);
             }
             this.attachListeners();
+            this.view.getComponents().forEach(function (component) {
+                component.postRender(target);
+            });
         },
 
         /**

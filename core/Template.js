@@ -247,7 +247,6 @@
         //be eval'ed all the time.
 
         this.retired = false;
-        this.rendered = false;
 
         //Partially render the view, as Components and sub-components need to be constructed before render.
         this.toDocumentFragment();
@@ -714,7 +713,7 @@
                 if (!(ownerDocument === this.fragment && ownerDocument.firstChild === this.firstChild &&
                     ownerDocument.lastChild === this.lastChild)) {
                     var nodes = util.getImmediateNodes(this.firstChild.ownerDocument, this.firstChild, this.lastChild, true);
-                    this.fragment = util.moveToNewFragment(nodes);
+                    this.fragment = util.moveToFragment(nodes, this.fragment);
                 }
                 return this.fragment;
             }
@@ -832,55 +831,18 @@
                 }
             }, this);
 
-            //We could have iterated through this.components array and replaced component node with cmp.view.toDocumentFragment()
-            //..but that isn't suited for renderers that needs to initiate AJAX etc. So the right way is to call
-            //component's render method.
-            //I can't call it here, because Component hasn't called component.init() yet.
-            //i.e in Component.js constructor, toDocumentFragment() is called before init().
-            //Now that is because, init cannot be done until all instances are created and refs are resolved properly.
+            this.components.forEach(function (item) {
+                var parent = item.node.parentNode,
+                    index = Li.childIndex(item.node);
+                parent.insertBefore(item.cmp.view.toDocumentFragment(), parent.childNodes[index]);
+                parent.removeChild(item.node);
+            }, this);
 
             //Keep track of first and last child
             this.fragment = output;
             this.firstChild = output.firstChild;
             this.lastChild = output.lastChild;
             return output;
-        },
-
-        /**
-         * Renders and returns a DocumentFragment.
-         */
-        render: function (target, childIndex) {
-            //Move nodes to target.
-            if (target) {
-                target.insertBefore(this.toDocumentFragment(), target.childNodes[childIndex]);
-            }
-
-            if (!this.rendered) { //on first time render
-                //Render components
-                this.components.forEach(function (item) {
-                    var parent = item.node.parentNode,
-                        index = Li.childIndex(item.node);
-                    item.cmp.render(parent, index);
-                    if (item.node === this.firstChild) {
-                        this.firstChild = parent.childNodes[index];
-                    }
-                    if (item.node === this.lastChild) {
-                        this.lastChild = parent.childNodes[index];
-                    }
-                    parent.removeChild(item.node);
-                }, this);
-
-                //Call render() on sub views as well.
-                this.nodeInfoList.forEach(function (info) {
-                    if (info.views) {
-                        info.views.forEach(function (view) {
-                            view.render();
-                        });
-                    }
-                }, this);
-
-                this.rendered = true;
-            }
         },
 
         /**
@@ -949,7 +911,6 @@
                 this.componentMap = {};
             }
             this.retired = true;
-            this.rendered = false;
         },
 
         /**
@@ -1149,6 +1110,17 @@
                 frag.appendChild(n);
             });
             return frag;
+        },
+
+        /**
+         * @private
+         * @param {Array[Node]} nodes
+         */
+        moveToFragment: function (nodes, fragment) {
+            nodes.forEach(function (n) {
+                fragment.appendChild(n);
+            });
+            return fragment;
         },
 
         /**

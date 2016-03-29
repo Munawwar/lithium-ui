@@ -22,16 +22,12 @@ define(['../core/Box'], function (Li) {
          * Displays given card number and hides the other cards.
          */
         setActiveItem: function (itemNumber) {
-            if (this.el) {
-                var items = Li.slice(this.el.children),
-                    len = items.length;
-                if (itemNumber >= 0 && itemNumber < len) {
-                    items[this.activeItem].style.display = 'none';
-                    this.activeItem = itemNumber;
-                    items[this.activeItem].style.removeProperty('display');
-                }
-            } else {
+            var items = Li.slice(this.el.children),
+                len = items.length;
+            if (itemNumber >= 0 && itemNumber < len) {
+                items[this.activeItem].style.display = 'none';
                 this.activeItem = itemNumber;
+                items[this.activeItem].style.removeProperty('display');
             }
         },
 

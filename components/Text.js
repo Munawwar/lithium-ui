@@ -7,19 +7,13 @@ define(['../core/Component', 'tpl!./Text.ko'], function (Li) {
         autocomplete: [],
         placeholder: Li.Observable(''),
         getValue: function () {
-            if (this.el) {
-                return this.el.value;
-            }
+            return this.el.value;
         },
         setValue: function (value) {
-            if (this.el) {
-                this.el.value = value;
-            }
+            this.el.value = value;
         },
         clear: function () {
-            if (this.el) {
-                this.el.value = '';
-            }
+            this.el.value = '';
         },
         /**
          * @override

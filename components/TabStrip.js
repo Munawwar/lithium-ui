@@ -79,16 +79,12 @@ define([
          * Activate item
          */
         setActiveItem: function (itemNumber) {
-            if (this.el) {
-                if (itemNumber >= 0 && itemNumber < this.tabsEl.children.length) {
-                    var prevItemNumber = this.activeItem;
-                    this.activeItem = itemNumber;
-                    this.tabsEl.children[prevItemNumber].classList.remove('active');
-                    this.tabsEl.children[itemNumber].classList.add('active');
-                    this.showIndicator(prevItemNumber);
-                }
-            } else {
+            if (itemNumber >= 0 && itemNumber < this.tabsEl.children.length) {
+                var prevItemNumber = this.activeItem;
                 this.activeItem = itemNumber;
+                this.tabsEl.children[prevItemNumber].classList.remove('active');
+                this.tabsEl.children[itemNumber].classList.add('active');
+                this.showIndicator(prevItemNumber);
             }
         },
 
@@ -97,7 +93,7 @@ define([
          * @private
          */
         showIndicator: function (prevItemNumber) {
-            if (!this.el) {
+            if (!this.isVisible()) {
                 return;
             }
             var $this = $(this.tabsEl),
