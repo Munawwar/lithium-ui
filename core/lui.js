@@ -224,7 +224,7 @@ define([
                     val += c;
                 }
                 val = val.trim();
-                css [prop] = val;
+                css[prop] = val;
                 str = str.slice(pos + 1);
             }
 

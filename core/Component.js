@@ -19,7 +19,7 @@ define([
         el: null,
         /**
          * Outer render template
-         * @param {Li.Template|undefined} tpl
+         * @type {Li.Template|undefined}
          * if undefined, then script tag in document with id="component-type-outer" is searched.
          *
          * If instance of Li.Template, then that is used directly.
@@ -28,7 +28,7 @@ define([
         outerTpl: undefined,
         /**
          * Inner render template
-         * @param {undefined|String|Li.Template|null} tpl
+         * @type {Li.Template|DocumentFragment|undefined}
          * if undefined, then script tag in document with id="component-type-inner" is searched.
          *
          * If instance of Li.Template, then that is used directly.
@@ -92,7 +92,7 @@ define([
                 innerTpl: element.innerHTML.trim() || undefined
             });
             if (cfg.innerTpl) {
-                cfg.innerTpl = Li.dom(cfg.innerTpl);
+                cfg.innerTpl = new Li.Template(cfg.innerTpl);
             }
             return cfg;
         },
@@ -142,11 +142,6 @@ define([
             if (cfg.addClass) {
                 this.addClass(cfg.addClass);
                 delete cfg.addClass;
-            }
-
-            if (cfg.innerTpl) { // Child elements
-                this.innerTpl = new Li.Template(cfg.innerTpl);
-                delete cfg.innerTpl;
             }
 
             //Handle the rest

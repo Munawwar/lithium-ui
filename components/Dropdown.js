@@ -65,7 +65,7 @@ define([
         makeConfigFromView: function (element, cfg) {
             cfg = this.super(arguments);
             cfg.options = [];
-            Li.slice(cfg.innerTpl.querySelectorAll('option')).forEach(function (el) {
+            Li.slice(cfg.innerTpl.frag.querySelectorAll('option')).forEach(function (el) {
                 var option = {
                     value: el.hasAttribute('value') ? el.getAttribute('value') : el.textContent,
                     text: el.textContent,

@@ -1,0 +1,10 @@
+<script type="text/html" id="li-modal-outer">
+    <div data-bind="attr: {id: id, data-type: type, class: cls, style: style}">
+        <div class="modal-content">
+            <!-- ko template: innerTpl --><!-- /ko -->
+        </div>
+        <div class="modal-footer hbox cross-center main-end">
+            <!-- ko template: footerTpl --><!-- /ko -->
+        </div>
+    </div>
+</script>
