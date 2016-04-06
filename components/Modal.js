@@ -117,6 +117,7 @@ define([
                     return;
                 }
                 lastModal.hide();
+                lastModal.trigger('clickclosed', e);
             }
         },
 
@@ -130,6 +131,7 @@ define([
                         return;
                     }
                     lastModal.hide();
+                    lastModal.trigger('escapeclosed', e);
                 }
             }
         },
