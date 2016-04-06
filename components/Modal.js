@@ -21,6 +21,11 @@ define([
          */
         dismissible: true,
 
+        /**
+         * Show an overlay behind window or not. Default behavior is to show.
+         */
+        modaless: false,
+
         //Note: afterExtend() and makeConfigFromView() cannot be static methods since they are taken from the prototype chain.
         makeConfigFromView: function (element, cfg) {
             cfg = Li.Modal.super.makeConfigFromView.apply(this, arguments);
@@ -61,7 +66,7 @@ define([
                 $modal = $(this.el),
                 stack = Li.Modal.stack;
 
-            if (!document.body.contains($overlay[0])) {
+            if (!this.modaless && !document.body.contains($overlay[0])) {
                 $("body").append($overlay);
             }
             stack.push(this);
@@ -69,12 +74,14 @@ define([
 
             if (this.dismissible && stack.length === 1) {
                 // Return on click of overlay
-                Li.on($overlay[0], 'click', this.hide, this);
+                Li.on(document, 'click', this.onClickDocument);
                 // Return on ESC
                 Li.on(document, 'keyup', this.onKeyUpDocument);
             }
 
-            $overlay.css({display: "block", opacity: 0.5});
+            if (!this.modaless) {
+                $overlay.css({display: "block", opacity: 0.5});
+            }
             $modal.css({display: "block", top: '10%'});
 
             if (!document.body.contains(this.el)) {
@@ -90,19 +97,39 @@ define([
             if (stack[stack.length - 1] === this) {
                 stack.pop();
             }
+            if (!stack.length) {
+                Li.off(document, 'click', this.onClickDocument);
+                Li.off(document, 'keyup', this.onKeyUpDocument);
+            }
 
-            $overlay[0].style.removeProperty('display');
+            if (!this.modaless) {
+                $overlay[0].style.removeProperty('display');
+            }
             $modal[0].style.removeProperty('display');
         },
 
+        onClickDocument: function (e) {
+            var stack = Li.Modal.stack;
+            if (stack.length) {
+                var lastModal = stack[stack.length - 1];
+                //Only consider clicks outside of the Modal.
+                if (lastModal.el.contains(e.target)) {
+                    return;
+                }
+                lastModal.hide();
+            }
+        },
+
         onKeyUpDocument: function (e) {
-            if (e.keyCode === 27) {   // ESC key
+            if (e.keyCode === 27) { // ESC key
                 var stack = Li.Modal.stack;
                 if (stack.length) {
-                    stack[stack.length - 1].hide();
-                }
-                if (!stack.length) {
-                    Li.off(document, 'keyup', this.onKeyUpDocument);
+                    var lastModal = stack[stack.length - 1];
+                    //Only consider ESC outside of the Modal.
+                    if (lastModal.el.contains(e.target)) {
+                        return;
+                    }
+                    lastModal.hide();
                 }
             }
         },
@@ -151,4 +178,6 @@ define([
             }
         }
     });
+
+    return Li;
 });
