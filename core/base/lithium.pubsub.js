@@ -92,23 +92,17 @@
          * @param {Array|null} eventTypes Event types to listen on. If eventType is null, it listens to all events of the publisher.
          * @method relayEvents
          */
-        relayEvents: (function () {
-            var relayThis = function (eventType) {
-                var args = Li.slice(arguments, 1);
-                this.trigger.apply(this, ([eventType]).join(args));
-            };
-            return function (publisher, eventTypes) {
-                if (!publisher._eventTypes_) {
-                    throw new Error('Object passed is not a publisher');
-                }
-                eventTypes = eventTypes || Object.keys(publisher._eventTypes_);
-                var i, len = eventTypes.length, eventType;
-                for (i = 0; i < len; i += 1) {
-                    eventType = eventTypes[i];
-                    publisher.subscribe(eventType, Li.bind(relayThis, null, false, eventType), this);
-                }
-            };
-        }()),
+        relayEvents: function (publisher, eventTypes) {
+            if (!publisher._eventTypes_) {
+                throw new Error('Object passed is not a publisher');
+            }
+            eventTypes = eventTypes || Object.keys(publisher._eventTypes_);
+            var i, len = eventTypes.length, eventType;
+            for (i = 0; i < len; i += 1) {
+                eventType = eventTypes[i];
+                publisher.subscribe(eventType, this.trigger.bind(this, eventType));
+            }
+        },
 
         /**
          * Remove an event listener.

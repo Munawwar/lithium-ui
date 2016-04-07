@@ -124,47 +124,20 @@
         },
 
         /**
-         * The arguments sent to this new function, followed by the optional arguments which were sent to 'bind', will be forwarded to func.<br/>
-         * Similar to JS 1.8.5 bind, but with append as extra parameter.
+         * Returns a new function with bounded context and arguments.
+         * The parameters sent to this new function, followed by the given arguments to rbind(), will be forwarded to the original function.<br/>
+         * This is similar to JS 1.8.5 bind, but the bounded parameters are appended (and not prepended) to the original function.
          * @param {Function} func Function to call
          * @param {Object} context Set the value of the 'this' keyword to be within the function.
-         * @param {Boolean} [append=false] If true, appends binded arguments to any call to the new (returned) function. If false, prepend arguments.
          * @param {Any} [...] Optional. Any number of arguments, which will be forwarded to func on call.
          * @return {Function} A new function which will have binded context and arguments.<br/>
-         * @method bind
-         */
-        bind: function (func, context, append) {
-            var outerArgs = Li.slice(arguments, 3);
-            append = Li.isDefined(append) ? append : false;
-            return function () {
-                var args = Li.slice(arguments);
-                args = append ? args.concat(outerArgs) : outerArgs.concat(args);
-                return func.apply(context || this, args);
-            };
-        },
-
-        /**
-         * 'Left' bind<br/>
-         * Same as bind, except that arguments are always prepended.
-         * @param {Function} func Function to bind
-         * @param {Object|null} [context] The context in which func is to be called. null would default to the global object.
-         * @param {Any} [...] Any number of arguments to be binded to func.
-         * @method lbind
-         */
-        lbind: function (func, context) {
-            return Li.bind.apply(null, ([func, context, false]).concat(Li.slice(arguments, 2)));
-        },
-
-        /**
-         * 'Right' bind<br/>
-         * Same as bind, except that arguments are always appended.
-         * @param {Function} func Function to bind
-         * @param {Object|null} [context] The context in which func is to be called. null would default to the global object.
-         * @param {Any} [...] Any number of arguments to be binded to func.
          * @method rbind
          */
         rbind: function (func, context) {
-            return Li.bind.apply(null, ([func, context, true]).concat(Li.slice(arguments, 2)));
+            var args = Li.slice(arguments, 2);
+            return function () {
+                return func.apply(context || this, Li.slice(arguments).concat(args));
+            };
         },
 
         /**
@@ -347,7 +320,7 @@
          * @example var elements = Li.slice(document.body.childNodes, 3); //get first 3 nodes.
          */
         slice: function (array, from, end) {
-            var len = array.length, i, arr;
+            var len = array.length;
             from = from || 0;
             end = end || len;
             return Array.prototype.slice.call(array, from, end);
