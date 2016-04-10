@@ -321,6 +321,9 @@ define([
                 if (prop === 'scope') {
                     return;
                 }
+                if (prop.indexOf('#') > -1) { //if already unwrapped, then skip.
+                    return unwrapedListeners[prop] = funcOrObj;
+                }
                 if (Li.isObject(funcOrObj)) { // reference
                     //Make unique signature (ignoring context/scope, since we are not going to allow a function on the
                     //same event + same element to have two different contexts)
