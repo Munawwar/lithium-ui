@@ -77,7 +77,7 @@
                             bindings = util.parseObjectLiteral(bindOpts);
                             nodeInfo.node = node;
                             nodeInfo.depth = depth;
-                            nodeInfo.binding = bindOpts;
+                            nodeInfo.bindings = bindings;
                             if (bindings.foreach || bindings['with'] || bindings['if'] || bindings.ifnot) {
                                 tempFrag = util.moveToNewFragment(Li.slice(node.childNodes));
                                 nodeInfo.subTpl = new Htmlizer(tempFrag, $.extend({depth: depth}, this.cfg));
