@@ -11,8 +11,7 @@ define([
     Li.Dropdown = Li.extend('Li.Dropdown', Li.Component, {
         cls: 'select-wrapper',
         /**
-         * @cfg {Array[]} options Array of [value, display text] arrays.
-         * Used only for first render.
+         * @cfg {Array[]} options Array of {value: <value>, text: <text>} objects. Optionally disabled property is allowed.
          */
         options: Li.Observable([]),
         /**
@@ -116,6 +115,23 @@ define([
             this.value(this.options()[this.defaultOption].value);
         },
 
+        /**
+         * Initialize with given set of options. Optionally removes current options.
+         */
+        addOptions: function (arr, removeAll) {
+            //Add disabled value if not present
+            arr.forEach(function (item) {
+                if (!Li.isObservable(item.disabled)) {
+                    item.disabled = Li.Observable(typeof item.disabled === 'boolean' ? item.disabled : false);
+                }
+            });
+
+            if (removeAll) {
+                this.options(arr);
+            } else {
+                this.options(this.options().concat(arr));
+            }
+        },
 
         activateOption: function (collection, newOption) {
             collection.find('li.active').removeClass('active');

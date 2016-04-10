@@ -14,7 +14,7 @@ define([
          * Footer template
          * @type {Li.Template|DocumentFragment}
          */
-        footerTpl: new Li.Template(' '), //dummy template
+        footerTpl: null,
 
         /**
          * Can window be closed by user?
