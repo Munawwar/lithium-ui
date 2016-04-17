@@ -34,5 +34,21 @@
         };
     }
 
+    /*Polyfill String.prototype.startsWith and endsWith*/
+    if (!String.prototype.startsWith) {
+        String.prototype.startsWith = function (str, position) {
+            position = position || 0;
+            return this.substr(position, str.length) === str;
+        };
+    }
+    if (!String.prototype.endsWith) {
+        String.prototype.endsWith = function (str, position) {
+            if (typeof position !== 'number' || !isFinite(position) || position > this.length) {
+                position = this.length;
+            }
+            return (this.slice(position - str.length, position) === str);
+        };
+    }
+
     return null;
 }));
