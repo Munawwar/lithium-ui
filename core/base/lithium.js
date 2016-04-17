@@ -12,7 +12,7 @@
 /*global jQuery, HTMLElement*/
 (function (root, factory) {
     if (typeof define === "function" && define.amd) {
-        define(['jquery'], factory);
+        define(['jquery', './polyfills'], factory);
     } else if (typeof exports === 'object') { //For NodeJS
         module.exports = factory(require('jquery-node'));
     } else { //global
@@ -144,22 +144,7 @@
          * Same as Object.assign(). Check MDN for documentation for Object.assign().
          * @method mix
          */
-        mix: (function () {
-            /*Polyfill Object.assign*/
-            if (!Object.assign) { // IE 11
-                Object.assign = function (target) {
-                    Li.slice(arguments, 1).forEach(function (obj) {
-                        if (obj !== undefined && obj !== null) {
-                            Object.keys(obj).forEach(function (key) {
-                                target[key] = obj[key];
-                            });
-                        }
-                    });
-                    return target;
-                };
-            }
-            return Object.assign;
-        }()),
+        mix: Object.assign,
 
         /**
          * Classical inheritence, where only prototype is inherited.
