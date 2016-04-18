@@ -46,6 +46,8 @@ define([
 
             this.super(arguments);
 
+            document.body.appendChild(this.ulEl); //move ul to document body, since it is needs to be positioned absolute.
+
             this.on({
                 $open: this.placeDropdown,
                 $close: this.hideDropdown,
@@ -187,7 +189,7 @@ define([
             if (options.alignment === 'left') {
                 width_difference = 0;
                 gutter_spacing = options.gutter;
-                activatesLeft = origin.position().left + width_difference + gutter_spacing;
+                activatesLeft = origin.offset().left + width_difference + gutter_spacing;
 
                 // Position dropdown
                 activates.css({
@@ -197,7 +199,7 @@ define([
                 var offsetRight = $(window).width() - offsetLeft - origin.innerWidth();
                 width_difference = 0;
                 gutter_spacing = options.gutter;
-                activatesLeft = ($(window).width() - origin.position().left - origin.innerWidth()) + gutter_spacing;
+                activatesLeft = ($(window).width() - origin.offset().left - origin.innerWidth()) + gutter_spacing;
 
                 // Position dropdown
                 activates.css({
@@ -205,10 +207,27 @@ define([
                 });
             }
             // Position dropdown
+            var posTop = origin.offset().top + offset;
             activates.css({
                 position: 'absolute',
-                top: origin.position().top + offset,
+                display: 'block',
+                top: posTop
             });
+            //Make sure drop-down is fully visible.
+            if ((posTop + activates[0].clientHeight + 5) > window.innerHeight) {
+                posTop -= (posTop + activates[0].clientHeight + 5) - window.innerHeight;
+                activates.css({
+                    top: posTop
+                });
+            }
+            //Make sure it is above modal windows. Is this a hack?
+            if (Li.Modal && Li.Modal.stack.length) {
+                activates.css({
+                    zIndex: 1000 + Li.Modal.stack.length + 1,
+                });
+            } else {
+                activates[0].style.removeProperty('z-index');
+            }
 
             // Show dropdown
             activates.stop(true, true).css('opacity', 0)
