@@ -48,8 +48,8 @@ define(['./TabStrip', './Cards'], function (Li) {
 
             this.setActiveTab(this.tabstrip.activeItem);
 
-            this.tabstrip.subscribe('tabchanged', function (itemNumber) {
-                this.cards.setActiveItem(itemNumber);
+            this.tabstrip.subscribe('tabchanged', function (cfg) {
+                this.cards.setActiveItem(cfg.tabIndex);
             }, this);
         },
 
