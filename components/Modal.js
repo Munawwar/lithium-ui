@@ -117,7 +117,7 @@ define([
                     return;
                 }
                 lastModal.hide();
-                lastModal.trigger('clickclosed', e);
+                lastModal.trigger('clickclosed', {component: this, event: e});
             }
         },
 
@@ -131,7 +131,7 @@ define([
                         return;
                     }
                     lastModal.hide();
-                    lastModal.trigger('escapeclosed', e);
+                    lastModal.trigger('escapeclosed', {component: this, event: e});
                 }
             }
         },

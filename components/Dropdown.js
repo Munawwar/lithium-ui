@@ -237,7 +237,7 @@ define([
         },
 
         onBlur: function () {
-            this.trigger('close');
+            this.trigger('close', {component: this});
         },
 
         onClick: function (e) {
@@ -289,12 +289,12 @@ define([
 
             // TAB - switch to another input
             if (event.which === 9) {
-                return this.trigger('close');
+                return this.trigger('close', {component: this});
             }
 
             // ARROW DOWN WHEN SELECT IS CLOSED - open select options
             if (event.which === 40 && !$(this.ulEl).is(":visible")) {
-                return this.trigger('open');
+                return this.trigger('open', {component: this});
             }
 
             // ENTER WHEN SELECT IS CLOSED - submit form
@@ -309,7 +309,7 @@ define([
                 activeOption = $(this.ulEl).find('li.active:not(.disabled)')[0];
                 if (activeOption) {
                     $(activeOption).trigger('click');
-                    this.trigger('close');
+                    this.trigger('close', {component: this});
                 }
             }
 
@@ -323,7 +323,7 @@ define([
 
             // ESC - close options
             if (event.which === 27) {
-                this.trigger('close');
+                this.trigger('close', {component: this});
             }
 
             // ARROW UP - move to previous not disabled option
