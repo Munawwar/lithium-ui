@@ -364,11 +364,11 @@
             },
             "if": {
                 init: function (node, binding, expr, tNode) {
-                    var val = this.evaluate(binding, expr, node),
-                        tpl = this.tpl.getBindingInfo(tNode).subTpl,
-                        view = this.makeView(tpl, this.context, this.data, node);
+                    var val = this.evaluate(binding, expr, node);
                     if (val) {
-                        var tempFrag = view.toDocumentFragment();
+                        var tpl = this.tpl.getBindingInfo(tNode).subTpl,
+                            view = this.makeView(tpl, this.context, this.data, node),
+                            tempFrag = view.toDocumentFragment();
                         if (node.nodeType === 1) {
                             node.appendChild(tempFrag);
                         } else if (node.nodeType === 8) {
@@ -378,8 +378,13 @@
                 },
                 update: function (node, binding, expr) {
                     var val = this.evaluate(binding, expr, node),
-                        view = this.getNodeInfo(node).views[0],
-                        tempFrag = view.toDocumentFragment(); //if rendered, move nodes from document to DocumentFragment
+                        info = this.getNodeInfo(node),
+                        view = info.views[0];
+                    if (!view) { //if view not created, the create it.
+                        var tpl = this.tpl.getBindingInfo(info.tNode).subTpl;
+                        view = this.makeView(tpl, this.context, this.data, node);
+                    }
+                    var tempFrag = view.toDocumentFragment(); //if rendered, move nodes from document to DocumentFragment
 
                     if (val) {
                         if (node.nodeType === 1) {
