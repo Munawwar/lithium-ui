@@ -37,10 +37,11 @@ define([
 
         constructor: function (cfg) {
             //Initialize value
+            cfg.options = cfg.options || [];
             var initialValue = (cfg.options.filter(function (option) {
                 return option.selected;
             })[0] || {}).value;
-            initialValue = initialValue || cfg.options[this.defaultOption].value;
+            initialValue = initialValue || (cfg.options.length && (cfg.options[this.defaultOption] || {}).value) || this.value();
             this.value = Li.Observable(initialValue);
 
             this.super(arguments);
@@ -128,6 +129,16 @@ define([
 
             if (removeAll) {
                 this.options(arr);
+
+                //If no item with currently selected value exists, then reset selected value.
+                var curValue = this.value(),
+                    exists = arr.some(function (item) {
+                        return (item.value === curValue);
+                    }, this);
+                if (!exists) {
+                    var select = (this.defaultOption < arr.length ? this.defaultOption : 0);
+                    this.value(arr[select].value);
+                }
             } else {
                 this.options(this.options().concat(arr));
             }
@@ -262,7 +273,7 @@ define([
                     var value = li.getAttribute('data-value');
                     this.value(value);
                     // Trigger onchange() event
-                    this.trigger('change', value);
+                    this.trigger('change', {component: this, value: value});
                 }
             }
             if (document.activeElement !== this.inputEl) {
