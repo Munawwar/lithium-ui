@@ -298,6 +298,7 @@ define([
             if (document.activeElement !== this.inputEl) {
                 this.inputEl.focus();
             }
+            e.stopPropagation();
         },
 
         /**
