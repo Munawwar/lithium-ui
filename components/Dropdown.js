@@ -230,10 +230,6 @@ define([
                 activates[0].style.removeProperty('z-index');
             }
 
-            //Make input field writable for text search
-            origin[0].value = '';
-            origin[0].readOnly = false;
-
             // Show dropdown
             activates.stop(true, true).css('opacity', 0)
                 .slideDown({
@@ -249,7 +245,12 @@ define([
                 }, {
                     queue: false,
                     duration: options.inDuration,
-                    easing: 'easeOutSine'
+                    easing: 'easeOutSine',
+                    complete: function () {
+                        //Make input field writable for text search
+                        origin[0].value = '';
+                        origin[0].readOnly = false;
+                    }
                 });
         },
 
