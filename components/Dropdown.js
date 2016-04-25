@@ -257,9 +257,12 @@ define([
             var options = this,
                 origin = $(this.inputEl),
                 activates = $(this.ulEl);
+
             //make text field read-only again.
+            window.clearTimeout(this.searchTimer);
             origin[0].value = this.getTextForValue(this.value());
             origin[0].readOnly = true;
+
             activates.fadeOut(options.outDuration);
             activates.removeClass('active');
         },
@@ -374,6 +377,10 @@ define([
          */
         onKeyUp: function (event) {
             var activates = $(this.ulEl);
+            //ignore keys when dordown is closed.
+            if (!activates.hasClass('active')) {
+                return;
+            }
 
             // CASE WHEN USER TYPE LETTERS
             var searchText = this.inputEl.value,
