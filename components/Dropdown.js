@@ -377,7 +377,7 @@ define([
          */
         onKeyUp: function (event) {
             var activates = $(this.ulEl);
-            //ignore keys when dordown is closed.
+            //ignore keys when dropdown is closed.
             if (!activates.hasClass('active')) {
                 return;
             }
