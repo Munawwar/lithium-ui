@@ -55,6 +55,7 @@ define([
                     blur: this.onBlur,
                     click: this.onClick,
                     keydown: this.onKeyDown,
+                    keyup: this.onKeyUp
                 },
                 ulEl: {
                     click: this.onItemClick
@@ -229,6 +230,10 @@ define([
                 activates[0].style.removeProperty('z-index');
             }
 
+            //Make input field writable for text search
+            origin[0].value = '';
+            origin[0].readOnly = false;
+
             // Show dropdown
             activates.stop(true, true).css('opacity', 0)
                 .slideDown({
@@ -250,7 +255,11 @@ define([
 
         hideDropdown: function () {
             var options = this,
+                origin = $(this.inputEl),
                 activates = $(this.ulEl);
+            //make text field read-only again.
+            origin[0].value = this.getTextForValue(this.value());
+            origin[0].readOnly = true;
             activates.fadeOut(options.outDuration);
             activates.removeClass('active');
         },
@@ -305,7 +314,8 @@ define([
          * Handles special keys such as arrow, tabs, esc etc
          */
         onKeyDown: function (event) {
-            var newOption, activeOption;
+            var activates = $(this.ulEl),
+                newOption, activeOption;
 
             // TAB - switch to another input
             if (event.which === 9) {
@@ -313,20 +323,24 @@ define([
             }
 
             // ARROW DOWN WHEN SELECT IS CLOSED - open select options
-            if (event.which === 40 && !$(this.ulEl).is(":visible")) {
+            if (event.which === 40 && !activates.is(":visible")) {
                 return this.trigger('open', {component: this});
             }
 
             // ENTER WHEN SELECT IS CLOSED - submit form
-            if (event.which === 13 && !$(this.ulEl).is(":visible")) {
+            if (event.which === 13 && !activates.is(":visible")) {
                 return;
             }
 
-            event.preventDefault();
+            //Prevent default action for special keys (including left/right arrow key and Ctrl/Cmd-A
+            //as they'd interfere with text search).
+            if (([9,13,27,37,38,39,40]).indexOf(event.which) > -1 || event.ctrlKey || event.metaKey) {
+                event.preventDefault();
+            }
 
             // ENTER - select option and close when select options are opened
             if (event.which === 13) {
-                activeOption = $(this.ulEl).find('li.active:not(.disabled)')[0];
+                activeOption = activates.find('li.active:not(.disabled)')[0];
                 if (activeOption) {
                     $(activeOption).trigger('click');
                     this.trigger('close', {component: this});
@@ -335,9 +349,9 @@ define([
 
             // ARROW DOWN - move to next not disabled option
             if (event.which === 40) {
-                newOption = $(this.ulEl).find('li.active').next('li:not(.disabled)')[0];
+                newOption = activates.find('li.active').next('li:not(.disabled)')[0];
                 if (newOption) {
-                    this.activateOption($(this.ulEl), newOption);
+                    this.activateOption(activates, newOption);
                 }
             }
 
@@ -348,10 +362,38 @@ define([
 
             // ARROW UP - move to previous not disabled option
             if (event.which === 38) {
-                newOption = $(this.ulEl).find('li.active').prev('li:not(.disabled)')[0];
+                newOption = activates.find('li.active').prev('li:not(.disabled)')[0];
                 if (newOption) {
-                    this.activateOption($(this.ulEl), newOption);
+                    this.activateOption(activates, newOption);
                 }
+            }
+        },
+
+        /**
+         * Implements options search.
+         */
+        onKeyUp: function (event) {
+            var activates = $(this.ulEl);
+
+            // CASE WHEN USER TYPE LETTERS
+            var searchText = this.inputEl.value,
+                nonLetters = [9,13,27,37,38,39,40];
+            if (searchText && (nonLetters.indexOf(event.which) === -1) && !event.ctrlKey && ! event.metaKey) {
+                var newOption = activates.find('li').filter(function() {
+                    return $(this).text().toLowerCase().indexOf(searchText) === 0;
+                })[0];
+
+                if (newOption) {
+                    this.activateOption(activates, newOption);
+                }
+            }
+
+            if (searchText) {
+                // Automaticaly clean filter query so user can search again by starting letters
+                window.clearTimeout(this.searchTimer);
+                this.searchTimer = window.setTimeout(function () {
+                    this.inputEl.value = '';
+                }.bind(this), 1000);
             }
         }
     });
