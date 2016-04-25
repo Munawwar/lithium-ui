@@ -11,7 +11,8 @@ define([
     Li.Dropdown = Li.extend('Li.Dropdown', Li.Component, {
         cls: 'select-wrapper',
         /**
-         * @cfg {Array[]} options Array of {value: <value>, text: <text>} objects. Optionally disabled property is allowed.
+         * @cfg {Array[]} options Array of {value: <value>, text: <text>} objects.
+         *  Optionally disabled property and cls property (for CSS class) is allowed.
          */
         options: Li.Observable([]),
         /**
@@ -67,16 +68,14 @@ define([
          */
         makeConfigFromView: function (element, cfg) {
             cfg = this.super(arguments);
-            cfg.options = [];
-            Li.slice(cfg.innerTpl.frag.querySelectorAll('option')).forEach(function (el) {
-                var option = {
+            cfg.options = Li.slice(cfg.innerTpl.frag.querySelectorAll('option')).map(function (el) {
+                return {
                     value: el.hasAttribute('value') ? el.getAttribute('value') : el.textContent,
                     text: el.textContent,
-                    class: el.getAttribute('class') || '',
+                    cls: el.getAttribute('class') || '',
                     disabled: Li.Observable(el.hasAttribute('disabled')),
                     selected: el.hasAttribute('selected'),
                 };
-                cfg.options.push(option);
             });
             cfg.innerTpl = null;
             return cfg;
@@ -252,6 +251,12 @@ define([
                         origin[0].readOnly = false;
                     }
                 });
+
+            //reselect (in case it was changed last time due to arrow keys)
+            activates.find('li.active').removeClass('active');
+            var current = activates.find('li[data-value="' + this.value() + '"]');
+            current.addClass('active');
+            current[0].scrollIntoView();
         },
 
         hideDropdown: function () {
@@ -353,7 +358,8 @@ define([
 
             // ARROW DOWN - move to next not disabled option
             if (event.which === 40) {
-                newOption = activates.find('li.active').next('li:not(.disabled)')[0];
+                newOption = activates.find('li.active')[0];
+                while ((newOption = newOption.nextElementSibling) && $(newOption).is('.disabled'));
                 if (newOption) {
                     this.activateOption(activates, newOption);
                 }
@@ -366,7 +372,8 @@ define([
 
             // ARROW UP - move to previous not disabled option
             if (event.which === 38) {
-                newOption = activates.find('li.active').prev('li:not(.disabled)')[0];
+                newOption = activates.find('li.active')[0];
+                while ((newOption = newOption.previousElementSibling) && $(newOption).is('.disabled'));
                 if (newOption) {
                     this.activateOption(activates, newOption);
                 }

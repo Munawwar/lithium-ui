@@ -6,8 +6,8 @@
                 css: {disabled: disabled}, value: getTextForValue(getValue())">
         <ul class="dropdown-content select-dropdown" ref="ulEl" style="width: 170px; display: none;"
             data-bind="foreach: options, attr: {id: 'select-options-' + id}">
-            <li data-bind="css: {active: $data.value === $root.getValue(), disabled: $data.disabled},
-                attr: {data-value: $data.value}"><span data-bind="text: $data.text"></span></li>
+            <li data-bind="attr: {data-value: $data.value, class: $data.cls},
+                css: {active: $data.value === $root.getValue(), disabled: $data.disabled}"><span data-bind="text: $data.text"></span></li>
         </ul>
         <select class="initialized" ref="selectEl" data-bind="foreach: options">
             <option data-bind="value: $data.value, text: $data.text,
