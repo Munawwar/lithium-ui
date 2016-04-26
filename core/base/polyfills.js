@@ -50,5 +50,28 @@
         };
     }
 
+
+    /* **** DOM Polyfills **** */
+    if (this.Element) { // is node.js
+        if (!Element.prototype.matches) {
+            (function (proto) {
+                var matches = proto.webkitMatchesSelector || proto.mozMatchesSelector || proto.msMatchesSelector;
+                if (matches) {
+                    proto.matches = matches;
+                }
+            }(Element.prototype));
+        }
+
+        if (!Element.prototype.closest) {
+            Element.prototype.closest = function (selector) {
+                var el = this;
+                while (el && !el.matches(selector)) {
+                    el = el.parentNode;
+                }
+                return el || null;
+            };
+        }
+    }
+
     return null;
 }));
