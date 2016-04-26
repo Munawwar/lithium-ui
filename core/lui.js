@@ -121,6 +121,72 @@ define([
     //TODO: I am placing it here since it is convinent. Maybe not the most appropriate place?
     Li.mix(Li, {
         /**
+         * The utility helps in placing a position absolute element relative to another element's vertex/edge.
+         * @param {Object} [cfg] Config
+         *
+         * @param {HTMLElement} cfg.target The element to position.
+         *
+         * @param {HTMLElement} cfg.relTo An element which the target element's position should be relative to.
+         *
+         * @param {Array} cfg.anchor The point on the target element that should be aligned to relative element's anchor.
+         * Possible values are [<start|center|end>, <start|center|end>], where first index indicates the X coordinate and the second indicates the Y coordinate
+         *
+         * @param {String} cfg.relAnchor The point on the relative element that the target element should be placed relative to.
+         * Possible values are [<start|center|end>, <start|center|end>], where first index indicates the X coordinate and the second indicates the Y coordinate
+         *
+         * @param {Number} [cfg.displace=[0,0]] After all the internal calculation for anchoring is done, this displacement would be added.
+         * This is useful for aesthetic reasons, like moving element slightly away from the 'top-left' of a relative element, for some margin etc.
+         */
+        position: (function () {
+            /*
+             * General function for finding an edge or corner point within a DOMRect. Useful for finding bottom edge's center etc.
+             * @param {DOMRect} rect
+             * @param {String} point 'start', 'center' or 'end'
+             * @param {String} axis 'horz' or 'vert' axis.
+             * point+axis tells what point to find..like 'start of horizontal edge' or 'center of vertical edge'.
+             * @param {String} relativeTo
+             * If relativeTo = 'document' returns edge/vertex point coordinate relative to document.
+             * If relativeTo = 'itself' returns edge/vertex point coordinate relative to top-left coordinate of the passed DOMRect itself.
+             */
+            function rectPoint(rect, point, axis, relativeTo) {
+                var horz = (axis === 'horz');
+                if (relativeTo === 'document') {
+                    switch (point) {
+                    case 'start': return (horz ? rect.left : rect.top);
+                    case 'center': return (horz ? (rect.left + rect.width / 2) : (rect.top + rect.height / 2));
+                    case 'end': return (horz ? rect.right : rect.bottom);
+                    }
+                } else if (relativeTo === 'itself') {
+                    switch (point) {
+                    case 'start': return 0;
+                    case 'center': return (horz ? (rect.width / 2) : (rect.height / 2));
+                    case 'end': return (horz ? rect.width : rect.height);
+                    }
+                }
+            }
+            return function (cfg) {
+                var el = cfg.target,
+                    relEl = cfg.relTo,
+                    anchor = cfg.anchor,
+                    relAnchor = cfg.relAnchor,
+                    displace = cfg.displace || [0, 0],
+
+                    elRect = el.getBoundingClientRect(),
+                    relRect = relEl.getBoundingClientRect(),
+
+                    relElLeft = rectPoint(relRect, relAnchor[0], 'horz', 'document'),
+                    relElTop = rectPoint(relRect, relAnchor[1], 'vert', 'document'),
+                    elAnchorLeft = rectPoint(elRect, anchor[0], 'horz', 'itself'),
+                    elAnchorTop = rectPoint(elRect, anchor[1], 'vert', 'itself');
+
+                $(el).css({
+                    left: relElLeft - elAnchorLeft + displace[0],
+                    top: relElTop - elAnchorTop + displace[1]
+                });
+            };
+        }()),
+
+        /**
          * Given a DOM node, this method finds the next tag/node that would appear in the dom.
          * WARNING: Do not remove or add nodes while traversing, because it could cause the traversal logic to go crazy.
          * @param node Could be a any node (element node or text node)
