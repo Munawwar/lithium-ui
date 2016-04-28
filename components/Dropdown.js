@@ -307,10 +307,11 @@ define([
             if (li) {
                 // Check if option element is disabled
                 if (!$(li).hasClass('disabled')) {
-                    var value = li.getAttribute('data-value');
+                    var value = li.getAttribute('data-value'),
+                        prevValue = this.value();
                     this.value(value);
                     // Trigger onchange() event
-                    this.trigger('change', {component: this, value: value});
+                    this.trigger('change', {component: this, value: value, prevValue: prevValue});
                 }
             }
             if (document.activeElement !== this.inputEl) {
