@@ -239,20 +239,11 @@ define([
         }()),
 
         /**
-         * Return's true if component's root element is on-screen.
+         * Return's true if component's root element is rendered by browser.
          * i.e. methods like getComputedStyle() can be run on it without unexpected result.
          */
-        isVisible: function () {
-            /* offsetParent would be null if display 'none' is set.
-               However Chrome, IE and MS Edge returns offsetParent as null for elements
-               with position 'fixed' CSS. so check whether the dimensions are zero.
-
-               This check would be inaccurate if position is 'fixed' AND dimensions were
-               intentionally set to zero. But..it is good enough for most cases.*/
-            if (!this.el || (!this.el.offsetParent && !this.el.offsetWidth && !this.el.offsetHeight)) {
-                return false;
-            }
-            return true;
+        isDisplayed: function () {
+            return Li.isDisplayed(this.el);
         },
 
         /**

@@ -345,6 +345,24 @@
 
         /*Dom helpers*/
         /**
+         * Check whether an element is rendered by browser to be able to use function like offsetWidth.
+         * @param {HTMLElement} el
+         * @method isDisplayed
+         */
+        isDisplayed: function (el) {
+            /* offsetParent would be null if display 'none' is set.
+               However Chrome, IE and MS Edge returns offsetParent as null for elements
+               with position 'fixed' CSS. so check whether the dimensions are zero.
+
+               This check would be inaccurate if position is 'fixed' AND dimensions were
+               intentionally set to zero. But..it is good enough for most cases.*/
+            if (!el || (!el.offsetParent && !el.offsetWidth && !el.offsetHeight)) {
+                return false;
+            }
+            return true;
+        },
+
+        /**
          * jQuery's index() method doesn't return the child index properly for non-element nodes (like text node, comment).
          * @method childIndex
          */

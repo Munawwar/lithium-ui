@@ -86,7 +86,7 @@ define([
          * @private
          */
         showIndicator: function (prevItemNumber) {
-            if (!this.isVisible()) {
+            if (!this.isDisplayed()) {
                 return;
             }
             var $this = $(this.tabsEl),
