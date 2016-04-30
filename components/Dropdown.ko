@@ -2,16 +2,12 @@
     <div data-bind="attr: {id: id, data-type: type, class: cls, style: style}">
         <span class="caret" data-bind="css: {disabled: disabled}">▼</span>
         <input type="text" class="select-dropdown" ref="inputEl" readonly="true"
-            data-bind="attr: {data-activates: 'select-options-' + id, disabled: $data.disabled() ? 'disabled' : null},
+            data-bind="attr: {data-activates: 'select-options-' + id, disabled: disabled() ? 'disabled' : null},
                 css: {disabled: disabled}, value: getTextForValue(getValue())">
         <ul class="dropdown-content select-dropdown" ref="ulEl" style="width: 170px; display: none;"
             data-bind="foreach: options, attr: {id: 'select-options-' + id}">
             <li data-bind="attr: {data-value: $data.value, class: $data.cls},
                 css: {active: $data.value === $root.getValue(), disabled: $data.disabled}"><span data-bind="text: $data.text"></span></li>
         </ul>
-        <select class="initialized" ref="selectEl" data-bind="foreach: options">
-            <option data-bind="value: $data.value, text: $data.text,
-                attr: {selected: $data.value === $root.getValue() ? 'selected' : null}"></option>
-        </select>
     </div>
 </script>

@@ -122,6 +122,12 @@ define([
     Li.mix(Li, {
         /**
          * The utility helps in placing a position absolute element relative to another element's vertex/edge.
+         *
+         * Note:
+         * 1. This will work only when target is positioned absolute within viewport.
+         * 2. Also make sure element is "rendered" on browser for overflow calculations to work. i.e element should
+         * be added to document, and one can set visibility=hidden or opacity=0, but display=none can't be used.
+         *
          * @param {Object} [cfg] Config
          *
          * @param {HTMLElement} cfg.target The element to position.
@@ -133,6 +139,10 @@ define([
          *
          * @param {String} cfg.relAnchor The point on the relative element that the target element should be placed relative to.
          * Possible values are [<start|center|end>, <start|center|end>], where first index indicates the X coordinate and the second indicates the Y coordinate
+         *
+         * @param {Boolean} [cfg.allowOffscreen=false] Allow overflow respective to viewport. By default overflow isn't allowed, so
+         * target is repositioned to fit within viewport.
+         * @param {Boolean} [cfg.offscreenMargin=5] Margin from offsetParent from which target is considered to "off-screen".
          *
          * @param {Number} [cfg.displace=[0,0]] After all the internal calculation for anchoring is done, this displacement would be added.
          * This is useful for aesthetic reasons, like moving element slightly away from the 'top-left' of a relative element, for some margin etc.
@@ -164,12 +174,38 @@ define([
                     }
                 }
             }
+
+            /* Ensures x or y coordinate doesn't overflow viewport. If element cannot be repositioned
+             * in a way that would prevent overflow, then element's dimension is reduced.*/
+            function overflowCorrection(el, pos, dim, margin) {
+                var suffix = dim[0].toUpperCase() + dim.slice(1),
+                    length = el['offset' + suffix],
+                    viewportLength = window['inner' + suffix],
+
+                    maxLength = length - (2 * margin),
+                    isOverflow = [
+                        (pos < margin),
+                        (pos + length + margin > viewportLength)
+                    ];
+                if (maxLength > viewportLength) {
+                    pos = margin;
+                    $(el).css(dim, maxLength + 'px');
+                } else if (isOverflow[0]) {
+                    pos = margin;
+                } else if (isOverflow[1]) {
+                    pos = viewportLength - margin - length;
+                }
+                return pos;
+            }
+
             return function (cfg) {
                 var el = cfg.target,
                     relEl = cfg.relTo,
                     anchor = cfg.anchor,
                     relAnchor = cfg.relAnchor,
                     displace = cfg.displace || [0, 0],
+                    allowOffscreen = Li.isBoolean(cfg.allowOffscreen) ? cfg.allowOffscreen : false,
+                    offscreenMargin = Li.isNumber(cfg.offscreenMargin) ? cfg.offscreenMargin : 5,
 
                     elRect = el.getBoundingClientRect(),
                     relRect = relEl.getBoundingClientRect(),
@@ -177,11 +213,20 @@ define([
                     relElLeft = rectPoint(relRect, relAnchor[0], 'horz', 'document'),
                     relElTop = rectPoint(relRect, relAnchor[1], 'vert', 'document'),
                     elAnchorLeft = rectPoint(elRect, anchor[0], 'horz', 'itself'),
-                    elAnchorTop = rectPoint(elRect, anchor[1], 'vert', 'itself');
+                    elAnchorTop = rectPoint(elRect, anchor[1], 'vert', 'itself'),
+
+                    left = relElLeft - elAnchorLeft + displace[0],
+                    top = relElTop - elAnchorTop + displace[1];
+
+                //Check overflow
+                if (!allowOffscreen && Li.isDisplayed(el)) {
+                    left = overflowCorrection(el, left, 'width', offscreenMargin);
+                    top = overflowCorrection(el, top, 'height', offscreenMargin);
+                }
 
                 $(el).css({
-                    left: relElLeft - elAnchorLeft + displace[0],
-                    top: relElTop - elAnchorTop + displace[1]
+                    left: left,
+                    top: top
                 });
             };
         }()),

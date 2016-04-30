@@ -50,8 +50,6 @@ define([
             document.body.appendChild(this.ulEl); //move ul to document body, since it is needs to be positioned absolute.
 
             this.on({
-                $open: this.placeDropdown,
-                $close: this.hideDropdown,
                 inputEl: {
                     blur: this.onBlur,
                     click: this.onClick,
@@ -173,55 +171,31 @@ define([
                 activates.css('white-space', 'nowrap');
             }
 
-            // Offscreen detection
-            var offsetLeft = origin.offset().left;
-            var activatesLeft, gutter_spacing;
-            if (offsetLeft + activates.innerWidth() > $(window).width()) {
-                options.alignment = 'right';
-            } else if (offsetLeft - activates.innerWidth() + origin.innerWidth() < 0) {
-                options.alignment = 'left';
-            }
-
-            // Handle edge alignment
-            if (options.alignment === 'left') {
-                gutter_spacing = options.gutter;
-                activatesLeft = origin.offset().left + gutter_spacing;
-
-                // Position dropdown
-                activates.css({
-                    left: activatesLeft
-                });
-            } else if (options.alignment === 'right') {
-                var offsetRight = $(window).width() - offsetLeft - origin.innerWidth();
-                gutter_spacing = options.gutter;
-                activatesLeft = ($(window).width() - origin.offset().left - origin.innerWidth()) + gutter_spacing;
-
-                // Position dropdown
-                activates.css({
-                    right: activatesLeft
-                });
-            }
-
-            // Below Origin
-            var verticalOffset = 0;
-            if (options.belowOrigin === true) {
-                verticalOffset = origin.innerHeight();
-            }
             // Position dropdown
-            var posTop = origin.offset().top + verticalOffset,
-                activatesHeight = activates.outerHeight();
             activates.css({
                 position: 'absolute',
                 display: 'block',
-                top: posTop
+                opacity: 0
             });
-            //Make sure drop-down is fully visible.
-            if ((posTop + activatesHeight + 5) > window.innerHeight) {
-                posTop -= (posTop + activatesHeight + 5) - window.innerHeight;
-                activates.css({
-                    top: posTop
-                });
+
+            // Horizontal offscreen detection
+            var offset = origin.offset();
+            if (offset.left + activates.innerWidth() > $(window).width()) {
+                options.alignment = 'right';
+            } else if (offset.left - (activates.innerWidth() - origin.innerWidth()) < 0) {
+                options.alignment = 'left';
             }
+
+            Li.position({
+                target: activates[0],
+                anchor: [(options.alignment === 'left' ? 'start' : 'end'), 'start'],
+                relTo: origin[0],
+                relAnchor: [(options.alignment === 'left' ? 'start' : 'end'), 'start'],
+                displace: [options.gutter, (options.belowOrigin ? origin.innerHeight() : 0)],
+                allowOffscreen: false, //Make sure drop-down is fully visible.
+                offscreenMargin: 5
+            });
+
             //Make sure it is above modal windows. Is this a hack?
             if (Li.Modal && Li.Modal.stack.length) {
                 activates.css({
@@ -232,6 +206,7 @@ define([
             }
 
             // Show dropdown
+            var activatesHeight = activates.outerHeight();
             activates.stop(true, true).css({
                     opacity: 0,
                     height: 0,
@@ -285,7 +260,7 @@ define([
         },
 
         onBlur: function () {
-            this.trigger('close', {component: this});
+            this.hideDropdown();
         },
 
         onClick: function (e) {
@@ -297,16 +272,11 @@ define([
                 this.placeDropdown();
             } else { // If origin is clicked and menu is open, close menu
                 this.hideDropdown();
-                $(document).unbind('click.' + this.id);
+                Li.off(document, 'click', this.onDocumentClick, this);
             }
             // If menu open, add click close handler to document
             if (activates.hasClass('active')) {
-                $(document).bind('click.'+ this.id, function (e) {
-                    if (!activates.is(e.target) && !origin.is(e.target) && !origin.find(e.target).length) {
-                        this.hideDropdown();
-                        $(document).unbind('click.' + this.id);
-                    }
-                }.bind(this));
+                Li.on(document, 'click', this.onDocumentClick, this);
             }
             if (document.activeElement !== this.inputEl) {
                 this.inputEl.focus();
@@ -332,7 +302,21 @@ define([
         },
 
         /**
+         * Listen to clicks outside dropdown when dropdown is open.
+         * @private
+         */
+        onDocumentClick: function (e) {
+            var origin = $(this.inputEl),
+                activates = $(this.ulEl);
+            if (!activates.is(e.target) && !origin.is(e.target) && !origin.find(e.target).length) {
+                this.hideDropdown();
+                Li.off(document, 'click', this.onDocumentClick, this);
+            }
+        },
+
+        /**
          * Handles special keys such as arrow, tabs, esc etc
+         * @private
          */
         onKeyDown: function (event) {
             var activates = $(this.ulEl),
@@ -340,12 +324,12 @@ define([
 
             // TAB - switch to another input
             if (event.which === 9) {
-                return this.trigger('close', {component: this});
+                return this.hideDropdown();
             }
 
             // ARROW DOWN WHEN SELECT IS CLOSED - open select options
             if (event.which === 40 && !activates.is(":visible")) {
-                return this.trigger('open', {component: this});
+                return this.placeDropdown();
             }
 
             // ENTER WHEN SELECT IS CLOSED - submit form
@@ -364,7 +348,7 @@ define([
                 activeOption = activates.find('li.active:not(.disabled)')[0];
                 if (activeOption) {
                     $(activeOption).trigger('click');
-                    this.trigger('close', {component: this});
+                    this.hideDropdown();
                 }
             }
 
@@ -379,7 +363,7 @@ define([
 
             // ESC - close options
             if (event.which === 27) {
-                this.trigger('close', {component: this});
+                this.hideDropdown();
             }
 
             // ARROW UP - move to previous not disabled option
@@ -394,6 +378,7 @@ define([
 
         /**
          * Implements options search.
+         * @private
          */
         onKeyUp: function (event) {
             var activates = $(this.ulEl);
