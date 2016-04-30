@@ -164,6 +164,7 @@ define([
 
             // Set Dropdown state
             activates.addClass('active');
+            origin.addClass('active');
 
             // Constrain width
             if (options.constrain_width === true) {
@@ -171,14 +172,10 @@ define([
             } else {
                 activates.css('white-space', 'nowrap');
             }
-            var offset = 0;
-            if (options.belowOrigin === true) {
-                offset = origin.height();
-            }
 
             // Offscreen detection
             var offsetLeft = origin.offset().left;
-            var activatesLeft, width_difference, gutter_spacing;
+            var activatesLeft, gutter_spacing;
             if (offsetLeft + activates.innerWidth() > $(window).width()) {
                 options.alignment = 'right';
             } else if (offsetLeft - activates.innerWidth() + origin.innerWidth() < 0) {
@@ -187,9 +184,8 @@ define([
 
             // Handle edge alignment
             if (options.alignment === 'left') {
-                width_difference = 0;
                 gutter_spacing = options.gutter;
-                activatesLeft = origin.offset().left + width_difference + gutter_spacing;
+                activatesLeft = origin.offset().left + gutter_spacing;
 
                 // Position dropdown
                 activates.css({
@@ -197,7 +193,6 @@ define([
                 });
             } else if (options.alignment === 'right') {
                 var offsetRight = $(window).width() - offsetLeft - origin.innerWidth();
-                width_difference = 0;
                 gutter_spacing = options.gutter;
                 activatesLeft = ($(window).width() - origin.offset().left - origin.innerWidth()) + gutter_spacing;
 
@@ -206,16 +201,23 @@ define([
                     right: activatesLeft
                 });
             }
+
+            // Below Origin
+            var verticalOffset = 0;
+            if (options.belowOrigin === true) {
+                verticalOffset = origin.innerHeight();
+            }
             // Position dropdown
-            var posTop = origin.offset().top + offset;
+            var posTop = origin.offset().top + verticalOffset,
+                activatesHeight = activates.outerHeight();
             activates.css({
                 position: 'absolute',
                 display: 'block',
                 top: posTop
             });
             //Make sure drop-down is fully visible.
-            if ((posTop + activates[0].clientHeight + 5) > window.innerHeight) {
-                posTop -= (posTop + activates[0].clientHeight + 5) - window.innerHeight;
+            if ((posTop + activatesHeight + 5) > window.innerHeight) {
+                posTop -= (posTop + activatesHeight + 5) - window.innerHeight;
                 activates.css({
                     top: posTop
                 });
@@ -230,16 +232,24 @@ define([
             }
 
             // Show dropdown
-            activates.stop(true, true).css('opacity', 0)
-                .slideDown({
+            activates.stop(true, true).css({
+                    opacity: 0,
+                    height: 0,
+                    'overflow-y': (activates[0].scrollHeight > activatesHeight ? 'scroll' : 'hidden')
+                }).velocity({
+                    height: activatesHeight
+                }, {
                     queue: false,
                     duration: options.inDuration,
                     easing: 'easeOutCubic',
                     complete: function() {
-                        $(this).css('height', '');
+                        $(this).css({
+                            height: '',
+                            'overflow-y': ''
+                        });
                     }
                 })
-                .animate({
+                .velocity({
                     opacity: 1
                 }, {
                     queue: false,
@@ -271,6 +281,7 @@ define([
 
             activates.fadeOut(options.outDuration);
             activates.removeClass('active');
+            origin.removeClass('active');
         },
 
         onBlur: function () {
