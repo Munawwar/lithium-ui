@@ -196,10 +196,10 @@ define([
                 offscreenMargin: 5
             });
 
-            //Make sure it is above modal windows. Is this a hack?
-            if (Li.Modal && Li.Modal.stack.length) {
+            //Make sure it is above modal windows. This is a hack. Ideally Dropdown should be a popover.
+            if (Li.Popover && Li.Popover.stack.length) {
                 activates.css({
-                    zIndex: 1000 + Li.Modal.stack.length + 1,
+                    zIndex: 1000 + Li.Popover.stack.length + 1,
                 });
             } else {
                 activates[0].style.removeProperty('z-index');

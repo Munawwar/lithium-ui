@@ -1,6 +1,6 @@
 define([
     'jquery',
-    '../core/Box',
+    './Popover',
 
     'tpl!./Modal.ko',
     'css!./Modal.css'
@@ -8,23 +8,13 @@ define([
     /**
      * Base class for Window.
      */
-    Li.Modal = Li.extend('Li.Modal', Li.Box, {
+    Li.Modal = Li.extend('Li.Modal', Li.Popover, {
         cls: 'modal', //materializecss CSS class
         /**
          * Footer template
          * @type {Li.Template|DocumentFragment}
          */
         footerTpl: null,
-
-        /**
-         * Can window be closed by user?
-         */
-        dismissible: true,
-
-        /**
-         * Show an overlay behind window or not. Default behavior is to show.
-         */
-        modaless: false,
 
         //Note: afterExtend() and makeConfigFromView() cannot be static methods since they are taken from the prototype chain.
         makeConfigFromView: function (element, cfg) {
@@ -60,79 +50,34 @@ define([
             }
         },
 
-        show: function () {
+        /**
+         * @override
+         */
+        show: function (e) {
             //Following adapted from materializecss
             var $overlay = Li.Modal.overlay,
-                $modal = $(this.el),
-                stack = Li.Modal.stack;
+                $modal = $(this.el);
 
-            if (!this.modaless && !document.body.contains($overlay[0])) {
+            if (!document.body.contains($overlay[0])) {
                 $("body").append($overlay);
             }
-            stack.push(this);
-            $modal.css('z-index', 1000 + stack.length);
+            $overlay.css({display: "block", opacity: 0.5});
+            $modal.css({top: '10%'});
 
-            if (this.dismissible && stack.length === 1) {
-                // Return on click of overlay
-                Li.on(document, 'click', this.onClickDocument);
-                // Return on ESC
-                Li.on(document, 'keyup', this.onKeyUpDocument);
-            }
-
-            if (!this.modaless) {
-                $overlay.css({display: "block", opacity: 0.5});
-            }
-            $modal.css({display: "block", top: '10%'});
-
-            if (!document.body.contains(this.el)) {
-                this.render(document.body);
-            }
+            this.super([e]);
         },
 
         hide: function () {
+            this.super(arguments);
+
+            //Hide overlay only after the last Modal has been closed.
             var $overlay = Li.Modal.overlay,
-                $modal = $(this.el),
-                stack = Li.Modal.stack;
-
-            if (stack[stack.length - 1] === this) {
-                stack.pop();
-            }
-            if (!stack.length) {
-                Li.off(document, 'click', this.onClickDocument);
-                Li.off(document, 'keyup', this.onKeyUpDocument);
-            }
-
-            if (!this.modaless) {
+                stack = Li.Popover.stack,
+                hasModal = stack.some(function (info) {
+                    return (info.component instanceof Li.Modal);
+                });
+            if (!hasModal) {
                 $overlay[0].style.removeProperty('display');
-            }
-            $modal[0].style.removeProperty('display');
-        },
-
-        onClickDocument: function (e) {
-            var stack = Li.Modal.stack;
-            if (stack.length) {
-                var lastModal = stack[stack.length - 1];
-                //Only consider clicks outside of the Modal.
-                if (lastModal.el.contains(e.target)) {
-                    return;
-                }
-                lastModal.hide();
-                lastModal.trigger('clickclosed', {component: this, event: e});
-            }
-        },
-
-        onKeyUpDocument: function (e) {
-            if (e.keyCode === 27) { // ESC key
-                var stack = Li.Modal.stack;
-                if (stack.length) {
-                    var lastModal = stack[stack.length - 1];
-                    //Only consider ESC outside of the Modal.
-                    if (lastModal.el.contains(e.target)) {
-                        return;
-                    }
-                    lastModal.hide();
-                    lastModal.trigger('escapeclosed', {component: this, event: e});
-                }
             }
         },
 
@@ -145,39 +90,7 @@ define([
             /**
              * Overlay element
              */
-            overlay: $('<div class="lean-overlay"></div>'),
-
-            /**
-             * Singleton cache
-             */
-            singletonCache: {},
-            /**
-             * Static method to manage singletons
-             */
-            singleton: function (cfg) {
-                if (!cfg.type || cfg.type === 'Li.Modal') {
-                    throw new Error('Window Type is needed. And it should be a derived class of Li.Modal.');
-                }
-                var ns = Li.Modal,
-                    show = cfg.show;
-                delete cfg.show;
-                var instance = ns.singletonCache[cfg.type];
-                if (!instance) {
-                    var Class = Li.getClass(cfg.type);
-                    instance = new Class(cfg);
-                    ns.singletonCache[cfg.type] = instance;
-                } else {
-                    instance.set(cfg);
-                }
-
-                if (show) {
-                    instance.show();
-                } else {
-                    instance.hide();
-                }
-
-                return instance;
-            }
+            overlay: $('<div class="lean-overlay"></div>')
         }
     });
 
