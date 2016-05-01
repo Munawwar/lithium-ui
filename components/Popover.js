@@ -17,7 +17,7 @@ define([
          */
         dismissible: true,
 
-        constructor: function (cfg) {
+        constructor: function () {
             /**
              * @event clickclosed Fires when popover is closed due to clicking outside popover.
              */
@@ -157,22 +157,13 @@ define([
                 if (!cfg.type || cfg.type === 'Li.Popover' || cfg.type === 'Li.Modal') {
                     throw new Error('Window Type is needed. And it should be a derived class of Li.Popover or Li.Modal.');
                 }
-                var ns = Li.Popover,
-                    show = cfg.show;
-                delete cfg.show;
-                var instance = ns.singletonCache[cfg.type];
+                var instance = Li.Popover.singletonCache[cfg.type];
                 if (!instance) {
                     var Class = Li.getClass(cfg.type);
                     instance = new Class(cfg);
-                    ns.singletonCache[cfg.type] = instance;
+                    Li.Popover.singletonCache[cfg.type] = instance;
                 } else {
                     instance.set(cfg);
-                }
-
-                if (show) {
-                    instance.show();
-                } else {
-                    instance.hide();
                 }
 
                 return instance;
