@@ -228,10 +228,11 @@ define([
                 if (!this.el) {
                     el.setAttribute('style', this.style || '');
                 }
-                styles = Li.parseStyleAttribute(styles);
-                Li.forEach(styles, function (value, prop) {
-                    el.style.removeProperty(prop.replace(/[A-Z]/g, toCssProp));
-                }, this);
+                styles.split(' ').forEach(function (prop) {
+                    if (prop) {
+                        el.style.removeProperty(prop.replace(/[A-Z]/g, toCssProp));
+                    }
+                });
                 if (!this.el) {
                     this.style = el.getAttribute('style') || null;
                 }
