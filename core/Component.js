@@ -38,14 +38,17 @@ define([
          */
         innerTpl: undefined,
         /**
-         * CSS class to use on {@link #el}.
+         * CSS class to use on root element.
          */
         cls: '',
         /**
-         * Inline CSS style to apply on {@link #el}.
+         * Inline CSS style to apply to root element.
          */
         style: null,
-
+        /**
+         * Attributes to add to root element.
+         */
+        attributes: null,
 
         /**
          * Called after Li.extend() succeeds. Called exactly once for a class.
@@ -80,13 +83,25 @@ define([
          */
         //Note: afterExtend() and makeConfigFromView() cannot be static methods since they are taken from the prototype chain.
         makeConfigFromView: function (element, cfg) {
-            //Accept standard HTML attributes like class and style
-            if (element.hasAttribute('class')) {
-                cfg.addClass = element.getAttribute('class');
-            }
-            if (element.hasAttribute('style')) {
-                cfg.style = element.getAttribute('style');
-            }
+            Li.slice(element.attributes).forEach(function (attr) {
+                var name = attr.name.toLowerCase();
+                if (name === 'class') {
+                    if (cfg.addClass) {
+                        console.warn('Do not define params.addClass AND class attribute, both, on a component custom element.');
+                    } else {
+                        cfg.addClass = attr.value;
+                    }
+                } else if (name === 'style') {
+                    if (cfg.addStyle) {
+                        console.warn('Do not define params.addStyle AND style attribute, both, on a component custom element.');
+                    } else {
+                        cfg.addStyle = attr.value;
+                    }
+                } else if (Li.Component.ignoreAttributes.indexOf(name) < 0) {
+                    cfg.addAttribute = cfg.addAttribute || {};
+                    cfg.addAttribute[name] = cfg.addAttribute[name] || attr.value;
+                }
+            });
 
             $.extend(cfg, {
                 innerTpl: element.innerHTML.trim() || undefined
@@ -114,20 +129,33 @@ define([
             this.set(cfg);
 
             //Render in-memory
-            this.view = (new Li.Template.View(this.outerTpl, this));
-            this.el = this.view.fragment.querySelector('#' + this.id);
-            Object.defineProperty(this.el, 'liComponent', {value: this});
+            this.initalizeView();
 
             if (cfg.listeners) {
                 this.on(cfg.listeners);
             }
         },
         /**
+         * Render in-memory.
+         * @protected
+         */
+        initalizeView: function () {
+            this.view = (new Li.Template.View(this.outerTpl, this));
+            this.el = this.view.fragment.querySelector('#' + this.id);
+            Object.defineProperty(this.el, 'liComponent', {value: this});
+            if (this.attributes) {
+                this.setAttribute(this.attributes);
+            }
+        },
+        /**
          * Set configuration. Call this.refresh to re-render this component with the new config.
          * @param {Object} cfg Any property of the component can be set through this config. However cfg.addClasses, cfg.removeClasses etc are special configs.
-         * @param {String} cfg.addClass A string of CSS classes to add to component root element's class attribute.
-         * @param {String} cfg.removeClass A string of CSS classes to remove from component root element's class attribute.
-         * @param {String} cfg.removeStyle A string of CSS style properties to remove from component root element's style attribute.
+         * @param {String} cfg.addClass CSS classes to add to component's root element's class attribute.
+         * @param {String} cfg.addStyle CSS (inline) styles (in same format as a style attribute) to add to component's root element's style attribute.
+         * @param {Object} cfg.addAttribute Attributes as key-value pairs, to be added to component's root element. Each value must be a string or a number (numbers will be converted to string).
+         * @param {String} cfg.removeClass CSS classes to remove from component's root element's class attribute.
+         * @param {String} cfg.removeStyle A space separated string of CSS style property names to remove from component's root element's style attribute.
+         * @param {String} cfg.removeAttribute Attribute names (as space separated string) to be removed from component's root element.
          */
         set: function (cfg) {
             /*Handle special configs*/
@@ -139,9 +167,27 @@ define([
                 this.removeStyle(cfg.removeStyle);
                 delete cfg.removeStyle;
             }
+            if (cfg.removeAttribute) {
+                var obj = {};
+                (cfg.removeAttribute || '').split(' ').forEach(function (name) {
+                    if (name) {
+                        obj[name] = null;
+                    }
+                });
+                this.setAttribute(obj);
+                delete cfg.removeAttribute;
+            }
             if (cfg.addClass) {
                 this.addClass(cfg.addClass);
                 delete cfg.addClass;
+            }
+            if (cfg.addStyle) {
+                this.addStyle(cfg.addStyle);
+                delete cfg.addStyle;
+            }
+            if (cfg.addAttribute) {
+                this.setAttribute(cfg.addAttribute);
+                delete cfg.addAttribute;
             }
 
             //Handle the rest
@@ -176,7 +222,7 @@ define([
             }
         },
         /**
-         * Removes CSS classes from element.
+         * Removes CSS classes from root element.
          * @param {String} classes CSS classes as string.
          */
         removeClass: function (classes) {
@@ -194,8 +240,8 @@ define([
             }
         },
         /**
-         * Added styles from element.
-         * @param {Object} styles Styles as object. Each key should be camel cased and value should be string.
+         * Added styles from root element.
+         * @param {String} styles Styles as a string. Format should be same as a CSS style attribute.
          */
         addStyle: (function () {
             function toCssProp(m) {
@@ -216,7 +262,7 @@ define([
             };
         }()),
         /**
-         * Removes styles from element.
+         * Removes styles from root element.
          * @param {String} styles Styles as string separated by space.
          */
         removeStyle: (function () {
@@ -240,6 +286,43 @@ define([
         }()),
 
         /**
+         * Adds/removes attributes to/from root element.
+         * @param {String} name Attribute name.
+         * @param {String|Number|null} value Attribute value. If value is null, then attribute is removed.
+         * @method setAttribute
+         */
+        /**
+         * Adds/removes attributes to/from root element.
+         * @param {Object} attributes Each key and value pair represents attribute name and value respectively. If value is null, then attribute is removed.
+         */
+        setAttribute: function (key, val) {
+            var attributes = key;
+            if (arguments.length === 2) {
+                attributes = {};
+                attributes[key] = val;
+            }
+            Li.forEach(attributes, function (value, name) {
+                if (name && name !== 'class' && name !== 'style') {
+                    if (typeof value === 'string' || typeof value === 'number') {
+                        if (this.el) {
+                            this.el.setAttribute(name, value + '');
+                        } else {
+                            this.attributes = this.attributes || {};
+                            this.attributes[name] = value + '';
+                        }
+                    } else if (value === null) {
+                        if (this.el) {
+                            this.el.removeAttribute(name);
+                        } else {
+                            this.attributes = this.attributes || {};
+                            this.attributes[name] = null;
+                        }
+                    }
+                }
+            }, this);
+        },
+
+        /**
          * Return's true if component's root element is rendered by browser.
          * i.e. methods like getComputedStyle() can be run on it without unexpected result.
          */
@@ -251,7 +334,6 @@ define([
          * Render component to target HTMLElement.
          */
         render: function (target, childIndex) {
-            this.unrender();
             //Store the root component being rendered
             if (!Li.Component.currentRootRender) {
                 Li.Component.currentRootRender = this;
@@ -269,10 +351,10 @@ define([
          * The nodes will be reused on render() call.
          * @protected
          */
-        unrender: function () {
+        detach: function () {
             /* If you call this method from blur event, then the removal from document
              * could cause a second blur event to fire. Hence check if already removed, before removing from document*/
-            if (this.el.parentNode && this.el.parentNode !== this.view.fragment) {
+            if (this.el && this.el.parentNode && this.el.parentNode !== this.view.fragment) {
                 this.view.toDocumentFragment(); //removes elements from DOM and keeps it in-memory.
                 //TODO: I think toDocumentFragment() on view's sub-views and unrender() child components, needs to be called as well?
             }
@@ -314,7 +396,7 @@ define([
                     return;
                 }
                 if (prop.indexOf('#') > -1) { //if already unwrapped, then skip.
-                    return unwrapedListeners[prop] = funcOrObj;
+                    return (unwrapedListeners[prop] = funcOrObj);
                 }
                 if (Li.isObject(funcOrObj)) { // reference
                     //Make unique signature (ignoring context/scope, since we are not going to allow a function on the
@@ -526,6 +608,11 @@ define([
             getNewId: function () {
                 return Li.Component.id++;
             },
+            /**
+             * Ignore certain attributes.
+             * @private
+             */
+            ignoreAttributes: ['data-i18n', 'ref'],
             dummyEl: Li.dom('<div></div>').firstChild
         }
     });
