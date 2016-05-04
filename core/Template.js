@@ -131,6 +131,39 @@
         },
 
         /**
+         * Returns cloned template as document fragment
+         * @private
+         */
+        cloneFragment: function () {
+            var frag = document.createDocumentFragment(),
+                nodeMap = {}; //map old nodes to new ones.
+            nodeMap[Li.getUID(this.frag)] = frag;
+            traverse(this.frag, this.frag, function (node, isOpenTag) {
+                if (isOpenTag) {
+                    var newNode = node.cloneNode();
+                    nodeMap[Li.getUID(node)] = newNode;
+                    nodeMap[Li.getUID(node.parentNode)].appendChild(newNode);
+
+                    //For elements with foreach/if/ifnot/with binding, clone sub-templates as well.
+                    if (node.nodeType === 1) {
+                        var info = this.getBindingInfo(node);
+                        if (info && info.subTpl) {
+                            newNode.appendChild(info.subTpl.cloneFragment());
+                        }
+                    }
+                }
+            }, this);
+            return frag;
+        },
+
+        /**
+         * Returns a new clone of this Template.
+         */
+        clone: function () {
+            return new Htmlizer(this.cloneFragment(), Object.assign({}, this.cfg));
+        },
+
+        /**
          * @param {Object} data
          */
         toDocumentFragment: function (data, context) {

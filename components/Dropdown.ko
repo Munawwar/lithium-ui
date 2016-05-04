@@ -1,5 +1,5 @@
 <script type="text/html" id="li-dropdown-outer">
-    <div data-bind="attr: {id: id, data-type: type, class: cls, style: style}">
+    <div>
         <span class="caret" data-bind="css: {disabled: disabled}">▼</span>
         <input type="text" class="select-dropdown" ref="inputEl" readonly="true"
             data-bind="attr: {data-activates: 'select-options-' + id, disabled: disabled() ? 'disabled' : null},

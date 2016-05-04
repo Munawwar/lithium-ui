@@ -1,5 +1,5 @@
 <script type="text/html" id="li-component-outer">
-    <div data-bind="attr: {id: id, data-type: type, class: cls, style: style}">
+    <div>
         <!-- ko template: innerTpl --><!-- /ko -->
     </div>
 </script>

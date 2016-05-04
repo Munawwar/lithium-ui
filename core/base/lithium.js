@@ -282,23 +282,6 @@
         },
 
         /**
-         * Converts html string to a document fragment.<br/>
-         * The html string and arguments are first sent to Li.format to get the
-         * final html string.
-         * @param {String} html
-         * @param {...} Any number of arguments that will be passed on to Li.format. Check Li.format documentation for more information.
-         * @return {DocumentFragment}
-         * @method dom
-         */
-        dom: function (html) {
-            var frag = document.createDocumentFragment();
-            $.parseHTML(Li.format.apply(this, arguments)).forEach(function (node) {
-                frag.appendChild(node);
-            });
-            return frag;
-        },
-
-        /**
          * Same as Array.slice except that it can work on array-like data types (i.e arguments, element.childNodes, NodeList...)
          * @param {Array-like} array Array like values.
          * @method slice
@@ -344,6 +327,45 @@
 
 
         /*Dom helpers*/
+        /**
+         * Converts html string to a document fragment.<br/>
+         * The html string and arguments are first sent to Li.format to get the
+         * final html string.
+         * @param {String} html
+         * @param {...} Any number of arguments that will be passed on to Li.format. Check Li.format documentation for more information.
+         * @return {DocumentFragment}
+         * @method dom
+         */
+        dom: function (html) {
+            var frag = document.createDocumentFragment();
+            $.parseHTML(Li.format.apply(this, arguments)).forEach(function (node) {
+                frag.appendChild(node);
+            });
+            return frag;
+        },
+
+        /**
+         * Add/remove styles from style attribute of an element.
+         * @param {HTMLElement} el The HTML element to which styles should get added/removed.
+         * @param {Object} styles Each key and value pair should represent a CSS property and value repsectively. Value can be a non-empty string, a number or null.
+         * If value is null the CSS style property is removed from the element.
+         * @method style
+         */
+        style: (function () {
+            function toCssProp(m) {
+                return '-' + m.toLowerCase();
+            }
+            return function (el, styles) {
+                Li.forEach(styles, function (value, prop) {
+                    if ((value && Li.isString(value)) || Li.isNumber(value)) {
+                        el.style.setProperty(prop.replace(/[A-Z]/g, toCssProp), value);
+                    } else if (value === null) {
+                        el.style.removeProperty(prop.replace(/[A-Z]/g, toCssProp));
+                    }
+                });
+            };
+        }()),
+
         /**
          * Check whether an element is rendered by browser to be able to use function like offsetWidth.
          * @param {HTMLElement} el

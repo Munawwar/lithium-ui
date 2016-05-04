@@ -1,5 +1,5 @@
 <script type="text/html" id="li-modal-outer">
-    <div data-bind="attr: {id: id, data-type: type, class: cls, style: style}">
+    <div>
         <div class="modal-content">
             <!-- ko template: innerTpl --><!-- /ko -->
         </div>

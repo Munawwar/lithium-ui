@@ -45,10 +45,10 @@ define([
         constructor: function () {
             /**
              * @event tabchanged Fires when user changes tab.
-             * Doesn't fire on API called (non-user interaction) changes.
+             * Doesn't fire on API calls (non-user interaction changes).
              */
 
-            this.addClass(this.align());
+            this.cls = this.cls + ' ' + this.align();
 
             this.super(arguments);
 

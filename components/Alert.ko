@@ -1,7 +1,5 @@
-<script type="text/html" id="li-alert-outer">
-    <div data-bind="attr: {id: id, data-type: type, class: cls, style: style}">
-        <span class="fa fa-exclamation-circle icon"></span>
-        <button type="button" class="close" aria-hidden="true">&times;</button>
-        <span class="text" data-bind="html: html"></span>
-    </div>
+<script type="text/html" id="li-alert-inner">
+    <span class="fa fa-exclamation-circle icon"></span>
+    <button type="button" class="close" aria-hidden="true">&times;</button>
+    <span class="text" data-bind="html: html"></span>
 </script>
