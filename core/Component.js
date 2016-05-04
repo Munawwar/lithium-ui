@@ -121,6 +121,11 @@ define([
             cfg.addAttribute = cfg.addAttribute || {};
             cfg.addAttribute.id = this.id;
             cfg.addAttribute['data-type'] = this.type;
+            if (cfg.addAttribute['data-bind']) {
+                var el = this.outerTpl.frag.firstElementChild,
+                    dataBind = el.getAttribute('data-bind');
+                el.setAttribute('data-bind', (dataBind ? (dataBind + ', ') : '') + cfg.addAttribute['data-bind']);
+            }
 
             //Make own copy of observable from prototype.
             this._observables.forEach(function (prop) {
@@ -284,7 +289,6 @@ define([
              * could cause a second blur event to fire. Hence check if already removed, before removing from document*/
             if (this.el && this.el.parentNode && this.el.parentNode !== this.view.fragment) {
                 this.view.toDocumentFragment(); //removes elements from DOM and keeps it in-memory.
-                //TODO: I think toDocumentFragment() on view's sub-views and unrender() child components, needs to be called as well?
             }
         },
         /**

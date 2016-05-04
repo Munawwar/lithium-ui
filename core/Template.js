@@ -24,6 +24,7 @@
     //HTML 4 and 5 void tags
     var voidTags = unwrap('area,base,basefont,br,col,command,embed,frame,hr,img,input,keygen,link,meta,param,source,track,wbr'),
         conflictingBindings = unwrap('if,ifnot,foreach,with,text,html'),
+        disallowedCustomElementBindings = unwrap('if,ifnot,foreach,with,html'),
         traverse = Li.traverse;
 
     /**
@@ -67,17 +68,15 @@
                     if (node.nodeType === 1) { //element
                         var classRef;
                         if (node.nodeName.indexOf('-') > -1) {
-                            var className = node.nodeName.replace(/-/g, '.');
-                            classRef = Li.getClass(className);
+                            classRef = Li.getClass(node.nodeName.replace(/-/g, '.'));
                         }
 
                         var bindOpts = node.getAttribute(this.noConflict ? 'data-htmlizer' : 'data-bind');
                         if (bindOpts) {
-                            this.checkForConflictingBindings(bindOpts, classRef);
                             bindings = util.parseObjectLiteral(bindOpts);
+                            this.checkForConflictingBindings(bindings, classRef);
                             nodeInfo.node = node;
                             nodeInfo.depth = depth;
-                            nodeInfo.bindings = bindings;
                             if (bindings.foreach || bindings['with'] || bindings['if'] || bindings.ifnot) {
                                 tempFrag = util.moveToNewFragment(Li.slice(node.childNodes));
                                 nodeInfo.subTpl = new Htmlizer(tempFrag, $.extend({depth: depth}, this.cfg));
@@ -86,7 +85,7 @@
                             this.nodeMap[Li.getUID(node)] = nodeInfo;
                         }
 
-                        if (classRef) { //do not add component inner config to nodeInfoList
+                        if (classRef) { //skip traversal of component custom element's inner elements
                             return 'continue';
                         }
                     }
@@ -106,8 +105,6 @@
                             nodeInfo.depth = depth;
                             nodeInfo.block = block;
                             match = stmt.match(util.regex.commentStatment);
-                            nodeInfo.bindings = {};
-                            nodeInfo.bindings[match[1]] = match[2];
                             if (block.key === 'foreach' || block.key === 'with' || block.key === 'if' || block.key === 'ifnot') {
                                 blockNodes = util.getImmediateNodes(frag, block.start, block.end);
                                 tempFrag = util.moveToNewFragment(blockNodes);
@@ -126,7 +123,7 @@
         /**
          * Get binding and other information for a given node in template DocumentFragment.
          */
-        getBindingInfo: function (node) {
+        getTNodeInfo: function (node) {
             return this.nodeMap[Li.getUID(node)];
         },
 
@@ -146,7 +143,7 @@
 
                     //For elements with foreach/if/ifnot/with binding, clone sub-templates as well.
                     if (node.nodeType === 1) {
-                        var info = this.getBindingInfo(node);
+                        var info = this.getTNodeInfo(node);
                         if (info && info.subTpl) {
                             newNode.appendChild(info.subTpl.cloneFragment());
                         }
@@ -224,14 +221,14 @@
         },
 
         /**
-         * @param {String} bindOpts Bindings as string
+         * @param {Object} bindings Bindings as string
          * @private
          */
-        checkForConflictingBindings: function (bindOpts, isComponent) {
+        checkForConflictingBindings: function (bindings, isComponent) {
             var conflict = [];
-            util.forEachObjectLiteral(bindOpts, function (binding) {
+            util.forEachObjectLiteral(bindings, function (binding) {
                 if (isComponent) {
-                    if (binding !== 'attr') {
+                    if (binding in disallowedCustomElementBindings) {
                         conflict.push(binding);
                     }
                 } else if (binding in conflictingBindings) {
@@ -240,7 +237,7 @@
             });
 
             if (isComponent && conflict.length) {
-                throw new Error('Component only supports attr binding.');
+                throw new Error('Component custom element does not support the following bindings: if,ifnot,foreach,with and html.');
             } else if (conflict.length > 1) {
                 throw new Error('Multiple bindings (' + conflict[0] + ' and ' + conflict[1] + ') are trying to control descendant bindings of the same element.' +
                     'You cannot use these bindings together on the same element.');
@@ -298,10 +295,8 @@
                         if (ClassRef.prototype.makeConfigFromView) {
                             if (node.hasAttribute('params')) {
                                 cfg = util.parseObjectLiteral(node.getAttribute('params'));
-                                //Convert to right data type (like integers).
-                                Li.forEach(cfg, function (expr, key) {
-                                    cfg[key] = saferEval.call(this.getRootView(), expr, this.context, this.data, node);
-                                }, this);
+                                node.removeAttribute('params');
+                                this.evaluateParams(cfg, node); //Convert values to right data type (like integers).
                             }
                             cfg = ClassRef.prototype.makeConfigFromView(node, cfg);
                         }
@@ -349,14 +344,9 @@
                             var inner = util.parseObjectLiteral(expr);
                             val = {
                                 ref: this.evaluate(binding, inner.ref, node),
-                                params: util.parseObjectLiteral(inner.params || '')
+                                params: inner.params || {}
                             };
-                            if (val.params) {
-                                //Convert to right data type (like integers).
-                                Li.forEach(val.params, function (expr, key) {
-                                    val.params[key] = saferEval.call(this.getRootView(), expr, this.context, this.data, node);
-                                }, this);
-                            }
+                            this.evaluateParams(val.params, node); //Convert values to right data type (like integers).
                         } else {
                             val = {
                                 ref: this.evaluate(binding, expr, node),
@@ -366,7 +356,7 @@
 
                         var cmp = val.ref;
                         if (cmp instanceof Li.Component) {
-                            cmp.set(Li.mix(val.params, {parent: this.context.$root}));
+                            cmp.set(Object.assign(val.params, {parent: this.context.$root}));
 
                             //Add to components list for rendering later
                             this.components.push({cmp: cmp, node: node});
@@ -399,7 +389,7 @@
                 init: function (node, binding, expr, tNode) {
                     var val = this.evaluate(binding, expr, node);
                     if (val) {
-                        var tpl = this.tpl.getBindingInfo(tNode).subTpl,
+                        var tpl = this.tpl.getTNodeInfo(tNode).subTpl,
                             view = this.makeView(tpl, this.context, this.data, node),
                             tempFrag = view.toDocumentFragment();
                         if (node.nodeType === 1) {
@@ -414,7 +404,7 @@
                         info = this.getNodeInfo(node),
                         view = info.views[0];
                     if (!view) { //if view not created, the create it.
-                        var tpl = this.tpl.getBindingInfo(info.tNode).subTpl;
+                        var tpl = this.tpl.getTNodeInfo(info.tNode).subTpl;
                         view = this.makeView(tpl, this.context, this.data, node);
                     }
                     var tempFrag = view.toDocumentFragment(); //if rendered, move nodes from document to DocumentFragment
@@ -446,19 +436,17 @@
             foreach: {
                 init: function (node, binding, expr) {
                     var info = this.getNodeInfo(node),
-                        tNode = info.tNode,
-                        tpl = this.tpl.getBindingInfo(tNode).subTpl,
+                        tpl = this.tpl.getTNodeInfo(info.tNode).subTpl,
                         val;
 
-                    expr = expr.trim();
-                    if (expr[0] === '{') {
-                        var inner = util.parseObjectLiteral(expr);
+                    if (typeof expr === 'string') {
+                        val = {items: this.evaluate(binding, expr, node)};
+                    } else {
+                        var inner = expr;
                         val = {
                             items: this.evaluate(binding, inner.data, node),
                             as: inner.as.slice(1, -1) //strip string quote
                         };
-                    } else {
-                        val = {items: this.evaluate(binding, expr, node)};
                     }
 
                     if (tpl.frag.firstChild && val.items instanceof Array) {
@@ -489,14 +477,13 @@
                     }
                 },
                 splice: function (node, binding, expr, index, removeLength, newItems) {
-                    var tNode = this.getNodeInfo(node).tNode,
-                        bindingInfo = this.tpl.getBindingInfo(tNode),
-                        tpl = this.tpl.getBindingInfo(tNode).subTpl,
+                    var info = this.getNodeInfo(node),
+                        tpl = this.tpl.getTNodeInfo(info.tNode).subTpl,
                         as;
 
-                    expr = bindingInfo.bindings.foreach.trim();
-                    if (expr[0] === '{') {
-                        as = util.parseObjectLiteral(expr).as.slice(1, -1);
+                    expr = info.bindings.foreach;
+                    if (typeof expr !== 'string') {
+                        as = expr.as.slice(1, -1);
                     }
 
                     if (tpl.frag.firstChild) {
@@ -524,7 +511,7 @@
             "with": {
                 init: function (node, binding, expr, tNode) {
                     var val = this.evaluate(binding, expr, node),
-                        tpl = this.tpl.getBindingInfo(tNode).subTpl,
+                        tpl = this.tpl.getTNodeInfo(tNode).subTpl,
                         newContext = this.getNewContext(this.context, val);
                     if (tpl.frag.firstChild && val !== null && val !== undefined) {
                         var tempFrag = this.makeView(tpl, newContext, val, node).toDocumentFragment();
@@ -589,7 +576,7 @@
             attr: {
                 init: function (node, binding, expr) {
                     if (node.nodeType === 1) {
-                        util.forEachObjectLiteral(expr.slice(1, -1), function (attr, value) {
+                        util.forEachObjectLiteral(expr, function (attr, value) {
                             var val = this.evaluate(binding + '.' + attr, value, node);
                             if (typeof val === 'string' || typeof val === 'number') {
                                 node.setAttribute(attr, val + '');
@@ -612,7 +599,7 @@
             css: {
                 init: function (node, binding, expr) {
                     if (node.nodeType === 1) {
-                        util.forEachObjectLiteral(expr.slice(1, -1), function (className, expr) {
+                        util.forEachObjectLiteral(expr, function (className, expr) {
                             var val = this.evaluate(binding + '.' + className, expr, node);
                             if (val) {
                                 $(node).addClass(className);
@@ -639,7 +626,7 @@
                 return {
                     init: function (node, binding, expr) {
                         if (node.nodeType === 1) {
-                            util.forEachObjectLiteral(expr.slice(1, -1), function (prop, expr) {
+                            util.forEachObjectLiteral(expr, function (prop, expr) {
                                 var val = this.evaluate(binding + '.' + prop, expr, node) || null;
                                 node.style.setProperty(prop.replace(/[A-Z]/g, toCssProp), val);
                             }, this);
@@ -774,19 +761,31 @@
                     var node = tNode.cloneNode(false);
                     stack[stack.length - 1].appendChild(node);
 
-                    var match, binding, control;
+                    var bindings, match, control;
                     if (node.nodeType === 1) { //element
                         stack.push(node);
                         tStack.push(tNode);
 
+                        var classRef;
+                        if (node.nodeName.indexOf('-') > -1) {
+                            classRef = Li.getClass(node.nodeName.replace(/-/g, '.'));
+                        }
+
                         var bindOpts = node.getAttribute(this.tpl.noConflict ? 'data-htmlizer' : 'data-bind');
                         if (bindOpts) {
-                            node.removeAttribute(this.tpl.noConflict ? 'data-htmlizer' : 'data-bind');
-                            this.addNodeInfo(node, tNode);
+                            bindings = util.parseObjectLiteral(bindOpts);
+                            this.tpl.checkForConflictingBindings(bindings, classRef);
+                            if (!classRef) {
+                                node.removeAttribute(this.tpl.noConflict ? 'data-htmlizer' : 'data-bind');
+                            }
+                            this.addNodeInfo(node, {
+                                tNode: tNode,
+                                bindings: bindings
+                            });
                         }
 
                         var ret;
-                        util.forEachObjectLiteral(bindOpts, function (binding, value) {
+                        util.forEachObjectLiteral(bindings, function (binding, value) {
                             if (this.bindingHandler[binding]) {
                                 control = this.bindingHandler[binding].init.call(this,
                                     node, binding, value, tNode, blocks) || {};
@@ -802,8 +801,7 @@
                             }
                         }, this);
 
-                        var classRef;
-                        if (node.nodeName.indexOf('-') > -1 && (classRef = Li.getClass(node.nodeName.replace(/-/g, '.')))) {
+                        if (classRef) {
                             control = this.bindingHandler.componenttag.init.call(this, node, tNode, classRef);
                             if (control.domTraverse) {
                                 ret = control.domTraverse;
@@ -835,27 +833,34 @@
                         }
 
                         //Add node to this.nodeInfoList[].
-                        this.addNodeInfo(node, tNode);
+                        this.addNodeInfo(node, {tNode: tNode});
 
                         if ((/^(?:ko|hz) /).test(stmt)) {
                             commentStack.push(node);
                         } else if ((/^\/(?:ko|hz)$/).test(stmt)) {
                             var startNode = commentStack.pop();
-                            this.getNodeInfo(startNode).blockEndNode = node;
-                            this.getNodeInfo(node).blockStartNode = startNode;
+                            this.addNodeInfo(startNode, {blockEndNode: node});
+                            this.addNodeInfo(node, {blockStartNode: startNode});
                         }
 
                         match = stmt.match(util.regex.commentStatment);
-                        if (match && this.bindingHandler[match[1].trim()]) {
-                            binding = match[1].trim();
-                            control = this.bindingHandler[binding].init.call(this,
-                                node, binding, match[2], tNode, blocks) || {};
-                            if (control.skipOtherbindings) {
-                                return true;
-                            }
-                            if (control.ignoreTillNode) {
-                                ignoreTillNode = control.ignoreTillNode;
-                            }
+                        if (match) {
+                            bindings = {};
+                            bindings[match[1].trim()] = match[2];
+                            this.addNodeInfo(node, {bindings: bindings});
+
+                            util.forEachObjectLiteral(bindings, function (binding, value) {
+                                if (this.bindingHandler[binding]) {
+                                    control = this.bindingHandler[binding].init.call(this,
+                                        node, binding, value, tNode, blocks) || {};
+                                    if (control.skipOtherbindings) {
+                                        return true;
+                                    }
+                                    if (control.ignoreTillNode) {
+                                        ignoreTillNode = control.ignoreTillNode;
+                                    }
+                                }
+                            }, this);
                         }
                     }
                 } else if (!isOpenTag) {
@@ -956,14 +961,15 @@
          * @param {Node} node Node in View
          * @param {Node} tNode Corresponding Node in Template
          */
-        addNodeInfo: function (node, tNode) {
-            var nodeInfo = {
-                node: node,
-                tNode: tNode
-            };
-            this.nodeInfoList.push(nodeInfo);
-
-            this.nodeMap[Li.getUID(node)] = nodeInfo;
+        addNodeInfo: function (node, nodeInfo) {
+            var existingInfo = this.nodeMap[Li.getUID(node)];
+            if (existingInfo) { //then merge the new info.
+                Object.assign(existingInfo, nodeInfo);
+            } else {
+                nodeInfo.node = node;
+                this.nodeInfoList.push(nodeInfo);
+                this.nodeMap[Li.getUID(node)] = nodeInfo;
+            }
         },
 
         /**
@@ -1035,6 +1041,22 @@
                     node.parentNode.insertBefore(output, info.blockEndNode);
                 }
             }
+        },
+
+        /**
+         * Recursively converts values of component 'params' config to the right data type (like integers).
+         * @param {Object} params Not a string. Make sure to convert params attribute to Object -> util.parseObjectLiteral(node.getAttribute('params'));
+         * @param {HTMLELement} node
+         * @private
+         */
+        evaluateParams: function (cfg, node) {
+            Li.forEach(cfg, function (expr, key) {
+                if (typeof expr === 'string') {
+                    cfg[key] = saferEval.call(this.getRootView(), expr, this.context, this.data, node);
+                } else { //object
+                    this.parseParams(expr);
+                }
+            }, this);
         },
 
         /**
@@ -1162,8 +1184,21 @@
             var obj = {},
                 tuples = parseObjectLiteral(objectLiteral);
             tuples.forEach(function (tuple) {
-                obj[tuple[0]] = tuple[1];
-            });
+                var str = tuple[1].trim();
+                if (str[0] === '{') { //if object then parse it as well.
+                    var subObj = this.parseObjectLiteral(tuple[1].slice(1, -1));
+                    if (Li.isObject(obj[tuple[0]])) { //deep merge multiple declarations
+                        $.extend(true, obj[tuple[0]], subObj);
+                    } else {
+                        if (obj[tuple[0]]) {
+                            console.warn('Overwriting');
+                        }
+                        obj[tuple[0]] = subObj;
+                    }
+                } else {
+                    obj[tuple[0]] = tuple[1];
+                }
+            }, this);
             return obj;
         },
 
@@ -1172,9 +1207,13 @@
          * @private
          */
         forEachObjectLiteral: function (objectLiteral, callback, scope) {
-            if (objectLiteral) {
-                parseObjectLiteral(objectLiteral).some(function (tuple) {
-                    return (callback.call(scope, tuple[0], tuple[1]) === true);
+            var obj = objectLiteral;
+            if (typeof objectLiteral === 'string') {
+                obj = this.parseObjectLiteral(objectLiteral);
+            }
+            if (obj) {
+                Object.keys(obj).some(function (key) {
+                    return (callback.call(scope, key, obj[key]) === true);
                 });
             }
         },
