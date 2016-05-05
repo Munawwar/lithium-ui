@@ -73,13 +73,17 @@ define([
          * Finds template in script tag.
          * @private
          */
-        findTemplate: function (attr, type) {
+        findTemplate: function (attr, type, returnAsDocumentFragment) {
             var tpl = null,
                 selector = 'script[' + attr + '="' + type + '"]',
                 tplTag = document.querySelector(selector);
             if (tplTag) {
                 var text = tplTag.firstChild.nodeValue.trim();
-                tpl = new Li.Template(text);
+                if (returnAsDocumentFragment) {
+                    tpl = Li.dom(text);
+                } else {
+                    tpl = new Li.Template(text);
+                }
             }
             return tpl;
         },

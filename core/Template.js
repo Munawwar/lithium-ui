@@ -77,6 +77,7 @@
                             this.checkForConflictingBindings(bindings, classRef);
                             nodeInfo.node = node;
                             nodeInfo.depth = depth;
+                            nodeInfo.bindings = bindings;
                             if (bindings.foreach || bindings['with'] || bindings['if'] || bindings.ifnot) {
                                 tempFrag = util.moveToNewFragment(Li.slice(node.childNodes));
                                 nodeInfo.subTpl = new Htmlizer(tempFrag, $.extend({depth: depth}, this.cfg));
@@ -105,6 +106,8 @@
                             nodeInfo.depth = depth;
                             nodeInfo.block = block;
                             match = stmt.match(util.regex.commentStatment);
+                            nodeInfo.bindings = {};
+                            nodeInfo.bindings[match[1].trim()] = match[2];
                             if (block.key === 'foreach' || block.key === 'with' || block.key === 'if' || block.key === 'ifnot') {
                                 blockNodes = util.getImmediateNodes(frag, block.start, block.end);
                                 tempFrag = util.moveToNewFragment(blockNodes);
@@ -125,39 +128,6 @@
          */
         getTNodeInfo: function (node) {
             return this.nodeMap[Li.getUID(node)];
-        },
-
-        /**
-         * Returns cloned template as document fragment
-         * @private
-         */
-        cloneFragment: function () {
-            var frag = document.createDocumentFragment(),
-                nodeMap = {}; //map old nodes to new ones.
-            nodeMap[Li.getUID(this.frag)] = frag;
-            traverse(this.frag, this.frag, function (node, isOpenTag) {
-                if (isOpenTag) {
-                    var newNode = node.cloneNode();
-                    nodeMap[Li.getUID(node)] = newNode;
-                    nodeMap[Li.getUID(node.parentNode)].appendChild(newNode);
-
-                    //For elements with foreach/if/ifnot/with binding, clone sub-templates as well.
-                    if (node.nodeType === 1) {
-                        var info = this.getTNodeInfo(node);
-                        if (info && info.subTpl) {
-                            newNode.appendChild(info.subTpl.cloneFragment());
-                        }
-                    }
-                }
-            }, this);
-            return frag;
-        },
-
-        /**
-         * Returns a new clone of this Template.
-         */
-        clone: function () {
-            return new Htmlizer(this.cloneFragment(), Object.assign({}, this.cfg));
         },
 
         /**
@@ -477,11 +447,12 @@
                     }
                 },
                 splice: function (node, binding, expr, index, removeLength, newItems) {
-                    var info = this.getNodeInfo(node),
-                        tpl = this.tpl.getTNodeInfo(info.tNode).subTpl,
+                    var tNode = this.getNodeInfo(node).tNode,
+                        tNodeInfo = this.tpl.getTNodeInfo(tNode),
+                        tpl = tNodeInfo.subTpl,
                         as;
 
-                    expr = info.bindings.foreach;
+                    expr = tNodeInfo.bindings.foreach;
                     if (typeof expr !== 'string') {
                         as = expr.as.slice(1, -1);
                     }
@@ -771,17 +742,12 @@
                             classRef = Li.getClass(node.nodeName.replace(/-/g, '.'));
                         }
 
-                        var bindOpts = node.getAttribute(this.tpl.noConflict ? 'data-htmlizer' : 'data-bind');
-                        if (bindOpts) {
-                            bindings = util.parseObjectLiteral(bindOpts);
-                            this.tpl.checkForConflictingBindings(bindings, classRef);
+                        bindings = (this.tpl.getTNodeInfo(tNode) || {}).bindings;
+                        if (bindings) {
                             if (!classRef) {
                                 node.removeAttribute(this.tpl.noConflict ? 'data-htmlizer' : 'data-bind');
                             }
-                            this.addNodeInfo(node, {
-                                tNode: tNode,
-                                bindings: bindings
-                            });
+                            this.setNodeInfo(node, {tNode: tNode});
                         }
 
                         var ret;
@@ -833,35 +799,29 @@
                         }
 
                         //Add node to this.nodeInfoList[].
-                        this.addNodeInfo(node, {tNode: tNode});
+                        this.setNodeInfo(node, {tNode: tNode});
 
                         if ((/^(?:ko|hz) /).test(stmt)) {
                             commentStack.push(node);
                         } else if ((/^\/(?:ko|hz)$/).test(stmt)) {
                             var startNode = commentStack.pop();
-                            this.addNodeInfo(startNode, {blockEndNode: node});
-                            this.addNodeInfo(node, {blockStartNode: startNode});
+                            this.setNodeInfo(startNode, {blockEndNode: node});
+                            this.setNodeInfo(node, {blockStartNode: startNode});
                         }
 
-                        match = stmt.match(util.regex.commentStatment);
-                        if (match) {
-                            bindings = {};
-                            bindings[match[1].trim()] = match[2];
-                            this.addNodeInfo(node, {bindings: bindings});
-
-                            util.forEachObjectLiteral(bindings, function (binding, value) {
-                                if (this.bindingHandler[binding]) {
-                                    control = this.bindingHandler[binding].init.call(this,
-                                        node, binding, value, tNode, blocks) || {};
-                                    if (control.skipOtherbindings) {
-                                        return true;
-                                    }
-                                    if (control.ignoreTillNode) {
-                                        ignoreTillNode = control.ignoreTillNode;
-                                    }
+                        bindings = (this.tpl.getTNodeInfo(tNode) || {}).bindings;
+                        util.forEachObjectLiteral(bindings, function (binding, value) {
+                            if (this.bindingHandler[binding]) {
+                                control = this.bindingHandler[binding].init.call(this,
+                                    node, binding, value, tNode, blocks) || {};
+                                if (control.skipOtherbindings) {
+                                    return true;
                                 }
-                            }, this);
-                        }
+                                if (control.ignoreTillNode) {
+                                    ignoreTillNode = control.ignoreTillNode;
+                                }
+                            }
+                        }, this);
                     }
                 } else if (!isOpenTag) {
                     if (tNode.nodeType === 1 && tStack[tStack.length - 1] === tNode) {
@@ -961,7 +921,7 @@
          * @param {Node} node Node in View
          * @param {Node} tNode Corresponding Node in Template
          */
-        addNodeInfo: function (node, nodeInfo) {
+        setNodeInfo: function (node, nodeInfo) {
             var existingInfo = this.nodeMap[Li.getUID(node)];
             if (existingInfo) { //then merge the new info.
                 Object.assign(existingInfo, nodeInfo);

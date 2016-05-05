@@ -61,11 +61,11 @@ define([
             //Therefore, use the Li.getClass() method.
             if (proto === Li.getClass('Li.Component').prototype || (proto instanceof Li.Component)) {
                 var prefix = proto.type.toLowerCase().replace(/\./g, '-');
-                tpl = Li.findTemplate('id', prefix + '-outer');
+                tpl = Li.findTemplate('id', prefix + '-outer', true);
                 if (tpl) { //not to override prototype, if template doesn't exist
                     proto.outerTpl = tpl;
                 }
-                tpl = Li.findTemplate('id', prefix + '-inner');
+                tpl = Li.findTemplate('id', prefix + '-inner', false);
                 if (tpl) {
                     proto.innerTpl = tpl;
                 }
@@ -117,12 +117,12 @@ define([
             cfg.style = cfg.style || this.style;
 
             //Add attributes
-            this.outerTpl = this.outerTpl.clone(); //create clone to not modify prototype outerTpl
+            this.outerTpl = this.outerTpl.cloneNode(true); //create clone so as to not modify prototype outerTpl
             cfg.addAttribute = cfg.addAttribute || {};
             cfg.addAttribute.id = this.id;
             cfg.addAttribute['data-type'] = this.type;
             if (cfg.addAttribute['data-bind']) {
-                var el = this.outerTpl.frag.firstElementChild,
+                var el = this.outerTpl.firstElementChild,
                     dataBind = el.getAttribute('data-bind');
                 el.setAttribute('data-bind', (dataBind ? (dataBind + ', ') : '') + cfg.addAttribute['data-bind']);
             }
@@ -151,8 +151,9 @@ define([
          * @protected
          */
         initalizeView: function () {
-            this.view = (new Li.Template.View(this.outerTpl, this));
-            this.el = this.view.fragment.querySelector('#' + this.id);
+            var tpl = new Li.Template(this.outerTpl);
+            this.view = new Li.Template.View(tpl, this);
+            this.el = this.view.fragment.firstElementChild;
             Object.defineProperty(this.el, 'liComponent', {value: this});
         },
         /**
@@ -186,7 +187,7 @@ define([
              * web component standard? (Browser compatibility is an issue though).
              * 2. avoid adding the same data-bind on all root elements of all components.
              */
-            var el = this.el || this.outerTpl.frag.firstElementChild;
+            var el = this.el || this.outerTpl.firstElementChild;
             /* Order is important. Removal of attributes needs to be done before adding attributes to keep expectations.*/
             if (cfg.removeAttribute) {
                 obj = {};
