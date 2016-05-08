@@ -1,15 +1,21 @@
 define([
-    '../core/Component',
+    './Popover',
     'jquery',
     'tpl!./Dropdown.ko',
     'css!./Dropdown.css'
 ], function (Li, $) {
 
     /**
-     * Dropdown.
+     * Dropdown component. It cannot be used without first filling the
+     * fieldEl property (the element that triggers the dropdown to show).
      */
-    Li.Dropdown = Li.extend('Li.Dropdown', Li.Component, {
-        cls: 'select-wrapper',
+    Li.Dropdown = Li.extend('Li.Dropdown', Li.Popover, {
+        /**
+         * List item template.
+         */
+        listItemTpl: null,
+
+        cls: 'dropdown-content select-dropdown',
         /**
          * @cfg {Array[]} options Array of {value: <value>, text: <text>} objects.
          *  Optionally disabled property and cls property (for CSS class) is allowed.
@@ -19,10 +25,6 @@ define([
          * @cfg {String} value
          */
         value: Li.Observable(''),
-        /**
-         * Disabled when true.
-         */
-        disabled: Li.Observable(false),
         /**
          * @cfg {Number} [defaultOption=0]
          */
@@ -36,7 +38,31 @@ define([
         belowOrigin: false,
         alignment: 'left',
 
+        /**
+         * The field element (like input or button tag) which triggers the dropdown.
+         * @type {HTMLElement}
+         */
+        fieldEl: null,
+
+        /**
+         * Extends base class method.
+         */
+        afterExtend: function (proto) {
+            proto.constructor.super.afterExtend(proto);
+
+            var tpl;
+            if (proto === Li.getClass('Li.Dropdown').prototype || (proto instanceof Li.Dropdown)) {
+                var prefix = proto.type.toLowerCase().replace(/\./g, '-');
+                tpl = Li.findTemplate('id', prefix + '-listitem');
+                if (tpl) {
+                    proto.listItemTpl = tpl;
+                }
+            }
+        },
+
         constructor: function (cfg) {
+            this.fieldEl = cfg.fieldEl;
+
             //Initialize value
             cfg.options = cfg.options || [];
             var initialValue = (cfg.options.filter(function (option) {
@@ -47,36 +73,12 @@ define([
 
             this.super(arguments);
 
-            document.body.appendChild(this.ulEl); //move ul to document body, since it is needs to be positioned absolute.
+            //this.dropdown.render(document.body);
+            document.body.appendChild(this.el);
 
             this.on({
-                inputEl: {
-                    blur: this.onBlur,
-                    click: this.onClick,
-                    keydown: this.onKeyDown,
-                    keyup: this.onKeyUp
-                },
-                ulEl: {
-                    click: this.onItemClick
-                }
+                click: this.onItemClick
             });
-        },
-        /**
-         * Overrides base class method.
-         */
-        makeConfigFromView: function (element, cfg) {
-            cfg = this.super(arguments);
-            cfg.options = Li.slice(cfg.innerTpl.frag.querySelectorAll('option')).map(function (el) {
-                return {
-                    value: el.hasAttribute('value') ? el.getAttribute('value') : el.textContent,
-                    text: el.textContent,
-                    cls: el.getAttribute('class') || '',
-                    disabled: Li.Observable(el.hasAttribute('disabled')),
-                    selected: el.hasAttribute('selected'),
-                };
-            });
-            cfg.innerTpl = null;
-            return cfg;
         },
 
         /**
@@ -101,6 +103,9 @@ define([
             return index;
         },
 
+        /**
+         * Get selected value.
+         */
         getValue: function () {
             return this.value();
         },
@@ -111,9 +116,6 @@ define([
             if (this.getIndexOfValue(value) > -1) {
                 this.value(value);
             }
-        },
-        clear: function () {
-            this.value(this.options()[this.defaultOption].value);
         },
 
         /**
@@ -155,14 +157,15 @@ define([
          * Helper function to position and resize dropdown. Used in click handler.
          * @private
          */
-        placeDropdown: function () {
+        show: function (e) {
             var options = this,
-                origin = $(this.inputEl),
-                activates = $(this.ulEl);
+                origin = $(this.fieldEl),
+                activates = $(this.el);
 
             // Set Dropdown state
             activates.addClass('active');
             origin.addClass('active');
+            origin[0].setAttribute('aria-expanded', 'true');
 
             // Constrain width
             if (options.constrain_width === true) {
@@ -186,24 +189,14 @@ define([
                 options.alignment = 'left';
             }
 
-            Li.position({
-                target: activates[0],
+            this.super([e, {
                 anchor: [(options.alignment === 'left' ? 'start' : 'end'), 'start'],
                 relTo: origin[0],
                 relAnchor: [(options.alignment === 'left' ? 'start' : 'end'), 'start'],
                 displace: [options.gutter, (options.belowOrigin ? origin.innerHeight() : 0)],
                 allowOffscreen: false, //Make sure drop-down is fully visible.
                 offscreenMargin: 5
-            });
-
-            //Make sure it is above modal windows. This is a hack. Ideally Dropdown should be a popover.
-            if (Li.Popover && Li.Popover.stack.length) {
-                activates.css({
-                    zIndex: 1000 + Li.Popover.stack.length + 1,
-                });
-            } else {
-                activates[0].style.removeProperty('z-index');
-            }
+            }]);
 
             // Show dropdown
             var activatesHeight = activates.outerHeight();
@@ -231,10 +224,8 @@ define([
                     duration: options.inDuration,
                     easing: 'easeOutSine',
                     complete: function () {
-                        //Make input field writable for text search
-                        origin[0].value = '';
-                        origin[0].readOnly = false;
-                    }
+                        this.trigger('opened', {component: this});
+                    }.bind(this)
                 });
 
             //reselect (in case it was changed last time due to arrow keys)
@@ -242,44 +233,38 @@ define([
             var current = activates.find('li[data-value="' + this.value() + '"]');
             current.addClass('active');
             current[0].scrollIntoView();
+
+            if (document.activeElement !== this.fieldEl) {
+                this.fieldEl.focus();
+            }
         },
 
-        hideDropdown: function () {
+        hide: function () {
             var options = this,
-                origin = $(this.inputEl),
-                activates = $(this.ulEl);
+                origin = $(this.fieldEl),
+                activates = $(this.el);
 
-            //make text field read-only again.
-            window.clearTimeout(this.searchTimer);
-            origin[0].value = this.getTextForValue(this.value());
-            origin[0].readOnly = true;
-
-            activates.fadeOut(options.outDuration);
             activates.removeClass('active');
             origin.removeClass('active');
+            origin[0].setAttribute('aria-expanded', 'false');
+
+            this.super([{duration: options.outDuration}]);
+
+            this.trigger('closed', {component: this});
         },
 
         onBlur: function () {
-            this.hideDropdown();
+            this.hide();
         },
 
         onClick: function (e) {
-            var origin = $(this.inputEl),
-                activates = $(this.ulEl);
+            var activates = $(this.el);
 
-            if (!origin.hasClass('active')) {
-                e.preventDefault(); // Prevents button click from moving window
-                this.placeDropdown();
+            if (!activates.hasClass('active')) {
+                this.show(e);
+                e.preventDefault(); //prevent focus from moving to any other element.
             } else { // If origin is clicked and menu is open, close menu
-                this.hideDropdown();
-                Li.off(document, 'click', this.onDocumentClick, this);
-            }
-            // If menu open, add click close handler to document
-            if (activates.hasClass('active')) {
-                Li.on(document, 'click', this.onDocumentClick, this);
-            }
-            if (document.activeElement !== this.inputEl) {
-                this.inputEl.focus();
+                this.hide();
             }
         },
 
@@ -295,9 +280,10 @@ define([
                     this.trigger('change', {component: this, value: value, prevValue: prevValue});
                 }
             }
-            if (document.activeElement !== this.inputEl) {
-                this.inputEl.focus();
+            if (document.activeElement !== this.fieldEl) {
+                this.fieldEl.focus();
             }
+            this.trigger('clicked', {component: this});
             e.stopPropagation();
         },
 
@@ -305,12 +291,11 @@ define([
          * Listen to clicks outside dropdown when dropdown is open.
          * @private
          */
-        onDocumentClick: function (e) {
-            var origin = $(this.inputEl),
-                activates = $(this.ulEl);
+        onClickDocument: function (e) {
+            var origin = $(this.fieldEl),
+                activates = $(this.el);
             if (!activates.is(e.target) && !origin.is(e.target) && !origin.find(e.target).length) {
-                this.hideDropdown();
-                Li.off(document, 'click', this.onDocumentClick, this);
+                this.super(arguments);
             }
         },
 
@@ -319,17 +304,17 @@ define([
          * @private
          */
         onKeyDown: function (event) {
-            var activates = $(this.ulEl),
+            var activates = $(this.el),
                 newOption, activeOption;
 
             // TAB - switch to another input
             if (event.which === 9) {
-                return this.hideDropdown();
+                return this.hide();
             }
 
             // ARROW DOWN WHEN SELECT IS CLOSED - open select options
             if (event.which === 40 && !activates.is(":visible")) {
-                return this.placeDropdown();
+                return this.show(event);
             }
 
             // ENTER WHEN SELECT IS CLOSED - submit form
@@ -348,7 +333,7 @@ define([
                 activeOption = activates.find('li.active:not(.disabled)')[0];
                 if (activeOption) {
                     $(activeOption).trigger('click');
-                    this.hideDropdown();
+                    this.hide();
                 }
             }
 
@@ -363,7 +348,7 @@ define([
 
             // ESC - close options
             if (event.which === 27) {
-                this.hideDropdown();
+                this.hide();
             }
 
             // ARROW UP - move to previous not disabled option
@@ -373,39 +358,6 @@ define([
                 if (newOption) {
                     this.activateOption(activates, newOption);
                 }
-            }
-        },
-
-        /**
-         * Implements options search.
-         * @private
-         */
-        onKeyUp: function (event) {
-            var activates = $(this.ulEl);
-            //ignore keys when dropdown is closed.
-            if (!activates.hasClass('active')) {
-                return;
-            }
-
-            // CASE WHEN USER TYPE LETTERS
-            var searchText = this.inputEl.value,
-                nonLetters = [9,13,27,37,38,39,40];
-            if (searchText && (nonLetters.indexOf(event.which) === -1) && !event.ctrlKey && ! event.metaKey) {
-                var newOption = activates.find('li').filter(function() {
-                    return $(this).text().toLowerCase().indexOf(searchText) === 0;
-                })[0];
-
-                if (newOption) {
-                    this.activateOption(activates, newOption);
-                }
-            }
-
-            if (searchText) {
-                // Automaticaly clean filter query so user can search again by starting letters
-                window.clearTimeout(this.searchTimer);
-                this.searchTimer = window.setTimeout(function () {
-                    this.inputEl.value = '';
-                }.bind(this), 1000);
             }
         }
     });

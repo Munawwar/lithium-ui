@@ -1,0 +1,14 @@
+<script type="text/html" id="li-select-outer">
+    <div>
+        <span class="caret">▼</span>
+        <input type="text" class="select-dropdown" ref="inputEl" readonly="true"
+            role="combobox" aria-autocomplete="list" aria-expanded="false"
+            data-bind="attr: {
+                    aria-owns: dropdown.id,
+                    aria-activedescendant: dropdown.id + '-item-' + getIndexOfValue(getValue()),
+                    disabled: disabled() ? 'disabled' : null
+                },
+                css: {disabled: disabled},
+                value: getTextForValue(getValue())">
+    </div>
+</script>

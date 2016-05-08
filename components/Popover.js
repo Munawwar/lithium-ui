@@ -88,7 +88,7 @@ define([
             }
         },
 
-        hide: function () {
+        hide: function (animateOpts) {
             var stack = Li.Popover.stack;
 
             //Remove self from stack.
@@ -107,7 +107,11 @@ define([
                 Li.off(document, 'keyup', this.onKeyUpDocument);
             }
 
-            this.el.style.removeProperty('display');
+            if (animateOpts) {
+                $(this.el).velocity({ opacity: 0 }, Object.assign({ display: "none" }, Li.isObject(animateOpts) ? animateOpts : {}));
+            } else {
+                this.el.style.removeProperty('display');
+            }
         },
 
         onClickDocument: function (e) {
