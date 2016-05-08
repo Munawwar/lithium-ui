@@ -140,7 +140,7 @@ define([
             this.set(cfg);
 
             //Render in-memory
-            this.initalizeView();
+            this.initializeView();
 
             if (cfg.listeners) {
                 this.on(cfg.listeners);
@@ -150,7 +150,7 @@ define([
          * Render in-memory.
          * @protected
          */
-        initalizeView: function () {
+        initializeView: function () {
             var tpl = new Li.Template(this.outerTpl);
             this.view = new Li.Template.View(tpl, this);
             this.el = this.view.fragment.firstElementChild;
