@@ -142,9 +142,7 @@ define([
             //Render in-memory
             this.initializeView();
 
-            if (cfg.listeners) {
-                this.on(cfg.listeners);
-            }
+            this.attachListeners();
         },
         /**
          * Render in-memory.
@@ -269,15 +267,18 @@ define([
          */
         render: function (target, childIndex) {
             //Store the root component being rendered
-            if (!Li.Component.currentRootRender) {
-                Li.Component.currentRootRender = this;
+            if (!Li.Component.renderingRoot) {
+                Li.Component.renderingRoot = this;
+                target.insertBefore(this.view.toDocumentFragment(), target.childNodes[childIndex]);
             }
-            target.insertBefore(this.view.toDocumentFragment(), target.childNodes[childIndex]);
-            if (Li.Component.currentRootRender === this) {
-                delete Li.Component.currentRootRender;
+            //Call render() on sub-components as well, since they may need to do some post-processing.
+            this.view.getComponents().forEach(function (component) {
+                component.render(component.el.parentNode, Li.childIndex(component.el));
+            });
+            if (Li.Component.renderingRoot === this) {
+                delete Li.Component.renderingRoot;
+                window.flexRecalc(this.el); //recalc after root component has been rendered. This minimizes recalcs.
             }
-            this.postRender(target);
-            this.trigger('afterrender', this);
         },
         /**
          * Remove this component from document.
@@ -297,20 +298,6 @@ define([
          */
         refresh: function () {
             this.render(this.el.parentNode, Li.childIndex(this.el));
-        },
-
-        /**
-         * Post render processing. Mainly attaching of listeners.
-         * @protected
-         */
-        postRender: function (target) {
-            if (!Li.Component.currentRootRender) { //recalc after root component has been rendered. This minimizes recalcs.
-                window.flexRecalc(this.el);
-            }
-            this.attachListeners();
-            this.view.getComponents().forEach(function (component) {
-                component.postRender(target);
-            });
         },
 
         /**
@@ -383,7 +370,7 @@ define([
                     }
                 } else {
                     eventname = props[0];
-                    if (eventname[0] !== '$') { //if not pupsub event
+                    if (eventname[0] !== '$') { //if not pupsub event, assume HTMLElement
                         $(this.el).on(eventname, func);
                     }
                 }

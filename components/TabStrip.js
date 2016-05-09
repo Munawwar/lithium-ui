@@ -105,7 +105,7 @@ define([
             }
         },
 
-        postRender: function () {
+        render: function () {
             this.super(arguments);
 
             //Hide all

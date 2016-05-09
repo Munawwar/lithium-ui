@@ -32,8 +32,9 @@ define([
         /**
          * @override
          */
-        postRender: function () {
+        render: function () {
             this.super(arguments);
+
             if (!this.closeBtn) {
                 setTimeout(function () {
                     $(this.el).fadeOut(1000, this.unrender.bind(this));

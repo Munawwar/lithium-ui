@@ -9,17 +9,8 @@ define([
      */
     Li.Text = Li.extend('Li.Text', Li.Component, {
         cls: 'form-control',
-        autocomplete: [],
         placeholder: Li.Observable(''),
-        getValue: function () {
-            return this.el.value;
-        },
-        setValue: function (value) {
-            this.el.value = value;
-        },
-        clear: function () {
-            this.el.value = '';
-        },
+
         /**
          * @override
          */
@@ -30,22 +21,15 @@ define([
             }
             return cfg;
         },
-        /**
-         * @override
-         */
-        postRender: function () {
-            this.adjustAutoComplete();
-            this.super(arguments);
+
+        getValue: function () {
+            return this.el.value;
         },
-        /**
-         * @private
-         */
-        adjustAutoComplete: function () {
-            if (this.autocomplete.length) {
-                $(this.el).autocomplete({
-                    source: this.autocomplete
-                });
-            }
+        setValue: function (value) {
+            this.el.value = value;
+        },
+        clear: function () {
+            this.el.value = '';
         }
     });
 

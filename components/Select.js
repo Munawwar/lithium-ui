@@ -120,6 +120,11 @@ define([
             return this.dropdown.hide();
         },
 
+        render: function () {
+            this.dropdown.render(document.body);
+            this.super(arguments);
+        },
+
         onChange: function (cfg) {
             cfg.component = this;
             this.trigger('change', cfg);

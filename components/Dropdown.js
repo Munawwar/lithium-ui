@@ -73,9 +73,6 @@ define([
 
             this.super(arguments);
 
-            //this.dropdown.render(document.body);
-            document.body.appendChild(this.el);
-
             this.on({
                 click: this.onItemClick
             });

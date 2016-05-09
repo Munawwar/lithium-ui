@@ -82,7 +82,7 @@ define(['./libs', '../core/Component', '../core/Observable', 'tpl!./Button.ko'],
             );
         },
 
-        postRender: function () {
+        render: function () {
             this.super(arguments);
 
             var bgColor = window.getComputedStyle(this.el).backgroundColor;

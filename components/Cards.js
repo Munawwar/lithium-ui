@@ -31,7 +31,7 @@ define(['../core/Box'], function (Li) {
             }
         },
 
-        postRender: function () {
+        render: function () {
             this.super(arguments);
 
             //Hide all
