@@ -1,16 +1,16 @@
 define([
     '../core/Component',
-    'jquery',
-
     './Dropdown',
-    'tpl!./Select.ko'
-], function (Li, $) {
+
+    'tpl!./SelectIcon.ko',
+    'css!./SelectIcon.css'
+], function (Li) {
 
     /**
      * Dropdown.
      */
-    Li.Select = Li.extend('Li.Select', Li.Component, {
-        cls: 'select-wrapper',
+    Li.SelectIcon = Li.extend('Li.SelectIcon', Li.Component, {
+        cls: '',
         /**
          * Disabled when true.
          */
@@ -22,34 +22,24 @@ define([
 
         constructor: function (cfg) {
             this.dropdown = new Li.Dropdown({
+                addClass: "selecticon-dropdown",
+                removeClass: "select-dropdown",
                 defaultOption: this.defaultOption,
                 options: cfg.options
             });
 
             this.super(arguments);
 
-            this.dropdown.set({fieldEl: this.inputEl});
+            this.dropdown.set({fieldEl: this.buttonEl});
 
             this.on({
-                inputEl: {
+                buttonEl: {
                     click: this.dropdown.onClick.bind(this.dropdown),
                     blur: this.dropdown.onBlur.bind(this.dropdown),
-                    keydown: this.dropdown.onKeyDown.bind(this.dropdown),
-                    keyup: this.onKeyUp
+                    keydown: this.dropdown.onKeyDown.bind(this.dropdown)
                 },
                 dropdown: {
-                    $change: this.onChange,
-                    $opened: function () {
-                        //Make input field writable for text search
-                        this.inputEl.value = '';
-                        this.inputEl.readOnly = false;
-                    },
-                    $closed: function () {
-                        //make text field read-only again.
-                        window.clearTimeout(this.searchTimer);
-                        this.inputEl.value = this.getTextForValue(this.getValue());
-                        this.inputEl.readOnly = true;
-                    }
+                    $change: this.onChange
                 }
             });
         },
@@ -117,39 +107,6 @@ define([
         onChange: function (cfg) {
             cfg.component = this;
             this.trigger('change', cfg);
-        },
-
-        /**
-         * Implements options search.
-         * @private
-         */
-        onKeyUp: function (event) {
-            var activates = $(this.dropdown.el);
-            //ignore keys when dropdown is closed.
-            if (!activates.hasClass('active')) {
-                return;
-            }
-
-            // CASE WHEN USER TYPE LETTERS
-            var searchText = this.inputEl.value,
-                nonLetters = [9,13,27,37,38,39,40];
-            if (searchText && (nonLetters.indexOf(event.which) === -1) && !event.ctrlKey && ! event.metaKey) {
-                var newOption = activates.find('li').filter(function() {
-                    return $(this).text().toLowerCase().indexOf(searchText) === 0;
-                })[0];
-
-                if (newOption) {
-                    this.activateOption(activates, newOption);
-                }
-            }
-
-            if (searchText) {
-                // Automaticaly clean filter query so user can search again by starting letters
-                window.clearTimeout(this.searchTimer);
-                this.searchTimer = window.setTimeout(function () {
-                    this.inputEl.value = '';
-                }.bind(this), 1000);
-            }
         }
     });
 

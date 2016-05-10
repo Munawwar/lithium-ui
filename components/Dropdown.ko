@@ -1,11 +1,11 @@
 <script type="text/html" id="li-dropdown-outer">
     <ul class="dropdown-content select-dropdown" role="listbox" data-bind="foreach: options" style="width: 170px; display: none;">
-        <li role="option" data-bind="attr: {data-value: $data.value, class: $data.cls, id: $root.id + '-item-' + $index()},
+        <li role="option" data-bind="attr: {data-value: $data.value, id: $root.id + '-item-' + $index()},
             css: {active: $data.value === $root.getValue(), disabled: $data.disabled}">
                 <!-- ko template: $root.listItemTpl --><!-- /ko -->
             </li>
     </ul>
 </script>
 <script type="text/html" id="li-dropdown-listitem">
-    <span data-bind="text: $data.text"></span>
+    <span data-bind="text: $data.text, attr: { class: $data.cls }"></span>
 </script>

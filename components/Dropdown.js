@@ -1,8 +1,7 @@
 define([
     './Popover',
     'jquery',
-    'tpl!./Dropdown.ko',
-    'css!./Dropdown.css'
+    'tpl!./Dropdown.ko'
 ], function (Li, $) {
 
     /**
@@ -58,6 +57,24 @@ define([
                     proto.listItemTpl = tpl;
                 }
             }
+        },
+
+        /**
+         * Overrides base class method.
+         */
+        makeConfigFromView: function (element, cfg) {
+            cfg = this.super(arguments);
+            cfg.options = Li.slice(cfg.innerTpl.frag.querySelectorAll('option')).map(function (el) {
+                return {
+                    value: el.hasAttribute('value') ? el.getAttribute('value') : el.textContent,
+                    text: el.textContent,
+                    cls: el.getAttribute('class') || '',
+                    disabled: Li.Observable(el.hasAttribute('disabled')),
+                    selected: el.hasAttribute('selected'),
+                };
+            });
+            cfg.innerTpl = null;
+            return cfg;
         },
 
         constructor: function (cfg) {
