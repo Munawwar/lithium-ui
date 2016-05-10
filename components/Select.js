@@ -3,14 +3,15 @@ define([
     'jquery',
 
     './Dropdown',
-    'tpl!./Select.ko'
+    'tpl!./Select.ko',
+    'css!./Select.css'
 ], function (Li, $) {
 
     /**
      * Dropdown.
      */
     Li.Select = Li.extend('Li.Select', Li.Component, {
-        cls: 'select-wrapper',
+        cls: 'select-wrapper btn-flat mimick-textfield hbox cross-center',
         /**
          * Disabled when true.
          */
@@ -25,15 +26,23 @@ define([
                 defaultOption: this.defaultOption,
                 options: cfg.options
             });
+            this.inputEl = Li.Select.inputEl;
+            if (!document.body.contains(this.inputEl)) {
+                document.body.appendChild(this.inputEl);
+            }
 
             this.super(arguments);
 
-            this.dropdown.set({fieldEl: this.inputEl});
+            this.dropdown.set({fieldEl: this.el});
 
             this.on({
-                inputEl: {
+                buttonEl: {
                     click: this.dropdown.onClick.bind(this.dropdown),
-                    blur: this.dropdown.onBlur.bind(this.dropdown),
+                    blur: this.onBlur,
+                    keydown: this.dropdown.onKeyDown.bind(this.dropdown)
+                },
+                inputEl: {
+                    blur: this.onBlur,
                     keydown: this.dropdown.onKeyDown.bind(this.dropdown),
                     keyup: this.onKeyUp
                 },
@@ -42,13 +51,28 @@ define([
                     $opened: function () {
                         //Make input field writable for text search
                         this.inputEl.value = '';
-                        this.inputEl.readOnly = false;
+                        this.inputEl.style.width = this.buttonEl.clientWidth + 'px';
+                        Li.position({
+                            target: this.inputEl,
+                            relTo: this.buttonEl,
+                            anchor: ['start', 'start'],
+                            relAnchor: ['start', 'start'],
+                            allowOffscreen: true
+                        });
+                        this.inputEl.style.removeProperty('display');
+
+                        this.ignoreBlur = true;
+                        this.inputEl.focus();
+                        delete this.ignoreBlur;
                     },
                     $closed: function () {
                         //make text field read-only again.
                         window.clearTimeout(this.searchTimer);
-                        this.inputEl.value = this.getTextForValue(this.getValue());
-                        this.inputEl.readOnly = true;
+                        this.inputEl.style.display = 'none';
+
+                        this.ignoreBlur = true;
+                        this.buttonEl.focus();
+                        delete this.ignoreBlur;
                     }
                 }
             });
@@ -119,6 +143,12 @@ define([
             this.trigger('change', cfg);
         },
 
+        onBlur: function () {
+            if (!this.ignoreBlur && document.activeElement !== this.buttonEl && document.activeElement !== this.inputEl) {
+                this.dropdown.hide();
+            }
+        },
+
         /**
          * Implements options search.
          * @private
@@ -135,7 +165,7 @@ define([
                 nonLetters = [9,13,27,37,38,39,40];
             if (searchText && (nonLetters.indexOf(event.which) === -1) && !event.ctrlKey && ! event.metaKey) {
                 var newOption = activates.find('li').filter(function() {
-                    return $(this).text().toLowerCase().indexOf(searchText) === 0;
+                    return $(this).text().trim().toLowerCase().indexOf(searchText) === 0;
                 })[0];
 
                 if (newOption) {
@@ -150,6 +180,10 @@ define([
                     this.inputEl.value = '';
                 }.bind(this), 1000);
             }
+        },
+
+        statics: {
+            inputEl: $.parseHTML('<input type="text" style="position:absolute; min-height: 12px; display: none;" />')[0]
         }
     });
 

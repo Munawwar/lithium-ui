@@ -258,13 +258,15 @@ define([
                 origin = $(this.fieldEl),
                 activates = $(this.el);
 
-            activates.removeClass('active');
-            origin.removeClass('active');
-            origin[0].setAttribute('aria-expanded', 'false');
+            if (activates.hasClass('active')) {
+                activates.removeClass('active');
+                origin.removeClass('active');
+                origin[0].setAttribute('aria-expanded', 'false');
 
-            this.super([{duration: options.outDuration}]);
+                this.super([{duration: options.outDuration}]);
 
-            this.trigger('closed', {component: this});
+                this.trigger('closed', {component: this});
+            }
         },
 
         onBlur: function () {
@@ -298,19 +300,9 @@ define([
                 this.fieldEl.focus();
             }
             this.trigger('clicked', {component: this});
-            e.stopPropagation();
-        },
 
-        /**
-         * Listen to clicks outside dropdown when dropdown is open.
-         * @private
-         */
-        onClickDocument: function (e) {
-            var origin = $(this.fieldEl),
-                activates = $(this.el);
-            if (!activates.is(e.target) && !origin.is(e.target) && !origin.find(e.target).length) {
-                this.super(arguments);
-            }
+            this.hide();
+            e.stopPropagation();
         },
 
         /**

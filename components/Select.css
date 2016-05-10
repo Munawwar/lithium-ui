@@ -1,0 +1,23 @@
+.select-wrapper.btn-flat {
+    display: flex;
+    text-transform: none;
+}
+.select-wrapper.btn-flat.mimick-textfield {
+    text-align: left;
+    width: 189px;
+    border-bottom: 1px solid #9e9e9e;
+    padding: 0;
+    height: 46px;
+}
+
+.select-wrapper.nocaret .caret {
+    display: none;
+}
+
+.select-wrapper.btn-flat .caret {
+    position: static;
+    line-height: 1;
+}
+body .dropdown-content {
+    min-width: auto;
+}
