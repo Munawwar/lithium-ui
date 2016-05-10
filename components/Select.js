@@ -36,43 +36,39 @@ define([
             this.dropdown.set({fieldEl: this.el});
 
             this.on({
-                buttonEl: {
-                    click: this.dropdown.onClick.bind(this.dropdown),
-                    blur: this.onBlur,
-                    keydown: this.dropdown.onKeyDown.bind(this.dropdown)
-                },
-                inputEl: {
-                    blur: this.onBlur,
-                    keydown: this.dropdown.onKeyDown.bind(this.dropdown),
-                    keyup: this.onKeyUp
-                },
+                click: this.dropdown.onClick.bind(this.dropdown),
+                keydown: this.dropdown.onKeyDown.bind(this.dropdown),
+
                 dropdown: {
                     $change: this.onChange,
                     $opened: function () {
                         //Make input field writable for text search
                         this.inputEl.value = '';
-                        this.inputEl.style.width = this.buttonEl.clientWidth + 'px';
+                        this.inputEl.style.width = this.el.clientWidth + 'px';
                         Li.position({
                             target: this.inputEl,
-                            relTo: this.buttonEl,
+                            relTo: this.el,
                             anchor: ['start', 'start'],
                             relAnchor: ['start', 'start'],
                             allowOffscreen: true
                         });
                         this.inputEl.style.removeProperty('display');
 
-                        this.ignoreBlur = true;
                         this.inputEl.focus();
-                        delete this.ignoreBlur;
+
+                        Li.on(this.inputEl, 'keydown', this.dropdown.onKeyDown, this.dropdown);
+                        Li.on(this.inputEl, 'keyup', this.onKeyUp, this);
                     },
                     $closed: function () {
                         //make text field read-only again.
                         window.clearTimeout(this.searchTimer);
+
+                        Li.off(this.inputEl, 'keydown', this.dropdown.onKeyDown, this.dropdown);
+                        Li.off(this.inputEl, 'keyup', this.onKeyUp, this);
+
                         this.inputEl.style.display = 'none';
 
-                        this.ignoreBlur = true;
-                        this.buttonEl.focus();
-                        delete this.ignoreBlur;
+                        this.el.focus();
                     }
                 }
             });
@@ -141,12 +137,6 @@ define([
         onChange: function (cfg) {
             cfg.component = this;
             this.trigger('change', cfg);
-        },
-
-        onBlur: function () {
-            if (!this.ignoreBlur && document.activeElement !== this.buttonEl && document.activeElement !== this.inputEl) {
-                this.dropdown.hide();
-            }
         },
 
         /**

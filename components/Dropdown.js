@@ -247,10 +247,6 @@ define([
             var current = activates.find('li[data-value="' + this.value() + '"]');
             current.addClass('active');
             current[0].scrollIntoView();
-
-            if (document.activeElement !== this.fieldEl) {
-                this.fieldEl.focus();
-            }
         },
 
         hide: function () {
@@ -267,10 +263,6 @@ define([
 
                 this.trigger('closed', {component: this});
             }
-        },
-
-        onBlur: function () {
-            this.hide();
         },
 
         onClick: function (e) {
@@ -295,9 +287,6 @@ define([
                     // Trigger onchange() event
                     this.trigger('change', {component: this, value: value, prevValue: prevValue});
                 }
-            }
-            if (document.activeElement !== this.fieldEl) {
-                this.fieldEl.focus();
             }
             this.trigger('clicked', {component: this});
 

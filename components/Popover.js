@@ -55,7 +55,7 @@ define([
             }
 
             //Close all popovers of same level or higher.
-            Li.Popover.closePopovers(level, 'autoclosed');
+            Li.Popover.closePopovers(level, 'autoclosed', this);
 
             //Push to stack.
             stack.push({
@@ -195,13 +195,13 @@ define([
             /**
              * Closes all popovers of given level and higher.
              */
-            closePopovers: function (level, eventName) {
+            closePopovers: function (level, eventName, caller) {
                 var stack = Li.Popover.stack,
                     info;
                 //Iterate backwards, since otherwise removal of item can affect iteration.
                 for (var i = stack.length - 1; i >= 0; i -= 1) {
                     info = stack[i];
-                    if (info.level >= level && info.component.dismissible) {
+                    if (info.component !== caller && info.level >= level && info.component.dismissible) {
                         info.component.hide(); //this also removes item from stack
                         info.component.trigger(eventName, {component: info.component});
                     }
