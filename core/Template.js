@@ -278,11 +278,7 @@
                         //Resolve reference using ref attribute
                         var ref = node.getAttribute('ref');
                         if (ref && cfg.parent) {
-                            var rel = cfg.parent;
-                            ref.split('.').slice(0, -1).forEach(function (part) {
-                                rel = rel[part];
-                            });
-                            rel[ref.split('.').slice(-1)[0]] = cmp;
+                            this.createReference(ref, cmp);
                         }
 
                         //Add to components list for rendering later
@@ -776,10 +772,7 @@
                             var parent = this.context.$root,
                                 ref = node.getAttribute('ref');
                             if (ref && parent) {
-                                ref.split('.').slice(0, -1).forEach(function (part) {
-                                    parent = parent[part];
-                                });
-                                parent[ref.split('.').slice(-1)[0]] = node;
+                                this.createReference(ref, node);
                                 node.removeAttribute('ref');
                             }
                         }
@@ -938,6 +931,46 @@
          */
         getNodeInfo: function (node) {
             return this.nodeMap[Li.getUID(node)];
+        },
+
+        /**
+         * Resolves and creates a reference.
+         *
+         * If this function throws an error, then that means the reference couldn't be resolved and
+         * is most likely that the one who wrote the template used a non-existant reference/path.
+         *
+         * @param {String} ref The path to component + property name to be created. Eg. 'inputEl', '../dropdownCmp.innerEl'
+         *
+         * One can use JS like '.' notation to create a reference inside a sub-property of a property.
+         * Creating reference on a parent component  using '../' is also allowed.
+         *
+         * @param {Li.Component|HTMLElement} object The object to be referred. i.e the newly created property will point to the given object.
+         * @private
+         */
+        createReference: function (ref, object) {
+            if (ref) {
+                var parent = this.context.$root;
+
+                //Handle '../'s. Traverse up the parent chain.
+                if (ref.startsWith('../')) {
+                    var times = ref.split('../');
+                    ref = times.pop();
+                    times.forEach(function () {
+                        parent = parent.parent;
+                    });
+                }
+
+                //Handle child referencing. Like 'component.el'.
+                var rel = parent,
+                    innerProps = ref.split('.');
+                ref = innerProps.pop();
+                innerProps.forEach(function (part) {
+                    rel = rel[part];
+                });
+
+                //Finally..
+                rel[ref] = object;
+            }
         },
 
         /**
