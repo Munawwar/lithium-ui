@@ -11,7 +11,7 @@ define([
      * Dropdown.
      */
     Li.Select = Li.extend('Li.Select', Li.Component, {
-        cls: 'select-wrapper btn-flat mimick-textfield hbox cross-center',
+        cls: 'select-wrapper btn-flat mimick-textfield',
         /**
          * Disabled when true.
          */

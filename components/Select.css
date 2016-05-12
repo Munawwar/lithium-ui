@@ -1,5 +1,4 @@
 .select-wrapper.btn-flat {
-    display: flex;
     text-transform: none;
 }
 .select-wrapper.btn-flat.mimick-textfield {
@@ -15,8 +14,8 @@
 }
 
 .select-wrapper.btn-flat .caret {
-    position: static;
     line-height: 1;
+    top: 19px;
 }
 body .dropdown-content {
     min-width: auto;
