@@ -14,6 +14,10 @@ define(['./libs', '../core/Component', '../core/Observable', 'tpl!./Button.ko'],
          * Disabled when true.
          */
         disabled: Li.Observable(false),
+        /**
+         * Sets 'toggled' CSS class
+         */
+        toggled: Li.Observable(false),
 
         /**
          * @override
