@@ -277,7 +277,7 @@
                         cmp = new ClassRef(cfg);
                         //Resolve reference using ref attribute
                         var ref = node.getAttribute('ref');
-                        if (ref && cfg.parent) {
+                        if (ref) {
                             this.createReference(ref, cmp);
                         }
 
@@ -734,6 +734,7 @@
                         tStack.push(tNode);
 
                         var classRef;
+                        //Check for Li.Component custom tag.
                         if (node.nodeName.indexOf('-') > -1) {
                             classRef = Li.getClass(node.nodeName.replace(/-/g, '.'));
                         }
@@ -763,15 +764,14 @@
                             }
                         }, this);
 
-                        if (classRef) {
+                        if (classRef) { //handle Li.Component custom tag
                             control = this.bindingHandler.componenttag.init.call(this, node, tNode, classRef);
                             if (control.domTraverse) {
                                 ret = control.domTraverse;
                             }
-                        } else {
-                            var parent = this.context.$root,
-                                ref = node.getAttribute('ref');
-                            if (ref && parent) {
+                        } else { // check for 'ref' attribute and handle it.
+                            var ref = node.getAttribute('ref');
+                            if (ref) {
                                 this.createReference(ref, node);
                                 node.removeAttribute('ref');
                             }
@@ -827,6 +827,7 @@
                 }
             }, this);
 
+            //Remove Li.Component custom tag and render component in it's place, in-memory.
             this.components.forEach(function (item) {
                 var parent = item.node.parentNode,
                     index = Li.childIndex(item.node);
@@ -949,14 +950,20 @@
          */
         createReference: function (ref, object) {
             if (ref) {
-                var parent = this.context.$root;
+                var parent = this.context.$data,
+                    parentContext = this.context;
 
                 //Handle '../'s. Traverse up the parent chain.
                 if (ref.startsWith('../')) {
                     var times = ref.split('../');
                     ref = times.pop();
                     times.forEach(function () {
-                        parent = parent.parent;
+                        if (parent instanceof Li.Component) {
+                            parent = parent.parent;
+                        } else {
+                            parent = parentContext.$parentContext.$data;
+                            parentContext = parentContext.$parentContext;
+                        }
                     });
                 }
 
