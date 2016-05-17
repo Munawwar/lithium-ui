@@ -368,7 +368,7 @@
                 update: function (node, binding, expr) {
                     var val = this.evaluate(binding, expr, node),
                         info = this.getNodeInfo(node),
-                        view = info.views[0];
+                        view = info.views && info.views[0];
                     if (!view) { //if view not created, the create it.
                         var tpl = this.tpl.getTNodeInfo(info.tNode).subTpl;
                         view = this.makeView(tpl, this.context, this.data, node);
@@ -553,7 +553,7 @@
                 },
                 update: function (node, binding, expr, attr) {
                     if (node.nodeType === 1) {
-                        var val = this.evaluate(binding, expr, node);
+                        var val = this.evaluate(binding + '.' + attr, expr, node);
                         if (val || typeof val === 'string' || typeof val === 'number') {
                             node.setAttribute(attr, val + '');
                         } else { //undefined, null, false
@@ -576,7 +576,7 @@
                 },
                 update: function (node, binding, expr, className) {
                     if (node.nodeType === 1) {
-                        var val = this.evaluate(binding, expr, node);
+                        var val = this.evaluate(binding + '.' + className, expr, node);
                         if (val) {
                             $(node).addClass(className);
                         } else {
@@ -601,7 +601,7 @@
                     },
                     update: function (node, binding, expr, prop) {
                         if (node.nodeType === 1) {
-                            var val = this.evaluate(binding, expr, node);
+                            var val = this.evaluate(binding + '.' + prop, expr, node);
                             if (val || typeof val === 'string' || typeof val === 'number') {
                                 node.style.setProperty(prop.replace(/[A-Z]/g, toCssProp), val + '');
                             } else { //undefined, null, false
