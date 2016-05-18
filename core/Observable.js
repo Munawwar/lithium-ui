@@ -85,8 +85,8 @@ define(['./lui',
             };
 
         $.extend(observable, {
-            slice: function () {
-                return value.slice(0);
+            slice: function (start, end) {
+                return value.slice(start, end);
             },
             splice: function (index, removeLength) {
                 var items = Li.slice(arguments, 2);
