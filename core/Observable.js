@@ -86,6 +86,7 @@ define(['./lui',
 
         $.extend(observable, {
             slice: function (start, end) {
+                trackDependency();
                 return value.slice(start, end);
             },
             splice: function (index, removeLength) {
@@ -132,6 +133,7 @@ define(['./lui',
                 return value.length;
             },
             indexOf: function (o) {
+                trackDependency();
                 return value.indexOf(o);
             },
             reverse: function () {
