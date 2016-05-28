@@ -2,7 +2,8 @@
 
 define([
     '../core/Component',
-    'jquery',
+    './libs',
+
     'css!./Alert.css',
     'tpl!./Alert.ko'
 ], function (Li, $) {

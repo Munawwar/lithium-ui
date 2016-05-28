@@ -1,0 +1,13 @@
+<script type="text/html" id="li-collapsablebox-outer">
+    <div>
+        <div class="collapse-title hbox cross-center">
+            <span class="leftline"></span>
+            <span ref="collapseBtn" class="collapse-btn" data-bind="html: buttonText() + '&nbsp;'"></span>
+            <span ref="collapseCaret" class="collapse-caret fa fa-caret-down"></span>
+            <span class="rightline flex"></span>
+        </div>
+        <div ref="collapsePanel" class="collapse-panel">
+            <!-- ko template: innerTpl --><!-- /ko -->
+        </div>
+    </div>
+</script>

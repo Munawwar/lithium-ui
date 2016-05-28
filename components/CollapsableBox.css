@@ -1,0 +1,26 @@
+.li-collapsablebox {
+    position: relative;
+    padding-top: 10px;
+}
+
+.li-collapsablebox .collapse-title {
+    top: -7px;
+}
+.li-collapsablebox .leftline {
+    width: 30px;
+    margin-right: 2px;
+}
+.li-collapsablebox .collapse-btn, .li-collapsablebox .collapse-caret {
+    color: #006b8b;
+    cursor: pointer;
+}
+.li-collapsablebox .leftline, .li-collapsablebox .rightline {
+    border-bottom: 1px solid #006b8b;
+}
+.li-collapsablebox .rightline {
+    margin-left: 3px;
+}
+
+.li-collapsablebox .collapse-panel {
+    overflow: hidden;
+}
