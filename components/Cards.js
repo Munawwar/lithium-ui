@@ -1,4 +1,9 @@
-define(['../core/Box'], function (Li) {
+define([
+    '../core/Box',
+    './libs',
+
+    'css!./Cards.css'
+], function (Li, $) {
 
     /**
      * A container that swtiches between different inner components.
@@ -21,13 +26,38 @@ define(['../core/Box'], function (Li) {
         /**
          * Displays given card number and hides the other cards.
          */
-        setActiveItem: function (itemNumber) {
+        setActiveItem: function (itemNumber, animate) {
             var items = Li.slice(this.el.children),
                 len = items.length;
             if (itemNumber >= 0 && itemNumber < len) {
-                items[this.activeItem].style.display = 'none';
+                var prevItem = this.activeItem;
                 this.activeItem = itemNumber;
-                items[this.activeItem].style.removeProperty('display');
+
+                if (!animate) {
+                    items[prevItem].style.display = 'none';
+                    items[this.activeItem].style.removeProperty('display');
+                } else {
+                    this.el.classList.add('animating');
+                    $(items[prevItem]).css({
+                        zIndex: 2,
+                        opacity: 1
+                    });
+                    Li.style(items[this.activeItem], {
+                        zIndex: 1,
+                        opacity: 0,
+                        display: null //remove inline display value
+                    });
+                    $(items[prevItem]).velocity({opacity: 0}, {display: 'none', queue: false});
+                    $(items[this.activeItem]).velocity({opacity: 1}, {
+                        queue: false,
+                        complete: function () {
+                            //Remove added properties
+                            this.el.classList.remove('animating');
+                            Li.style(items[prevItem], {zIndex: null, opacity: null});
+                            Li.style(items[this.activeItem], {zIndex: null, opacity: null});
+                        }.bind(this)
+                    });
+                }
             }
         },
 
