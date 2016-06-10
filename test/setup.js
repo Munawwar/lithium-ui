@@ -1,4 +1,4 @@
-require('node-amd');
+require('./systemjs-requirejs');
 requirejs.config({
     baseUrl: '../',
     paths: {
