@@ -20,8 +20,12 @@ define([
 
             this.super(arguments);
 
-            this.collapsePanel.style.height = '0px';
-            this.collapsePanel.style.opacity = 0;
+            Li.style(this.collapsePanel, {
+                height: '0px',
+                opacity: 0,
+                display: 'none'
+            });
+
             this.on({
                 collapseBtn: {
                     click: this.toggle
@@ -44,6 +48,7 @@ define([
 
         open: function () {
             this.inProgress = true;
+            this.collapsePanel.style.removeProperty('display');
             $(this.collapsePanel).velocity('stop').velocity({height: this.collapsePanel.scrollHeight, opacity: 1}, {
                 complete: function () {
                     this.collapsePanel.style.removeProperty('height');
@@ -55,6 +60,7 @@ define([
         close: function () {
             this.inProgress = true;
             $(this.collapsePanel).velocity('stop').velocity({height: 0, opacity: 0}, {
+                display: 'none',
                 complete: function () {
                     this.inProgress = false;
                 }.bind(this)
