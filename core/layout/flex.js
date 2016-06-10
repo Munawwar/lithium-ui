@@ -5,7 +5,7 @@
  *
  * This JS computes and sets height for flex items within 'vbox'es.
  */
-define(['../base/lithium'], function (Li) {
+define(['../base/lithium.js'], function (Li) {
 
     var module = {
         elMap: {},

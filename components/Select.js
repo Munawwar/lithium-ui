@@ -1,10 +1,10 @@
 define([
-    '../core/Component',
+    '../core/Component.js',
     'jquery',
 
-    './Dropdown',
-    'tpl!./Select.ko',
-    'css!./Select.css'
+    './Dropdown.js',
+    './Select.ko!tpl',
+    './Select.css!css'
 ], function (Li, $) {
 
     /**

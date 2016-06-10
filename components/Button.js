@@ -1,4 +1,9 @@
-define(['./libs', '../core/Component', '../core/Observable', 'tpl!./Button.ko'], function ($, Li) {
+define([
+    './libs.js',
+    '../core/Component.js',
+    '../core/Observable.js',
+    './Button.ko!tpl'
+], function ($, Li) {
 
     /**
      * Button.

@@ -1,8 +1,8 @@
 define([
-    '../core/Box',
+    '../core/Box.js',
     'jquery',
 
-    'tpl!./TabStrip.ko'
+    './TabStrip.ko!tpl'
 ], function (Li, $) {
 
     /**

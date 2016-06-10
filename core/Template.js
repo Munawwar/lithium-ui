@@ -3,9 +3,9 @@
 
 (function (factory, saferEval) {
     define(['jquery',
-        './util/js-object-literal-parse',
-        './Observable',
-        './base/lithium'
+        './util/js-object-literal-parse.js',
+        './Observable.js',
+        './base/lithium.js'
     ], function ($, parseObjectLiteral, Li) {
         Li.Template = factory.call(this, saferEval, $, parseObjectLiteral, Li);
         return Li;

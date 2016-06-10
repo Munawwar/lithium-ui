@@ -1,8 +1,8 @@
 define([
-    '../core/Box',
-    './libs',
+    '../core/Box.js',
+    './libs.js',
 
-    'css!./Cards.css'
+    './Cards.css!css'
 ], function (Li, $) {
 
     /**

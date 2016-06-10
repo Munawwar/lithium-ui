@@ -1,4 +1,4 @@
-define(['./Component'], function (Li) {
+define(['./Component.js'], function (Li) {
 
     /**
      * Previously Box and Component were different. But now it is same.

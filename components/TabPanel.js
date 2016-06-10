@@ -1,4 +1,4 @@
-define(['./TabStrip', './Cards'], function (Li) {
+define(['./TabStrip.js', './Cards.js'], function (Li) {
 
     /**
      * TabPanel that needs to be initialized as follows in a template:

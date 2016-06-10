@@ -1,11 +1,11 @@
 /*globla $*/
 
 define([
-    '../core/Component',
-    './libs',
+    '../core/Component.js',
+    './libs.js',
 
-    'css!./Alert.css',
-    'tpl!./Alert.ko'
+    './Alert.css!css',
+    './Alert.ko!tpl'
 ], function (Li, $) {
     /**
      * Alert.

@@ -1,7 +1,7 @@
 define([
-    './Popover',
+    './Popover.js',
     'jquery',
-    'tpl!./Dropdown.ko'
+    './Dropdown.ko!tpl'
 ], function (Li, $) {
 
     /**

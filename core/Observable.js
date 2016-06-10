@@ -1,6 +1,6 @@
-define(['./lui',
+define(['./lui.js',
     'jquery',
-    './base/lithium'
+    './base/lithium.js'
 ], function (Li, $) {
     /**
      * Observable primitive value

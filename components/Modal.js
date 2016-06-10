@@ -1,9 +1,9 @@
 define([
     'jquery',
-    './Popover',
+    './Popover.js',
 
-    'tpl!./Modal.ko',
-    'css!./Modal.css'
+    './Modal.ko!tpl',
+    './Modal.css!css'
 ], function ($, Li) {
     /**
      * Base class for Window.

@@ -1,10 +1,10 @@
 /*global $,Li*/
 define([
-    '../core/Box',
-    './libs',
+    '../core/Box.js',
+    './libs.js',
 
-    'tpl!./CollapsableBox.ko',
-    'css!./CollapsableBox.css'
+    './CollapsableBox.ko!tpl',
+    './CollapsableBox.css!css'
 ], function (Li, $) {
     /**
      * Class for Font selection dropdown.

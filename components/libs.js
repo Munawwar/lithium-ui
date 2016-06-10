@@ -1,10 +1,10 @@
 define([
     'jquery',
-    './lib/jquery.easing',
-    './lib/jquery.hammer',
-    './lib/velocity.min',
+    './lib/jquery.easing.js',
+    './lib/jquery.hammer.js',
+    './lib/velocity.min.js',
 
-    'css!./lib/materialize/css/materialize.css'
+    './lib/materialize/css/materialize.css!css'
 ], function ($) {
     //Helpers
     $.fn.reverse = [].reverse;

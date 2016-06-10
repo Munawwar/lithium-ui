@@ -1,11 +1,11 @@
 define([
-    './lui',
+    './lui.js',
     'jquery',
-    './base/lithium.pubsub',
-    './Template',
-    './Observable',
+    './base/lithium.pubsub.js',
+    './Template.js',
+    './Observable.js',
 
-    'tpl!./Component.ko'
+    './Component.ko!tpl'
 ], function (Li, $) {
 
     /**

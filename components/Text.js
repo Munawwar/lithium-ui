@@ -1,8 +1,8 @@
 define([
-    '../core/Component',
+    '../core/Component.js',
     'jquery',
 
-    'tpl!./Text.ko'
+    './Text.ko!tpl'
 ], function (Li, $) {
     /**
      * Text field.

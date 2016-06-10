@@ -4,7 +4,7 @@
  */
 define([
     'jquery',
-    '../core/Box'
+    '../core/Box.js'
 ], function ($, Li) {
     /**
      * Base class for Window.

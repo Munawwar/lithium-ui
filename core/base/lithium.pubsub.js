@@ -6,7 +6,7 @@
  */
 (function (factory) {
     if (typeof define === "function" && define.amd) {
-        define(['./lithium', 'jquery'], factory);
+        define(['./lithium.js', 'jquery'], factory);
     } else if (typeof exports === 'object') { //For NodeJS
         module.exports = factory(require('./lithium'), require('jquery-node'));
     } else { //global
