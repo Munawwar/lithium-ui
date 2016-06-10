@@ -9,7 +9,6 @@
     },
     "devDependencies": {
         "mocha": "2.4.5",
-        "node-amd": "0.3.0",
         "jsdom": "8.0.4"
     },
     "directories": {
