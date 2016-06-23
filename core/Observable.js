@@ -149,26 +149,27 @@ define(['./lui.js',
                 }, this);
             },
             sort: function (comparator) {
-                var indexes = value.map(function (item, i) {
-                        return i;
+                var sorted = value.map(function (item, i) {
+                        return {item: item, index: i};
                     }),
+                    indexes = [],
                     hasChanged = false;
-                indexes.sort(function (a, b) {
-                    var result = comparator(value[a], value[b]),
-                        temp;
-                    //Swap
-                    if ((a < b && result > 0) || (b < a && result < 0)) {
-                        temp = value[a];
-                        value[a] = value[b];
-                        value[b] = temp;
-                        hasChanged = true;
-                    }
 
+                sorted.sort(function (a, b) {
+                    var result = comparator(a.item, b.item);
                     //stable sort
                     if (result === 0) {
-                        result = (a < b ? -1 : 1);
+                        result = (a.index < b.index ? -1 : 1);
                     }
                     return result;
+                });
+
+                //Find new indexes
+                sorted.forEach(function (o, i) {
+                    if (i !== o.index) {
+                        hasChanged = true;
+                    }
+                    indexes.push(o.index);
                 });
 
                 //Refresh UI
