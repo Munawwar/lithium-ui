@@ -16,7 +16,7 @@ define([
         activeItem: 0,
 
         /**
-         * @param {HTMLElemen} el
+         * @param {HTMLElement} el
          */
         addCard: function (el) {
             el.style.display = 'none';
@@ -30,6 +30,17 @@ define([
             var items = Li.slice(this.el.children),
                 len = items.length;
             if (itemNumber >= 0 && itemNumber < len) {
+                //Complete any running animations.
+                if (this.animating) {
+                    this.animating.forEach(function (elOrFunc) {
+                        if (typeof elOrFunc === 'function') {
+                            elOrFunc();
+                        } else {
+                            $(elOrFunc).velocity('stop');
+                        }
+                    });
+                }
+
                 var prevItem = this.activeItem;
                 this.activeItem = itemNumber;
 
@@ -47,16 +58,29 @@ define([
                         opacity: 0,
                         display: null //remove inline display value
                     });
-                    $(items[prevItem]).velocity({opacity: 0}, {display: 'none', queue: false});
-                    $(items[this.activeItem]).velocity({opacity: 1}, {
-                        queue: false,
-                        complete: function () {
+
+                    var c1 = function () {
+                            items[prevItem].style.display = 'none';
+                        },
+                        c2 = function () {
                             //Remove added properties
                             this.el.classList.remove('animating');
                             Li.style(items[prevItem], {zIndex: null, opacity: null});
-                            Li.style(items[this.activeItem], {zIndex: null, opacity: null});
-                        }.bind(this)
-                    });
+                            Li.style(items[itemNumber], {zIndex: null, opacity: null});
+                            this.animating = null;
+                        }.bind(this);
+
+                    this.animating = [
+                        $(items[prevItem]).velocity({opacity: 0}, {
+                            complete: c1
+                        })[0],
+                        c1,
+                        $(items[this.activeItem]).velocity({opacity: 1}, {
+                            queue: false,
+                            complete: c2
+                        })[0],
+                        c2
+                    ];
                 }
             }
         },
