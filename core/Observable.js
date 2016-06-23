@@ -150,11 +150,8 @@ define(['./lui.js',
             },
             sort: function (comparator) {
                 var sorted = value.map(function (item, i) {
-                        return {item: item, index: i};
-                    }),
-                    indexes = [],
-                    hasChanged = false;
-
+                    return {item: item, index: i};
+                });
                 sorted.sort(function (a, b) {
                     var result = comparator(a.item, b.item);
                     //stable sort
@@ -164,13 +161,14 @@ define(['./lui.js',
                     return result;
                 });
 
-                //Find new indexes
-                sorted.forEach(function (o, i) {
-                    if (i !== o.index) {
-                        hasChanged = true;
-                    }
-                    indexes.push(o.index);
-                });
+                //Note the change in index of each item.
+                var hasChanged = false,
+                    indexes = sorted.map(function (o, i) {
+                        if (i !== o.index) {
+                            hasChanged = true;
+                        }
+                        return o.index;
+                    });
 
                 //Refresh UI
                 if (hasChanged) {
