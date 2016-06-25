@@ -113,19 +113,20 @@ define([
 
             //Do one-time/first-time initialization stuff.
             this.id = 'cmp-' + Li.Component.getNewId();
-            cfg.cls = (this.type.toLowerCase().replace(/\./g, '-') + ' ' + (cfg.cls || this.cls)).trim();
-            cfg.style = cfg.style || this.style;
 
             //Add attributes
             this.outerTpl = this.outerTpl.cloneNode(true); //create clone so as to not modify prototype outerTpl
             cfg.addAttribute = cfg.addAttribute || {};
             cfg.addAttribute.id = this.id;
             cfg.addAttribute['data-type'] = this.type;
+            var el = this.outerTpl.firstElementChild;
             if (cfg.addAttribute['data-bind']) {
-                var el = this.outerTpl.firstElementChild,
-                    dataBind = el.getAttribute('data-bind');
+                var dataBind = el.getAttribute('data-bind');
                 el.setAttribute('data-bind', (dataBind ? (dataBind + ', ') : '') + cfg.addAttribute['data-bind']);
             }
+
+            cfg.cls = (this.type.toLowerCase().replace(/\./g, '-') + ' ' + (cfg.cls || this.cls || el.getAttribute('class'))).trim();
+            cfg.style = cfg.style || this.style;
 
             //Make own copy of observable from prototype.
             this._observables.forEach(function (prop) {
