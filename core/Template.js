@@ -1054,7 +1054,7 @@
                 if (typeof expr === 'string') {
                     cfg[key] = saferEval.call(this.getRootView(), expr, this.context, this.data, node);
                 } else { //object
-                    this.parseParams(expr);
+                    this.evaluateParams(expr);
                 }
             }, this);
         },
