@@ -67,6 +67,9 @@ define([
                             this.el.classList.remove('animating');
                             Li.style(items[prevItem], {zIndex: null, opacity: null});
                             Li.style(items[itemNumber], {zIndex: null, opacity: null});
+                            if (this.el.classList.contains('vbox')) {
+                                flexRecalc(this.el);
+                            }
                             this.animating = null;
                         }.bind(this);
 
