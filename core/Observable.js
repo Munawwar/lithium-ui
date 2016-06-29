@@ -167,6 +167,7 @@ define(['./lui.js',
                         if (i !== o.index) {
                             hasChanged = true;
                         }
+                        value[i] = o.item;
                         return o.index;
                     });
 
