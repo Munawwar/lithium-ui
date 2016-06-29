@@ -40,7 +40,7 @@ define([
         /**
          * CSS class to use on root element.
          */
-        cls: '',
+        cls: null,
         /**
          * Inline CSS style to apply to root element.
          */
@@ -125,7 +125,8 @@ define([
                 el.setAttribute('data-bind', (dataBind ? (dataBind + ', ') : '') + cfg.addAttribute['data-bind']);
             }
 
-            cfg.cls = (this.type.toLowerCase().replace(/\./g, '-') + ' ' + (cfg.cls || this.cls || el.getAttribute('class'))).trim();
+            var cls = (Li.isString(cfg.cls) ? cfg.cls : (Li.isString(this.cls) ? this.cls : el.getAttribute('class')));
+            cfg.cls = (this.type.toLowerCase().replace(/\./g, '-') + ' ' + (Li.isString(cls) ? cls : '')).trim();
             cfg.style = cfg.style || this.style;
 
             //Make own copy of observable from prototype.
