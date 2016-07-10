@@ -69,10 +69,11 @@ define([
         },
 
         /**
-         * Activate item
+         * Activate item.
+         * @param {Number|HTMLElement|Li.Component} item The card item number or reference.
          */
         setActiveItem: function (item) {
-            var itemNumber = (Li.isNumber(item) ? item : Li.childIndex(item, true));
+            var itemNumber = (Li.isNumber(item) ? item : Li.childIndex(item.el || item, true));
             if (itemNumber >= 0 && itemNumber < this.tabsEl.children.length) {
                 var prevItemNumber = this.activeItem;
                 this.activeItem = itemNumber;
@@ -83,7 +84,7 @@ define([
         },
 
         /**
-         * Get the active item number. If returnDom param is set to true, then returns the active item' DOM node.
+         * Get the active item number. If returnDom param is set to true, then returns the active item's DOM node.
          */
         getActiveItem: function (returnDom) {
             return (!returnDom ? this.activeItem : this.el.children[this.activeItem]);

@@ -25,11 +25,13 @@ define([
 
         /**
          * Displays given card number and hides the other cards.
+         * @param {Number|HTMLElement|Li.Component} item The card item number or reference.
+         * @param {Boolean} [animate=false]
          */
         setActiveItem: function (item, animate) {
             var items = Li.slice(this.el.children),
                 len = items.length,
-                itemNumber = (Li.isNumber(item) ? item : Li.childIndex(item, true));
+                itemNumber = (Li.isNumber(item) ? item : Li.childIndex(item.el || item, true));
             if (itemNumber >= 0 && itemNumber < len) {
                 //Complete any running animations.
                 if (this.animating) {
@@ -90,7 +92,7 @@ define([
         },
 
         /**
-         * Get the active item number. If returnName param is set to true, then returns the active item's data-name attribute value.
+         * Get the active item number. If returnName param is set to true, then returns the active item's DOM node.
          */
         getActiveItem: function (returnDom) {
             return (!returnDom ? this.activeItem : this.el.children[this.activeItem]);

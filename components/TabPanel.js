@@ -53,14 +53,21 @@ define(['./TabStrip.js', './Cards.js'], function (Li) {
             }, this);
         },
 
+        /**
+         * Activate item.
+         * @param {Number|HTMLElement|Li.Component} item The card item number or reference.
+         */
         setActiveTab: function (item) {
-            var itemNumber = (Li.isNumber(item) ? item : Li.childIndex(item, true));
+            var itemNumber = (Li.isNumber(item) ? item : Li.childIndex(item.el || item, true));
             this.tabstrip.setActiveItem(itemNumber);
             this.cards.setActiveItem(itemNumber);
         },
 
-        getActiveTab: function (returnDom) {
-            return this.tabstrip.getActiveItem(returnDom);
+        /**
+         * Get the active item number.
+         */
+        getActiveTab: function () {
+            return this.tabstrip.getActiveItem();
         }
     });
 
