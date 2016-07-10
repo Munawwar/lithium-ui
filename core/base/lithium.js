@@ -386,10 +386,11 @@
 
         /**
          * jQuery's index() method doesn't return the child index properly for non-element nodes (like text node, comment).
+         * @param {Boolean} elementsOnly Ignore non-element children (like text nodes, comments).
          * @method childIndex
          */
-        childIndex: function (node) {
-            return Li.slice(node.parentNode.childNodes).indexOf(node);
+        childIndex: function (node, elementsOnly) {
+            return Li.slice(node.parentNode[elementsOnly ? 'children' : 'childNodes']).indexOf(node);
         },
 
         /**

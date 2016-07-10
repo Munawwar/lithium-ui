@@ -53,9 +53,14 @@ define(['./TabStrip.js', './Cards.js'], function (Li) {
             }, this);
         },
 
-        setActiveTab: function (itemNumber) {
+        setActiveTab: function (item) {
+            var itemNumber = (Li.isNumber(item) ? item : Li.childIndex(item, true));
             this.tabstrip.setActiveItem(itemNumber);
             this.cards.setActiveItem(itemNumber);
+        },
+
+        getActiveTab: function (returnDom) {
+            return this.tabstrip.getActiveItem(returnDom);
         }
     });
 

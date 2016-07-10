@@ -71,7 +71,8 @@ define([
         /**
          * Activate item
          */
-        setActiveItem: function (itemNumber) {
+        setActiveItem: function (item) {
+            var itemNumber = (Li.isNumber(item) ? item : Li.childIndex(item, true));
             if (itemNumber >= 0 && itemNumber < this.tabsEl.children.length) {
                 var prevItemNumber = this.activeItem;
                 this.activeItem = itemNumber;
@@ -79,6 +80,13 @@ define([
                 this.tabsEl.children[itemNumber].classList.add('active');
                 this.showIndicator(prevItemNumber);
             }
+        },
+
+        /**
+         * Get the active item number. If returnDom param is set to true, then returns the active item' DOM node.
+         */
+        getActiveItem: function (returnDom) {
+            return (!returnDom ? this.activeItem : this.el.children[this.activeItem]);
         },
 
         /**
