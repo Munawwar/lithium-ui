@@ -47,7 +47,7 @@ define([
                 if (!animate) {
                     items[prevItem].style.display = 'none';
                     items[this.activeItem].style.removeProperty('display');
-                } else {
+                } else if (this.activeItem !== prevItem) {
                     this.el.classList.add('animating');
                     $(items[prevItem]).css({
                         zIndex: 2,
