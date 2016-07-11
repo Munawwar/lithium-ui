@@ -138,13 +138,17 @@ define(['./lui.js',
             },
             reverse: function () {
                 value.reverse();
+                var len = value.length,
+                    indexes = value.map(function (v, i) {
+                        return (len - i - 1);
+                    });
                 //Refresh UI
                 removeUnusedAndIterate(nodeBindings, uniqueNodes, function (info) {
                     if (info.binding !== 'foreach') {
                         updateBinding.call(this, info);
                     } else {
                         var bindingHandler = info.view.bindingHandler[info.binding];
-                        bindingHandler.reverse.call(info.view, info.node, info.binding, info.expr);
+                        bindingHandler.sort.call(info.view, info.node, info.binding, info.expr, indexes);
                     }
                 }, this);
             },

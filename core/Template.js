@@ -35,13 +35,10 @@
      */
     function Htmlizer(template, cfg) {
         this.cfg = cfg;
-        //The depth at which this template is in within another template.
-        //depth = number of ancestor nodes to parent template. 0 for root template.
-        this.depth = 0;
-        $.extend(this, cfg);
+        Object.assign(this, cfg);
         if (typeof template === 'string') {
             this.origTplStr = template;
-            this.frag = util.moveToNewFragment(util.parseHTML(template));
+            this.frag = util.moveToFragment(util.parseHTML(template));
         } else { //assuming DocumentFragment
             this.frag = template;
         }
@@ -58,11 +55,9 @@
         prepare: function () {
             var frag = this.frag,
                 blocks = this.getVirtualBlocks(),
-                depth = this.depth,
                 blockNodes, tempFrag;
             traverse(frag, frag, function (node, isOpenTag) {
                 if (isOpenTag) {
-                    depth += 1;
                     var nodeInfo = {},
                         bindings;
                     if (node.nodeType === 1) { //element
@@ -76,11 +71,10 @@
                             bindings = util.parseObjectLiteral(bindOpts);
                             this.checkForConflictingBindings(bindings, classRef);
                             nodeInfo.node = node;
-                            nodeInfo.depth = depth;
                             nodeInfo.bindings = bindings;
                             if (bindings.foreach || bindings['with'] || bindings['if'] || bindings.ifnot) {
-                                tempFrag = util.moveToNewFragment(Li.slice(node.childNodes));
-                                nodeInfo.subTpl = new Htmlizer(tempFrag, $.extend({depth: depth}, this.cfg));
+                                tempFrag = util.moveToFragment(Li.slice(node.childNodes));
+                                nodeInfo.subTpl = new Htmlizer(tempFrag, Object.assign({}, this.cfg));
                             }
                             this.nodeInfoList.push(nodeInfo);
                             this.nodeMap[Li.getUID(node)] = nodeInfo;
@@ -103,22 +97,19 @@
                         var block = util.findBlockFromStartNode(blocks, node);
                         if (block) {
                             nodeInfo.node = node;
-                            nodeInfo.depth = depth;
                             nodeInfo.block = block;
                             match = stmt.match(util.regex.commentStatment);
                             nodeInfo.bindings = {};
                             nodeInfo.bindings[match[1].trim()] = match[2];
                             if (block.key === 'foreach' || block.key === 'with' || block.key === 'if' || block.key === 'ifnot') {
                                 blockNodes = util.getImmediateNodes(frag, block.start, block.end);
-                                tempFrag = util.moveToNewFragment(blockNodes);
-                                nodeInfo.subTpl = new Htmlizer(tempFrag, $.extend({depth: depth}, this.cfg));
+                                tempFrag = util.moveToFragment(blockNodes);
+                                nodeInfo.subTpl = new Htmlizer(tempFrag, Object.assign({}, this.cfg));
                             }
                             this.nodeInfoList.push(nodeInfo);
                             this.nodeMap[Li.getUID(node)] = nodeInfo;
                         }
                     }
-                } else {
-                    depth -= 1;
                 }
             }, this);
         },
@@ -352,12 +343,17 @@
                 }
             },
             "if": {
-                init: function (node, binding, expr, tNode) {
+                init: function (node, binding, expr) {
                     var val = this.evaluate(binding, expr, node);
                     if (val) {
-                        var tpl = this.tpl.getTNodeInfo(tNode).subTpl,
-                            view = this.makeView(tpl, this.context, this.data, node),
-                            tempFrag = view.toDocumentFragment();
+                        var info = this.getNodeInfo(node),
+                            view = info.views && info.views[0];
+                        if (!view) { //if view not created, the create it.
+                            var tpl = this.tpl.getTNodeInfo(info.tNode).subTpl;
+                            view = this.makeView(tpl, this.context, this.data, node);
+                        }
+                        var tempFrag = view.toDocumentFragment(); //if rendered, move nodes from document to DocumentFragment
+
                         if (node.nodeType === 1) {
                             node.appendChild(tempFrag);
                         } else if (node.nodeType === 8) {
@@ -365,38 +361,19 @@
                         }
                     }
                 },
-                update: function (node, binding, expr) {
-                    var val = this.evaluate(binding, expr, node),
-                        info = this.getNodeInfo(node),
-                        view = info.views && info.views[0];
-                    if (!view) { //if view not created, the create it.
-                        var tpl = this.tpl.getTNodeInfo(info.tNode).subTpl;
-                        view = this.makeView(tpl, this.context, this.data, node);
-                    }
-                    var tempFrag = view.toDocumentFragment(); //if rendered, move nodes from document to DocumentFragment
-
-                    if (val) {
-                        if (node.nodeType === 1) {
-                            node.appendChild(tempFrag);
-                        } else if (node.nodeType === 8) {
-                            node.parentNode.insertBefore(tempFrag, node.nextSibling);
-                        }
-                    }
+                update: function () {
+                    return this.bindingHandler[binding].init.apply(this, arguments);
                 }
             },
             ifnot: {
                 init: function (node, binding, expr, tNode, blocks) {
                     //Convert ifnot: (...) to if: !(...)
-                    binding = 'if';
-                    expr = '!(' + expr + ')';
                     return this.bindingHandler[binding].init.call(this,
-                        node, binding, expr, tNode, blocks);
+                        node, 'if', '!(' + expr + ')', tNode, blocks);
                 },
                 update: function (node, binding, expr) {
                     //Convert ifnot: (...) to if: !(...)
-                    binding = 'if';
-                    expr = '!(' + expr + ')';
-                    return this.bindingHandler[binding].update.call(this, node, binding, expr);
+                    return this.bindingHandler[binding].update.call(this, node, 'if', '!(' + expr + ')');
                 }
             },
             foreach: {
@@ -424,12 +401,10 @@
                     if (info.views) {
                         var output = document.createDocumentFragment();
 
-                        var views = [];
                         //Sort views
-                        indexes.forEach(function (i) {
-                            views.push(info.views[i]);
+                        info.views = indexes.map(function (i) {
+                            return info.views[i];
                         });
-                        info.views = views;
 
                         info.views.forEach(function (view) {
                             output.appendChild(view.toDocumentFragment()); //removes from document and appends to 'output'
@@ -456,23 +431,6 @@
                     if (tpl.frag.firstChild) {
                         this.spliceForEachItems(tpl, node, index, removeLength, newItems || [], as);
                     }
-                },
-                reverse: function (node) {
-                    var info = this.getNodeInfo(node);
-                    if (info.views) {
-                        var output = document.createDocumentFragment();
-
-                        info.views.reverse();
-                        info.views.forEach(function (view) {
-                            output.appendChild(view.toDocumentFragment()); //removes from document and appends to 'output'
-                        });
-                        if (node.nodeType === 1) {
-                            node.appendChild(output);
-                        } else if (node.nodeType === 8) {
-                            //Render inner template and insert berfore this node.
-                            node.parentNode.insertBefore(output, info.blockEndNode);
-                        }
-                    }
                 }
             },
             "with": {
@@ -497,29 +455,27 @@
                         val = '';
                     }
                     if (node.nodeType === 1) {
-                        node.appendChild(document.createTextNode(val));
-                        return {domTraverse: 'continue'}; //KO ignores the inner content.
-                    } else if (node.nodeType === 8) {
-                        var block = util.findBlockFromStartNode(blocks, tNode);
-                        node.parentNode.insertBefore(document.createTextNode(val), node.nextSibling);
-                        return {ignoreTillNode: block.end.previousSibling || block.end.parentNode};
-                    }
-                },
-                update: function (node, binding, expr) {
-                    var val = this.evaluate(binding, expr, node);
-                    if (val === null || val === undefined) {
-                        val = '';
-                    }
-                    if (node.nodeType === 1) {
                         $(node).empty();
                         node.appendChild(document.createTextNode(val));
+                        if (tNode) {
+                            return {domTraverse: 'continue'}; //KO ignores the inner content.
+                        }
                     } else if (node.nodeType === 8) {
                         var nodeInfo = this.getNodeInfo(node),
                             startNode = nodeInfo.node,
                             endNode = nodeInfo.blockEndNode;
-                        util.moveToNewFragment(util.getImmediateNodes(node.ownerDocument, startNode, endNode)); // discard content
+                        if (endNode) {
+                            util.moveToFragment(util.getImmediateNodes(node.ownerDocument, startNode, endNode)); // discard content
+                        }
                         node.parentNode.insertBefore(document.createTextNode(val), node.nextSibling);
+                        if (blocks) {
+                            var block = util.findBlockFromStartNode(blocks, tNode);
+                            return {ignoreTillNode: block.end.previousSibling || block.end.parentNode};
+                        }
                     }
+                },
+                update: function () {
+                    return this.bindingHandler[binding].init.apply(this, arguments);
                 }
             },
             html: {
@@ -530,7 +486,7 @@
                         if (val !== undefined && val !== null && val !== '') {
                             var nodes = util.parseHTML(val + '');
                             if (nodes) {
-                                var tempFrag = util.moveToNewFragment(nodes);
+                                var tempFrag = util.moveToFragment(nodes);
                                 node.appendChild(tempFrag);
                             }
                         }
@@ -545,20 +501,19 @@
                     if (node.nodeType === 1) {
                         util.forEachObjectLiteral(expr, function (attr, value) {
                             var val = this.evaluate(binding + '.' + attr, value, node);
-                            if (typeof val === 'string' || typeof val === 'number') {
+                            if (val || typeof val === 'string' || typeof val === 'number') {
                                 node.setAttribute(attr, val + '');
+                            } else { //undefined, null, false
+                                node.removeAttribute(attr);
                             }
                         }, this);
                     }
                 },
                 update: function (node, binding, expr, attr) {
+                    var arg = {};
+                    arg[attr] = expr;
+                    this.bindingHandler[binding].init.call(this, node, binding, arg);
                     if (node.nodeType === 1) {
-                        var val = this.evaluate(binding + '.' + attr, expr, node);
-                        if (val || typeof val === 'string' || typeof val === 'number') {
-                            node.setAttribute(attr, val + '');
-                        } else { //undefined, null, false
-                            node.removeAttribute(attr);
-                        }
                         this.bindingHandler.componenttag.update.call(this, node, attr);
                     }
                 }
@@ -570,18 +525,17 @@
                             var val = this.evaluate(binding + '.' + className, expr, node);
                             if (val) {
                                 $(node).addClass(className);
+                            } else {
+                                $(node).removeClass(className);
                             }
                         }, this);
                     }
                 },
                 update: function (node, binding, expr, className) {
+                    var arg = {};
+                    arg[className] = expr;
+                    this.bindingHandler[binding].init.call(this, node, binding, arg);
                     if (node.nodeType === 1) {
-                        var val = this.evaluate(binding + '.' + className, expr, node);
-                        if (val) {
-                            $(node).addClass(className);
-                        } else {
-                            $(node).removeClass(className);
-                        }
                         this.bindingHandler.componenttag.update.call(this, node, 'class');
                     }
                 }
@@ -594,19 +548,20 @@
                     init: function (node, binding, expr) {
                         if (node.nodeType === 1) {
                             util.forEachObjectLiteral(expr, function (prop, expr) {
-                                var val = this.evaluate(binding + '.' + prop, expr, node) || null;
-                                node.style.setProperty(prop.replace(/[A-Z]/g, toCssProp), val);
+                                var val = this.evaluate(binding + '.' + prop, expr, node);
+                                if (val || typeof val === 'string' || typeof val === 'number') {
+                                    node.style.setProperty(prop.replace(/[A-Z]/g, toCssProp), val + '');
+                                } else { //undefined, null, false
+                                    node.style.removeProperty(prop.replace(/[A-Z]/g, toCssProp));
+                                }
                             }, this);
                         }
                     },
                     update: function (node, binding, expr, prop) {
+                        var arg = {};
+                        arg[prop] = expr;
+                        this.bindingHandler[binding].init.call(this, node, binding, arg);
                         if (node.nodeType === 1) {
-                            var val = this.evaluate(binding + '.' + prop, expr, node);
-                            if (val || typeof val === 'string' || typeof val === 'number') {
-                                node.style.setProperty(prop.replace(/[A-Z]/g, toCssProp), val + '');
-                            } else { //undefined, null, false
-                                node.style.removeProperty(prop.replace(/[A-Z]/g, toCssProp));
-                            }
                             this.bindingHandler.componenttag.update.call(this, node, 'style');
                         }
                     }
@@ -1158,19 +1113,8 @@
          * @private
          * @param {Array[Node]} nodes
          */
-        moveToNewFragment: function (nodes) {
-            var frag = document.createDocumentFragment();
-            nodes.forEach(function (n) {
-                frag.appendChild(n);
-            });
-            return frag;
-        },
-
-        /**
-         * @private
-         * @param {Array[Node]} nodes
-         */
         moveToFragment: function (nodes, fragment) {
+            fragment = fragment || document.createDocumentFragment();
             nodes.forEach(function (n) {
                 fragment.appendChild(n);
             });
