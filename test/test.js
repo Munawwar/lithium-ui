@@ -1,5 +1,5 @@
 require('./setup');
 
 //Run tests
-require('./core/Template/test')
-require('./core/test')
+System.import('./core/Template/test.js');
+System.import('./core/test.js');

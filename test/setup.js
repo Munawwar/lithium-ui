@@ -1,11 +1,11 @@
-require('./systemjs-requirejs');
-requirejs.config({
-    baseUrl: '../',
+require('./systemjs-emulator');
+System.config({
+    baseURL: '../',
     paths: {
-        'jquery': 'node_modules/jquery-node/jquery-node', //redirect jquery to jquery-node
+        'jquery': 'node_modules/jquery-node/jquery-node.js', //redirect jquery to jquery-node
         /*Plugins*/
-        'tpl': 'test/requirejs-tpl',
-        'css': 'test/require-css-dummy'
+        'tpl': 'test/requirejs-tpl.js',
+        'css': 'test/require-css-dummy.js'
     }
 });
 

@@ -6,10 +6,11 @@
 
 var path = require('path');
 
-var modules = {};
+GLOBAL.nodeRequire = require;
 
+var modules = {};
 function getDependencies(deps, callerScript) {
-    var cfg = GLOBAL.requirejs.cfg,
+    var cfg = GLOBAL.SystemJS.cfg,
         callerPath = callerScript.split(path.sep).slice(0, -1).join(path.sep); //Remove script name.
 
     //Find dependencies
@@ -32,9 +33,9 @@ function getDependencies(deps, callerScript) {
         } else if (depPath[0] === '/') { //Absolute path
             depPath = depPath.replace(/\.js$/, '');
             fullPath = depPath;
-        } else { //Path relative to baseUrl
+        } else { //Path relative to baseURL
             depPath = depPath.replace(/\.js$/, '');
-            fullPath = path.resolve(cfg.baseUrl, depPath);
+            fullPath = path.resolve(cfg.baseURL, depPath);
         }
 
         //console.log(' -- Dependency ' + fullPath);
@@ -51,7 +52,7 @@ function getDependencies(deps, callerScript) {
     return deps;
 }
 
-GLOBAL.requirejs = function (deps, callback) {
+GLOBAL.System = function (deps, callback) {
     if (arguments.length === 1) {
         callback = deps;
         deps = [];
@@ -65,8 +66,9 @@ GLOBAL.requirejs = function (deps, callback) {
 
     callback.apply(null, deps);
 };
+GLOBAL.SystemJS = GLOBAL.System;
 
-GLOBAL.requirejs.config = function (cfg) {
+GLOBAL.System.config = function (cfg) {
     if (!cfg) {
         return this.cfg;
     } else {
@@ -76,15 +78,28 @@ GLOBAL.requirejs.config = function (cfg) {
         var callerScript = findCallerFromError(new Error()),
             callerPath = callerScript.split(path.sep).slice(0, -1).join(path.sep); //Remove script name.
 
-        cfg.baseUrl = path.resolve(callerPath, cfg.baseUrl);
-        //console.log('baseUrl = ' + cfg.baseUrl);
+        cfg.baseURL = path.resolve(callerPath, cfg.baseURL || '');
+        //console.log('baseURL = ' + cfg.baseURL);
 
         Object.keys(cfg.paths || {}).forEach(function (moduleName) {
-            var fullPath = path.resolve(cfg.baseUrl, cfg.paths[moduleName]);
+            var fullPath = path.resolve(cfg.baseURL, cfg.paths[moduleName]);
             //console.log('Resolved path for ' + moduleName + ' to ' + path);
             cfg.paths[moduleName] = fullPath;
         });
     }
+};
+
+GLOBAL.System.import = function (dep) {
+    //Figure out the path of the JS file that called this function.
+    var callerScript = findCallerFromError(new Error());
+    //console.log('import() called from ' + callerScript);
+
+    //Find dependencies
+    dep = getDependencies([dep], callerScript);
+
+    return new Promise(function (resolve, reject) {
+        resolve(dep[0]);
+    });
 };
 
 GLOBAL.define = function (name, deps, moduleFactory) {
@@ -113,6 +128,8 @@ GLOBAL.define = function (name, deps, moduleFactory) {
     modules[callerScript.replace(/\.js$/, '')] = ret;
 };
 
+GLOBAL.define.amd = false; //This is done intentioanlly, so that code using UMD takes uses' node require()s.
+
 /*
  * Find the caller script path from an Error object.
  * The observation is that the caller path is exactly at the third line of the stack trace.
@@ -131,7 +148,7 @@ function findCallerFromError(err) {
  * Load a 'string!plugin' dependency.
  */
 function handlePlugin(depPath, callerScript) {
-    var cfg = GLOBAL.requirejs.cfg,
+    var cfg = GLOBAL.SystemJS.cfg,
         match = depPath.match(/([^!]+)!(\w+)$/),
         fileName = match[1],
         name = match[2],
@@ -140,10 +157,11 @@ function handlePlugin(depPath, callerScript) {
     //Load plugin if not loaded
     if (!modules[name]) {
         //The plugin should be there in cfg.paths
-        if (cfg.paths[name]) {
-            require(cfg.paths[name]);
-            if (modules[cfg.paths[name]]) {
-                modules[name] = modules[cfg.paths[name]];
+        var pluginPath = (cfg.paths[name] || '').replace(/\.js$/, '');
+        if (pluginPath) {
+            require(pluginPath);
+            if (modules[pluginPath]) {
+                modules[name] = modules[pluginPath];
             }
         }
     }
@@ -170,7 +188,7 @@ function callPlugin(pluginName, filepath, callerPath, onload) {
                 depPath[i] = path.resolve(callerPath, depPath);
             }
         });
-        GLOBAL.requirejs(deps, callback);
+        GLOBAL.define(deps, callback);
     };
     req.toUrl = function (depPath) {
         return path.resolve(callerPath, depPath);

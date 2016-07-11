@@ -4,7 +4,7 @@ var assert = require("assert"),
     fs = require('fs'),
     path = require('path');
 
-define(['core/Template'], function (Li) {
+define(['core/Template.js'], function (Li) {
     var Htmlizer = Li.Template;
 
     describe('run text and attr binding test', function () {
@@ -305,6 +305,8 @@ define(['core/Template'], function (Li) {
             assert.equal('Franklin', df.firstChild.childNodes[1].firstChild.nodeValue);
         });
     });
+
+    return '42';
 });
 
 /*Utility functions*/
