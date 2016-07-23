@@ -8,7 +8,14 @@ define([
 ], function (Li, $) {
 
     /**
-     * Dropdown.
+     * Select component.
+     * It can also be styled as an action-menu by adding "action-menu nocaret" CSS classes and removing
+     * "mimick-textfield" CSS class.
+       ```html
+        <li-select class="fa fa-ellipsis-v action-menu nocaret" params="removeClass: 'mimick-textfield'">
+            ...
+        </li-select>
+        ```
      */
     Li.Select = Li.extend('Li.Select', Li.Component, {
         cls: 'select-wrapper btn-flat mimick-textfield',
@@ -33,7 +40,11 @@ define([
 
             this.super(arguments);
 
-            this.dropdown.set({fieldEl: this.el});
+            this.dropdown.set({
+                fieldEl: this.el,
+                constrain_width: !this.el.classList.contains('action-menu')
+            });
+
 
             this.on({
                 click: this.dropdown.onClick.bind(this.dropdown),

@@ -6,6 +6,6 @@
                 disabled: disabled() ? 'disabled' : null
             },
             css: {disabled: disabled}">
-        <span data-bind="text: getTextForValue(getValue())"></span><span class="caret">▼</span>
+        <span class="text" data-bind="text: getTextForValue(getValue())"></span><span class="caret">▼</span>
     </button>
 </script>

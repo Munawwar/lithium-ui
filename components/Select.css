@@ -12,6 +12,9 @@
 .select-wrapper.nocaret .caret {
     display: none;
 }
+.select-wrapper.action-menu .text {
+    display: none;
+}
 
 .select-wrapper.btn-flat .caret {
     line-height: 1;
