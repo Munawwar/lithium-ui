@@ -69,6 +69,8 @@ define([
 
                         Li.on(this.inputEl, 'keydown', this.dropdown.onKeyDown, this.dropdown);
                         Li.on(this.inputEl, 'keyup', this.onKeyUp, this);
+
+                        this.trigger('opened', {component: this});
                     },
                     $closed: function () {
                         //make text field read-only again.
@@ -80,6 +82,10 @@ define([
                         this.inputEl.style.display = 'none';
 
                         this.el.focus();
+                        this.trigger('closed', {component: this});
+                    },
+                    $clicked: function () {
+                        this.trigger('itemclicked', {component: this});
                     }
                 }
             });
