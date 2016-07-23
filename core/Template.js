@@ -361,7 +361,7 @@
                         }
                     }
                 },
-                update: function () {
+                update: function (node, binding) {
                     return this.bindingHandler[binding].init.apply(this, arguments);
                 }
             },
@@ -474,7 +474,7 @@
                         }
                     }
                 },
-                update: function () {
+                update: function (node, binding) {
                     return this.bindingHandler[binding].init.apply(this, arguments);
                 }
             },
@@ -683,7 +683,7 @@
                     var node = tNode.cloneNode(false);
                     stack[stack.length - 1].appendChild(node);
 
-                    var bindings, match, control;
+                    var bindings, control;
                     if (node.nodeType === 1) { //element
                         stack.push(node);
                         tStack.push(tNode);
