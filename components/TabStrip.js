@@ -34,6 +34,10 @@ define([
                 if (el.nodeName.toLowerCase() !== 'button') {
                      warn = true;
                 }
+                $(el).attr({
+                    role: 'tab',
+                    'aria-selected': 'false'
+                });
             });
             if (warn) {
                 console.warn('Use only <button> tags in TabStrip.');
@@ -78,7 +82,9 @@ define([
                 var prevItemNumber = this.activeItem;
                 this.activeItem = itemNumber;
                 this.tabsEl.children[prevItemNumber].classList.remove('active');
+                this.tabsEl.children[prevItemNumber].setAttribute('aria-selected', 'false');
                 this.tabsEl.children[itemNumber].classList.add('active');
+                this.tabsEl.children[itemNumber].setAttribute('aria-selected', 'true');
                 this.showIndicator(prevItemNumber);
             }
         },
