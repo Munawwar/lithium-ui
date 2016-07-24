@@ -5,7 +5,7 @@
     "version": "0.1.0",
     "main": "core/util/Template.js",
     "dependencies": {
-        "jquery-node": "0.2.0"
+        "jquery": "2.2.4"
     },
     "devDependencies": {
         "mocha": "2.4.5",

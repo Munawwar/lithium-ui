@@ -2,7 +2,7 @@
     if (typeof define === 'function' && define.amd) {
         define(['jquery', './hammer.min.js'], factory);
     } else if (typeof exports === 'object') {
-        factory(require('jquery-node'), require('./hammer.min'));
+        factory(require('jquery'), require('./hammer.min'));
     } else {
         factory(jQuery, Hammer);
     }
