@@ -15,9 +15,9 @@ Out-of-the-box LUI gives:
 - ..including ability to write your own UI components and also inherit any component.
 - HTML view with data binding (using KnockoutJS inspired templating engine and observables).
 - All components can be used as custom elements in view markup by default.
-- AMD support.
+- AMD and SystemJS support.
 - [CSS3 flexbox helper classes](https://github.com/Munawwar/flex-helper) for faster, simpler layouting.
-- node.js testability (with jsdom and node-amd).
+- node.js testability (with jsdom and [systemjs-eulator](https://github.com/Munawwar/lithium-ui/blob/master/test/setup.js)).
 
 ### Why use Lithium UI?
 
