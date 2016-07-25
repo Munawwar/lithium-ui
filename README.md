@@ -18,6 +18,7 @@ Out-of-the-box LUI gives:
 - AMD and SystemJS support.
 - [CSS3 flexbox helper classes](https://github.com/Munawwar/flex-helper) for faster, simpler layouting.
 - node.js testability (with jsdom and [systemjs-eulator](https://github.com/Munawwar/lithium-ui/blob/master/test/setup.js)).
+- Several [ready-to-use components](https://github.com/Munawwar/lithium-ui/tree/master/components). Using them is optional of course.
 
 ### Why use Lithium UI?
 
