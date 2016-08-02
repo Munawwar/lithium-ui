@@ -279,7 +279,6 @@ define([
             });
             if (Li.Component.renderingRoot === this) {
                 delete Li.Component.renderingRoot;
-                window.flexRecalc(this.el); //recalc after root component has been rendered. This minimizes recalcs.
             }
         },
         /**
