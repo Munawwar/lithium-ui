@@ -49,7 +49,7 @@ function getDependencies(deps, callerScript) {
     return deps;
 }
 
-GLOBAL.System = function (deps, callback) {
+var System = function (deps, callback) {
     if (arguments.length === 1) {
         callback = deps;
         deps = [];
@@ -63,41 +63,43 @@ GLOBAL.System = function (deps, callback) {
 
     callback.apply(null, deps);
 };
-GLOBAL.SystemJS = GLOBAL.System;
+GLOBAL.System = GLOBAL.SystemJS = System;
 
-GLOBAL.System.config = function (cfg) {
-    if (!cfg) {
-        return this.cfg;
-    } else {
-        this.cfg = cfg;
+Object.assign(System, {
+    config: function (cfg) {
+        if (!cfg) {
+            return this.cfg;
+        } else {
+            this.cfg = cfg;
 
+            //Figure out the path of the JS file that called this function.
+            var callerScript = findCallerFromError(new Error()),
+                callerPath = callerScript.split(path.sep).slice(0, -1).join(path.sep); //Remove script name.
+
+            cfg.baseURL = path.resolve(callerPath, cfg.baseURL || '');
+            //console.log('baseURL = ' + cfg.baseURL);
+
+            Object.keys(cfg.paths || {}).forEach(function (moduleName) {
+                var fullPath = path.resolve(cfg.baseURL, cfg.paths[moduleName]);
+                //console.log('Resolved path for ' + moduleName + ' to ' + path);
+                cfg.paths[moduleName] = fullPath;
+            });
+        }
+    },
+
+    import: function (dep) {
         //Figure out the path of the JS file that called this function.
-        var callerScript = findCallerFromError(new Error()),
-            callerPath = callerScript.split(path.sep).slice(0, -1).join(path.sep); //Remove script name.
+        var callerScript = findCallerFromError(new Error());
+        //console.log('import() called from ' + callerScript);
 
-        cfg.baseURL = path.resolve(callerPath, cfg.baseURL || '');
-        //console.log('baseURL = ' + cfg.baseURL);
+        //Find dependencies
+        dep = getDependencies([dep], callerScript);
 
-        Object.keys(cfg.paths || {}).forEach(function (moduleName) {
-            var fullPath = path.resolve(cfg.baseURL, cfg.paths[moduleName]);
-            //console.log('Resolved path for ' + moduleName + ' to ' + path);
-            cfg.paths[moduleName] = fullPath;
+        return new Promise(function (resolve, reject) {
+            resolve(dep[0]);
         });
     }
-};
-
-GLOBAL.System.import = function (dep) {
-    //Figure out the path of the JS file that called this function.
-    var callerScript = findCallerFromError(new Error());
-    //console.log('import() called from ' + callerScript);
-
-    //Find dependencies
-    dep = getDependencies([dep], callerScript);
-
-    return new Promise(function (resolve, reject) {
-        resolve(dep[0]);
-    });
-};
+});
 
 GLOBAL.define = function (name, deps, moduleFactory) {
     var args = Array.prototype.slice.call(arguments);
