@@ -3,7 +3,7 @@ var assert = require("assert"),
     path = require('path'),
     utils = require('../utils');
 
-define(['core/Box'], function (Li) {
+define(['core/Box.js'], function (Li) {
     describe('box component test', function () {
         var box = new Li.Box({}),
             df = document.createDocumentFragment();

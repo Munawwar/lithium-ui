@@ -26,15 +26,12 @@ function getDependencies(deps, callerScript) {
             fullPath = depPath;
             modules[fullPath] = {};
         } else if (depPath[0] === '.') { //Path relative to caller script.
-            depPath = depPath.replace(/\.js$/, '');
             fullPath = path.resolve(callerPath, depPath);
         } else if (cfg.paths[depPath]) { //If module name is in config, use that instead
             fullPath = cfg.paths[depPath];
         } else if (depPath[0] === '/') { //Absolute path
-            depPath = depPath.replace(/\.js$/, '');
             fullPath = depPath;
         } else { //Path relative to baseURL
-            depPath = depPath.replace(/\.js$/, '');
             fullPath = path.resolve(cfg.baseURL, depPath);
         }
 
@@ -125,7 +122,7 @@ GLOBAL.define = function (name, deps, moduleFactory) {
     if (name) {
         modules[name] = ret;
     }
-    modules[callerScript.replace(/\.js$/, '')] = ret;
+    modules[callerScript] = ret;
 };
 
 GLOBAL.define.amd = false; //This is done intentioanlly, so that code using UMD takes uses' node require()s.
@@ -157,7 +154,7 @@ function handlePlugin(depPath, callerScript) {
     //Load plugin if not loaded
     if (!modules[name]) {
         //The plugin should be there in cfg.paths
-        var pluginPath = (cfg.paths[name] || '').replace(/\.js$/, '');
+        var pluginPath = (cfg.paths[name] || '');
         if (pluginPath) {
             require(pluginPath);
             if (modules[pluginPath]) {
