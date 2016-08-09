@@ -8,14 +8,14 @@ define(['./lui.js',
     Li.ObservablePrimitive = function (initVal) {
         var value,
             nodeBindings = [],
-            uniqueNodes = {},
+            uniqueBindings = {},
             observable = function (val) {
                 //Check whether value is called from a template or not.
                 var view = Li.Template.View.currentlyEvaluating;
                 if (view) {
                     var info = view.currentlyEvaluating;
-                    if (!uniqueNodes[getHash(info)] && !view.retired) {
-                        uniqueNodes[getHash(info)] = info;
+                    if (!uniqueBindings[getHash(info)] && !view.retired) {
+                        uniqueBindings[getHash(info)] = info;
                         nodeBindings.push(info);
                     }
                 }
@@ -28,7 +28,7 @@ define(['./lui.js',
                     //TODO: For objects, use oldValue.isEqual(val);
                     if (oldValue !== val) {
                         //Refresh UI
-                        removeUnusedAndIterate(nodeBindings, uniqueNodes, updateBinding, this);
+                        removeUnusedAndIterate(nodeBindings, uniqueBindings, updateBinding, this);
                     }
                 } else {
                     return value;
@@ -48,14 +48,14 @@ define(['./lui.js',
     Li.ObservableArray = function (initVal) {
         var value = [],
             nodeBindings = [],
-            uniqueNodes = {},
+            uniqueBindings = {},
             trackDependency = function () {
                 //Check whether value is called from a template or not.
                 var view = Li.Template.View.currentlyEvaluating;
                 if (view) {
                     var info = view.currentlyEvaluating;
-                    if (!uniqueNodes[getHash(info)] && !view.retired) {
-                        uniqueNodes[getHash(info)] = info;
+                    if (!uniqueBindings[getHash(info)] && !view.retired) {
+                        uniqueBindings[getHash(info)] = info;
                         nodeBindings.push(info);
                     }
                 }
@@ -70,7 +70,7 @@ define(['./lui.js',
                         value = val;
 
                         //Refresh UI
-                        removeUnusedAndIterate(nodeBindings, uniqueNodes, function (info) {
+                        removeUnusedAndIterate(nodeBindings, uniqueBindings, function (info) {
                             if (info.binding !== 'foreach') {
                                 updateBinding.call(this, info);
                             } else {
@@ -101,7 +101,7 @@ define(['./lui.js',
                 var removedItems = value.splice.apply(value, [index, removeLength].concat(items));
 
                 //Refresh UI
-                removeUnusedAndIterate(nodeBindings, uniqueNodes, function (info) {
+                removeUnusedAndIterate(nodeBindings, uniqueBindings, function (info) {
                     if (info.binding !== 'foreach') {
                         updateBinding.call(this, info);
                     } else {
@@ -143,7 +143,7 @@ define(['./lui.js',
                         return (len - i - 1);
                     });
                 //Refresh UI
-                removeUnusedAndIterate(nodeBindings, uniqueNodes, function (info) {
+                removeUnusedAndIterate(nodeBindings, uniqueBindings, function (info) {
                     if (info.binding !== 'foreach') {
                         updateBinding.call(this, info);
                     } else {
@@ -177,7 +177,7 @@ define(['./lui.js',
 
                 //Refresh UI
                 if (hasChanged) {
-                    removeUnusedAndIterate(nodeBindings, uniqueNodes, function (info) {
+                    removeUnusedAndIterate(nodeBindings, uniqueBindings, function (info) {
                         if (info.binding !== 'foreach') {
                             updateBinding.call(this, info);
                         } else {
@@ -252,7 +252,7 @@ define(['./lui.js',
         }
     }
 
-    function removeUnusedAndIterate(nodeBindings, uniqueNodes, callback, scope) {
+    function removeUnusedAndIterate(nodeBindings, uniqueBindings, callback, scope) {
         var bindingsToRemove;
         //Refresh UI
         nodeBindings.forEach(function (info, index) {
@@ -261,7 +261,7 @@ define(['./lui.js',
             } else {
                 bindingsToRemove = bindingsToRemove || [];
                 bindingsToRemove.push(index);
-                delete uniqueNodes[getHash(info)];
+                delete uniqueBindings[getHash(info)];
             }
         }, this);
 

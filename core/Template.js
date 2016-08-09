@@ -969,56 +969,56 @@
          * @param {Array} items Array of items to insert to index
          * @param {String} as Name reference for item
          */
-        spliceForEachItems: function (template, node, startIndex, removeLength, items, as) {
-            var output = document.createDocumentFragment(),
-                info = this.getNodeInfo(node);
+        spliceForEachItems: function (template, node, opIndex, removeLength, items, as) {
+            var info = this.getNodeInfo(node);
             info.views = info.views || [];
 
             if (removeLength) {
-                info.views.splice(startIndex, removeLength).forEach(function (view) {
+                info.views.splice(opIndex, removeLength).forEach(function (view) {
                     view.retire();
                 }, this);
             }
 
-            var viewAtStartIndex = info.views[startIndex];
+            if (items.length) {
+                var output = document.createDocumentFragment(),
+                    viewAtInsertIndex = info.views[opIndex];
 
-            items.forEach(function (item, index) {
-                var newContext = this.getNewContext(this.context, this.data);
-                //foreach special properties
-                newContext.$data = newContext.$rawData = item;
-                newContext.$index = Li.Observable(index + startIndex);
+                items.forEach(function (item, index) {
+                    var newContext = this.getNewContext(this.context, this.data);
+                    //foreach special properties
+                    newContext.$data = newContext.$rawData = item;
+                    newContext.$index = Li.Observable(index + opIndex);
 
-                if (as) {
-                    newContext[as] = item;
-                    //Add to _as so that sub templates can access them.
-                    newContext._as = newContext._as || [];
-                    newContext._as.push([as, item]);
-                }
+                    if (as) {
+                        newContext[as] = item;
+                        //Add to _as so that sub templates can access them.
+                        newContext._as = newContext._as || [];
+                        newContext._as.push([as, item]);
+                    }
 
-                var view = new Htmlizer.View(template, this.data, newContext, this);
+                    var view = new Htmlizer.View(template, this.data, newContext, this);
 
-                info.views.splice(index + startIndex, 0, view);
+                    info.views.splice(index + opIndex, 0, view);
 
-                //..finally execute
-                output.appendChild(view.toDocumentFragment());
-            }, this);
+                    //..finally execute
+                    output.appendChild(view.toDocumentFragment());
+                }, this);
 
-            //Update index of items that come after last inserted/removed value.
-            if (Li) { //No need to do anything on on NodeJS
-                for (var i = startIndex + items.length; i < info.views.length; i += 1) {
-                    info.views[i].context.$index(i);
+                if (viewAtInsertIndex) {
+                    viewAtInsertIndex.firstChild.parentNode.insertBefore(output, viewAtInsertIndex.firstChild);
+                } else {
+                    if (node.nodeType === 1) {
+                        node.appendChild(output);
+                    } else if (node.nodeType === 8) {
+                        //Render inner template and insert berfore this node.
+                        node.parentNode.insertBefore(output, info.blockEndNode);
+                    }
                 }
             }
 
-            if (viewAtStartIndex) {
-                viewAtStartIndex.firstChild.parentNode.insertBefore(output, viewAtStartIndex.firstChild);
-            } else {
-                if (node.nodeType === 1) {
-                    node.appendChild(output);
-                } else if (node.nodeType === 8) {
-                    //Render inner template and insert berfore this node.
-                    node.parentNode.insertBefore(output, info.blockEndNode);
-                }
+            //Update index of items that come after last inserted/removed value.
+            for (var i = opIndex + items.length; i < info.views.length; i += 1) {
+                info.views[i].context.$index(i);
             }
         },
 
