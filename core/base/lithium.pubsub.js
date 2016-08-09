@@ -1,5 +1,6 @@
 /**
- * Publisher-subscriber pattern utility class
+ * Publisher-subscriber pattern utility class.
+ *
  * @module pubsub
  * @requires core
  * @title Lithium Publisher-Subscriber

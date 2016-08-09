@@ -71,13 +71,18 @@
                             bindings = util.parseObjectLiteral(bindOpts);
                             this.checkForConflictingBindings(bindings, classRef);
                             nodeInfo.node = node;
+                            (['attr', 'css', 'style']).forEach(function (binding) {
+                                util.forEachObjectLiteral(bindings[binding], function (subkey, value) {
+                                    bindings[binding + '.' + subkey] = value;
+                                });
+                                bindings[binding] = null;
+                            });
                             nodeInfo.bindings = bindings;
                             if (bindings.foreach || bindings['with'] || bindings['if'] || bindings.ifnot) {
                                 tempFrag = util.moveToFragment(Li.slice(node.childNodes));
                                 nodeInfo.subTpl = new Htmlizer(tempFrag, Object.assign({}, this.cfg));
                             }
-                            this.nodeInfoList.push(nodeInfo);
-                            this.nodeMap[Li.getUID(node)] = nodeInfo;
+                            this.setTNodeInfo(node, nodeInfo);
                         }
 
                         if (classRef) { //skip traversal of component custom element's inner elements
@@ -106,12 +111,21 @@
                                 tempFrag = util.moveToFragment(blockNodes);
                                 nodeInfo.subTpl = new Htmlizer(tempFrag, Object.assign({}, this.cfg));
                             }
-                            this.nodeInfoList.push(nodeInfo);
-                            this.nodeMap[Li.getUID(node)] = nodeInfo;
+                            this.setTNodeInfo(node, nodeInfo);
                         }
                     }
                 }
             }, this);
+        },
+
+        /**
+         * Set binding and other information for a given node in template DocumentFragment.
+         */
+        setTNodeInfo: function (node, info) {
+            if (!this.nodeMap[Li.getUID(node)]) {
+                this.nodeInfoList.push(info);
+                this.nodeMap[Li.getUID(node)] = info;
+            }
         },
 
         /**
@@ -497,44 +511,38 @@
                 }
             },
             attr: {
-                init: function (node, binding, expr) {
+                init: function (node, bindingSpecific, expr) {
                     if (node.nodeType === 1) {
-                        util.forEachObjectLiteral(expr, function (attr, value) {
-                            var val = this.evaluate(binding + '.' + attr, value, node);
-                            if (val || typeof val === 'string' || typeof val === 'number') {
-                                node.setAttribute(attr, val + '');
-                            } else { //undefined, null, false
-                                node.removeAttribute(attr);
-                            }
-                        }, this);
+                        var attr = bindingSpecific.split('.')[1],
+                            val = this.evaluate(bindingSpecific, expr, node);
+                        if (val || typeof val === 'string' || typeof val === 'number') {
+                            node.setAttribute(attr, val + '');
+                        } else { //undefined, null, false
+                            node.removeAttribute(attr);
+                        }
                     }
                 },
-                update: function (node, binding, expr, attr) {
-                    var arg = {};
-                    arg[attr] = expr;
-                    this.bindingHandler[binding].init.call(this, node, binding, arg);
+                update: function (node, bindingSpecific, expr, attr) {
+                    this.bindingHandler.attr.init.call(this, node, bindingSpecific, expr);
                     if (node.nodeType === 1) {
                         this.bindingHandler.componenttag.update.call(this, node, attr);
                     }
                 }
             },
             css: {
-                init: function (node, binding, expr) {
+                init: function (node, bindingSpecific, expr) {
                     if (node.nodeType === 1) {
-                        util.forEachObjectLiteral(expr, function (className, expr) {
-                            var val = this.evaluate(binding + '.' + className, expr, node);
-                            if (val) {
-                                $(node).addClass(className);
-                            } else {
-                                $(node).removeClass(className);
-                            }
-                        }, this);
+                        var className = bindingSpecific.split('.')[1],
+                            val = this.evaluate(bindingSpecific, expr, node);
+                        if (val) {
+                            $(node).addClass(className);
+                        } else {
+                            $(node).removeClass(className);
+                        }
                     }
                 },
-                update: function (node, binding, expr, className) {
-                    var arg = {};
-                    arg[className] = expr;
-                    this.bindingHandler[binding].init.call(this, node, binding, arg);
+                update: function (node, bindingSpecific, expr) {
+                    this.bindingHandler.css.init.call(this, node, bindingSpecific, expr);
                     if (node.nodeType === 1) {
                         this.bindingHandler.componenttag.update.call(this, node, 'class');
                     }
@@ -545,22 +553,19 @@
                     return '-' + m.toLowerCase();
                 }
                 return {
-                    init: function (node, binding, expr) {
+                    init: function (node, bindingSpecific, expr) {
                         if (node.nodeType === 1) {
-                            util.forEachObjectLiteral(expr, function (prop, expr) {
-                                var val = this.evaluate(binding + '.' + prop, expr, node);
-                                if (val || typeof val === 'string' || typeof val === 'number') {
-                                    node.style.setProperty(prop.replace(/[A-Z]/g, toCssProp), val + '');
-                                } else { //undefined, null, false
-                                    node.style.removeProperty(prop.replace(/[A-Z]/g, toCssProp));
-                                }
-                            }, this);
+                            var prop = bindingSpecific.split('.')[1],
+                                val = this.evaluate(bindingSpecific, expr, node);
+                            if (val || typeof val === 'string' || typeof val === 'number') {
+                                node.style.setProperty(prop.replace(/[A-Z]/g, toCssProp), val + '');
+                            } else { //undefined, null, false
+                                node.style.removeProperty(prop.replace(/[A-Z]/g, toCssProp));
+                            }
                         }
                     },
-                    update: function (node, binding, expr, prop) {
-                        var arg = {};
-                        arg[prop] = expr;
-                        this.bindingHandler[binding].init.call(this, node, binding, arg);
+                    update: function (node, bindingSpecific, expr) {
+                        this.bindingHandler.style.init.call(this, node, bindingSpecific, expr);
                         if (node.nodeType === 1) {
                             this.bindingHandler.componenttag.update.call(this, node, 'style');
                         }
@@ -703,10 +708,11 @@
                         }
 
                         var ret;
-                        util.forEachObjectLiteral(bindings, function (binding, value) {
-                            if (this.bindingHandler[binding]) {
+                        Li.forEach(bindings || {}, function (expr, bindingSpecific) {
+                            var binding = bindingSpecific.split('.')[0];
+                            if (expr !== null && this.bindingHandler[binding]) {
                                 control = this.bindingHandler[binding].init.call(this,
-                                    node, binding, value, tNode, blocks) || {};
+                                    node, bindingSpecific, expr, tNode, blocks) || {};
                                 if (control.domTraverse) {
                                     ret = control.domTraverse;
                                 }
@@ -758,10 +764,11 @@
                         }
 
                         bindings = (this.tpl.getTNodeInfo(tNode) || {}).bindings;
-                        util.forEachObjectLiteral(bindings, function (binding, value) {
-                            if (this.bindingHandler[binding]) {
+                        Li.forEach(bindings || {}, function (expr, bindingSpecific) {
+                            var binding = bindingSpecific.split('.')[0];
+                            if (expr !== null && this.bindingHandler[binding]) {
                                 control = this.bindingHandler[binding].init.call(this,
-                                    node, binding, value, tNode, blocks) || {};
+                                    node, binding, expr, tNode, blocks) || {};
                                 if (control.skipOtherbindings) {
                                     return true;
                                 }

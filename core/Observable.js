@@ -246,11 +246,9 @@ define(['./lui.js',
     }
 
     function updateBinding(info) {
-        var binding = info.binding.split('.'),
-            subBinding = binding.slice(1).join('.'),
-            bindingHandler = info.view.bindingHandler[binding[0]];
+        var bindingHandler = info.view.bindingHandler[info.binding.split('.')[0]];
         if (bindingHandler && bindingHandler.update) {
-            bindingHandler.update.call(info.view, info.node, binding[0], info.expr, subBinding || undefined);
+            bindingHandler.update.call(info.view, info.node, info.binding, info.expr);
         }
     }
 
