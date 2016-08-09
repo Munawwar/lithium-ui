@@ -75,7 +75,7 @@ define(['./lui.js',
                                 updateBinding.call(this, info);
                             } else {
                                 var bindingHandler = info.view.bindingHandler[info.binding];
-                                bindingHandler.splice.call(info.view, info.node, info.binding, info.expr, 0, oldValue.length, val);
+                                bindingHandler.splice.call(info.view, info.node, info.binding, 0, oldValue.length, val);
                             }
                         }, this);
                     }
@@ -106,7 +106,7 @@ define(['./lui.js',
                         updateBinding.call(this, info);
                     } else {
                         var bindingHandler = info.view.bindingHandler[info.binding];
-                        bindingHandler.splice.call(info.view, info.node, info.binding, info.expr, index, removeLength, items);
+                        bindingHandler.splice.call(info.view, info.node, info.binding, index, removeLength, items);
                     }
                 }, this);
 
@@ -148,7 +148,7 @@ define(['./lui.js',
                         updateBinding.call(this, info);
                     } else {
                         var bindingHandler = info.view.bindingHandler[info.binding];
-                        bindingHandler.sort.call(info.view, info.node, info.binding, info.expr, indexes);
+                        bindingHandler.sort.call(info.view, info.node, info.binding, indexes);
                     }
                 }, this);
             },
@@ -182,7 +182,7 @@ define(['./lui.js',
                             updateBinding.call(this, info);
                         } else {
                             var bindingHandler = info.view.bindingHandler[info.binding];
-                            bindingHandler.sort.call(info.view, info.node, info.binding, info.expr, indexes);
+                            bindingHandler.sort.call(info.view, info.node, info.binding, indexes);
                         }
                     }, this);
                 }
@@ -248,7 +248,7 @@ define(['./lui.js',
     function updateBinding(info) {
         var bindingHandler = info.view.bindingHandler[info.binding.split('.')[0]];
         if (bindingHandler && bindingHandler.update) {
-            bindingHandler.update.call(info.view, info.node, info.binding, info.expr);
+            bindingHandler.update.call(info.view, info.node, info.binding);
         }
     }
 

@@ -71,6 +71,11 @@
                             bindings = util.parseObjectLiteral(bindOpts);
                             this.checkForConflictingBindings(bindings, classRef);
                             nodeInfo.node = node;
+                            //Convert ifnot: (...) to if: !(...)
+                            if (bindings.ifnot) {
+                                bindings['if'] = '!(' + bindings.ifnot + ')';
+                                delete bindings.ifnot;
+                            }
                             (['attr', 'css', 'style']).forEach(function (binding) {
                                 util.forEachObjectLiteral(bindings[binding], function (subkey, value) {
                                     bindings[binding + '.' + subkey] = value;
@@ -78,7 +83,7 @@
                                 bindings[binding] = null;
                             });
                             nodeInfo.bindings = bindings;
-                            if (bindings.foreach || bindings['with'] || bindings['if'] || bindings.ifnot) {
+                            if (bindings.foreach || bindings['with'] || bindings['if']) {
                                 tempFrag = util.moveToFragment(Li.slice(node.childNodes));
                                 nodeInfo.subTpl = new Htmlizer(tempFrag, Object.assign({}, this.cfg));
                             }
@@ -307,9 +312,9 @@
                 }
             },
             component: {
-                init: function (node, binding, expr, tNode, blocks) {
+                init: function (node, binding, tNode, blocks) {
                     if (node.nodeType === 8) {
-                        expr = expr.trim();
+                        var expr = this.getBindingExpr(node, binding).trim();
                         var val;
                         if (expr[0] === '{') {
                             var inner = util.parseObjectLiteral(expr);
@@ -340,9 +345,10 @@
                 }
             },
             template: {
-                init: function (node, binding, expr, tNode, blocks) {
+                init: function (node, binding, tNode, blocks) {
                     if (node.nodeType === 8) {
-                        var tpl = this.evaluate(binding, expr, node);
+                        var expr = this.getBindingExpr(node, binding),
+                            tpl = this.evaluate(binding, expr, node);
                         if (tpl) {
                             var view = this.makeView(tpl, this.context, this.data, node),
                                 tempFrag = view.toDocumentFragment();
@@ -357,8 +363,9 @@
                 }
             },
             "if": {
-                init: function (node, binding, expr) {
-                    var val = this.evaluate(binding, expr, node);
+                init: function (node, binding) {
+                    var expr = this.getBindingExpr(node, binding),
+                        val = this.evaluate(binding, expr, node);
                     if (val) {
                         var info = this.getNodeInfo(node),
                             view = info.views && info.views[0];
@@ -379,21 +386,12 @@
                     return this.bindingHandler[binding].init.apply(this, arguments);
                 }
             },
-            ifnot: {
-                init: function (node, binding, expr, tNode, blocks) {
-                    //Convert ifnot: (...) to if: !(...)
-                    return this.bindingHandler[binding].init.call(this,
-                        node, 'if', '!(' + expr + ')', tNode, blocks);
-                },
-                update: function (node, binding, expr) {
-                    //Convert ifnot: (...) to if: !(...)
-                    return this.bindingHandler[binding].update.call(this, node, 'if', '!(' + expr + ')');
-                }
-            },
             foreach: {
-                init: function (node, binding, expr) {
+                init: function (node, binding) {
                     var info = this.getNodeInfo(node),
-                        tpl = this.tpl.getTNodeInfo(info.tNode).subTpl,
+                        tNodeInfo = this.tpl.getTNodeInfo(info.tNode),
+                        expr = tNodeInfo.bindings[binding],
+                        tpl = tNodeInfo.subTpl,
                         val;
 
                     if (typeof expr === 'string') {
@@ -410,7 +408,7 @@
                         this.spliceForEachItems(tpl, node, 0, info.views ? info.views.length : 0, val.items, val.as);
                     }
                 },
-                sort: function (node, binding, expr, indexes) {
+                sort: function (node, binding, indexes) {
                     var info = this.getNodeInfo(node);
                     if (info.views) {
                         var output = document.createDocumentFragment();
@@ -431,13 +429,13 @@
                         }
                     }
                 },
-                splice: function (node, binding, expr, index, removeLength, newItems) {
+                splice: function (node, binding, index, removeLength, newItems) {
                     var tNode = this.getNodeInfo(node).tNode,
                         tNodeInfo = this.tpl.getTNodeInfo(tNode),
+                        expr = tNodeInfo.bindings[binding],
                         tpl = tNodeInfo.subTpl,
                         as;
 
-                    expr = tNodeInfo.bindings.foreach;
                     if (typeof expr !== 'string') {
                         as = expr.as.slice(1, -1);
                     }
@@ -448,9 +446,11 @@
                 }
             },
             "with": {
-                init: function (node, binding, expr, tNode) {
-                    var val = this.evaluate(binding, expr, node),
-                        tpl = this.tpl.getTNodeInfo(tNode).subTpl,
+                init: function (node, binding, tNode) {
+                    var tNodeInfo = this.tpl.getTNodeInfo(tNode),
+                        expr = tNodeInfo.bindings[binding],
+                        tpl = tNodeInfo.subTpl,
+                        val = this.evaluate(binding, expr, node),
                         newContext = this.getNewContext(this.context, val);
                     if (tpl.frag.firstChild && val !== null && val !== undefined) {
                         var tempFrag = this.makeView(tpl, newContext, val, node).toDocumentFragment();
@@ -463,8 +463,9 @@
                 }
             },
             text: {
-                init: function (node, binding, expr, tNode, blocks) {
-                    var val = this.evaluate(binding, expr, node);
+                init: function (node, binding, tNode, blocks) {
+                    var expr = this.getBindingExpr(node, binding),
+                        val = this.evaluate(binding, expr, node);
                     if (val === null || val === undefined) {
                         val = '';
                     }
@@ -493,8 +494,9 @@
                 }
             },
             html: {
-                init: function (node, binding, expr) {
+                init: function (node, binding) {
                     if (node.nodeType === 1) {
+                        var expr = this.getBindingExpr(node, binding);
                         $(node).empty();
                         var val = this.evaluate(binding, expr, node);
                         if (val !== undefined && val !== null && val !== '') {
@@ -511,9 +513,10 @@
                 }
             },
             attr: {
-                init: function (node, bindingSpecific, expr) {
+                init: function (node, bindingSpecific) {
                     if (node.nodeType === 1) {
-                        var attr = bindingSpecific.split('.')[1],
+                        var expr = this.getBindingExpr(node, bindingSpecific),
+                            attr = bindingSpecific.split('.')[1],
                             val = this.evaluate(bindingSpecific, expr, node);
                         if (val || typeof val === 'string' || typeof val === 'number') {
                             node.setAttribute(attr, val + '');
@@ -522,17 +525,18 @@
                         }
                     }
                 },
-                update: function (node, bindingSpecific, expr, attr) {
-                    this.bindingHandler.attr.init.call(this, node, bindingSpecific, expr);
+                update: function (node, bindingSpecific) {
+                    this.bindingHandler.attr.init.call(this, node, bindingSpecific);
                     if (node.nodeType === 1) {
-                        this.bindingHandler.componenttag.update.call(this, node, attr);
+                        this.bindingHandler.componenttag.update.call(this, node, bindingSpecific.split('.')[1]);
                     }
                 }
             },
             css: {
-                init: function (node, bindingSpecific, expr) {
+                init: function (node, bindingSpecific) {
                     if (node.nodeType === 1) {
-                        var className = bindingSpecific.split('.')[1],
+                        var expr = this.getBindingExpr(node, bindingSpecific),
+                            className = bindingSpecific.split('.')[1],
                             val = this.evaluate(bindingSpecific, expr, node);
                         if (val) {
                             $(node).addClass(className);
@@ -541,8 +545,8 @@
                         }
                     }
                 },
-                update: function (node, bindingSpecific, expr) {
-                    this.bindingHandler.css.init.call(this, node, bindingSpecific, expr);
+                update: function (node, bindingSpecific) {
+                    this.bindingHandler.css.init.call(this, node, bindingSpecific);
                     if (node.nodeType === 1) {
                         this.bindingHandler.componenttag.update.call(this, node, 'class');
                     }
@@ -553,9 +557,10 @@
                     return '-' + m.toLowerCase();
                 }
                 return {
-                    init: function (node, bindingSpecific, expr) {
+                    init: function (node, bindingSpecific) {
                         if (node.nodeType === 1) {
-                            var prop = bindingSpecific.split('.')[1],
+                            var expr = this.getBindingExpr(node, bindingSpecific),
+                                prop = bindingSpecific.split('.')[1],
                                 val = this.evaluate(bindingSpecific, expr, node);
                             if (val || typeof val === 'string' || typeof val === 'number') {
                                 node.style.setProperty(prop.replace(/[A-Z]/g, toCssProp), val + '');
@@ -564,8 +569,8 @@
                             }
                         }
                     },
-                    update: function (node, bindingSpecific, expr) {
-                        this.bindingHandler.style.init.call(this, node, bindingSpecific, expr);
+                    update: function (node, bindingSpecific) {
+                        this.bindingHandler.style.init.call(this, node, bindingSpecific);
                         if (node.nodeType === 1) {
                             this.bindingHandler.componenttag.update.call(this, node, 'style');
                         }
@@ -576,10 +581,11 @@
             //Some of the following aren't treated as attributes by Knockout, but this is here to keep compatibility with Knockout.
 
             enable: {
-                init: function (node, binding, expr) {
+                init: function (node, binding) {
                     //binding could be 'disable' or 'enable'
                     if (node.nodeType === 1) {
-                        var val = this.evaluate(binding, expr, node),
+                        var expr = this.getBindingExpr(node, binding),
+                            val = this.evaluate(binding, expr, node),
                             disable = (binding === 'disable' ? val : !val);
                         if (disable) {
                             node.setAttribute('disabled', 'disabled');
@@ -601,9 +607,10 @@
                 }
             },
             checked: {
-                init: function (node, binding, expr) {
+                init: function (node, binding) {
                     if (node.nodeType === 1) {
-                        var val = this.evaluate(binding, expr, node);
+                        var expr = this.getBindingExpr(node, binding),
+                            val = this.evaluate(binding, expr, node);
                         if (val) {
                             node.setAttribute('checked', 'checked');
                             node.checked = true;
@@ -618,9 +625,10 @@
                 }
             },
             value: {
-                init: function (node, binding, expr) {
+                init: function (node, binding) {
                     if (node.nodeType === 1) {
-                        var val = this.evaluate(binding, expr, node);
+                        var expr = this.getBindingExpr(node, binding),
+                            val = this.evaluate(binding, expr, node);
                         if (val === null || val === undefined) {
                             node.removeAttribute('value');
                             node.value = '';
@@ -635,9 +643,10 @@
                 }
             },
             visible: {
-                init: function (node, binding, expr) {
+                init: function (node, binding) {
                     if (node.nodeType === 1) {
-                        var val = this.evaluate(binding, expr, node);
+                        var expr = this.getBindingExpr(node, binding),
+                            val = this.evaluate(binding, expr, node);
                         if (val) {
                             if (node.style.display === 'none') {
                                 node.style.removeProperty('display');
@@ -712,7 +721,7 @@
                             var binding = bindingSpecific.split('.')[0];
                             if (expr !== null && this.bindingHandler[binding]) {
                                 control = this.bindingHandler[binding].init.call(this,
-                                    node, bindingSpecific, expr, tNode, blocks) || {};
+                                    node, bindingSpecific, tNode, blocks) || {};
                                 if (control.domTraverse) {
                                     ret = control.domTraverse;
                                 }
@@ -768,7 +777,7 @@
                             var binding = bindingSpecific.split('.')[0];
                             if (expr !== null && this.bindingHandler[binding]) {
                                 control = this.bindingHandler[binding].init.call(this,
-                                    node, binding, expr, tNode, blocks) || {};
+                                    node, binding, tNode, blocks) || {};
                                 if (control.skipOtherbindings) {
                                     return true;
                                 }
@@ -894,6 +903,14 @@
          */
         getNodeInfo: function (node) {
             return this.nodeMap[Li.getUID(node)];
+        },
+
+        /**
+         * Get the JS expression for a specific binding of a specific node of this View.
+         */
+        getBindingExpr: function (node, bindingSpecific) {
+            var tNode = this.getNodeInfo(node).tNode;
+            return this.tpl.getTNodeInfo(tNode).bindings[bindingSpecific];
         },
 
         /**
@@ -1033,8 +1050,7 @@
             this.currentlyEvaluating = {
                 view: this,
                 node: node,
-                binding: binding,
-                expr: expr
+                binding: binding
             };
 
             var value = saferEval.call(this.getRootView(), expr, this.context, this.data, node);
