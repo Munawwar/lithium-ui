@@ -4,7 +4,7 @@ var assert = require("assert"),
     utils = require('../utils');
 
 define(['core/Box.js'], function (Li) {
-    describe('box component test', function () {
+    describe('Component: Test Box component', function () {
         var box = new Li.Box({}),
             df = document.createDocumentFragment();
         box.render(df);
@@ -30,7 +30,7 @@ define(['core/Box.js'], function (Li) {
             '<li-box params="style: \'color: red;\'"></li-box>'
         )
     });
-    describe('test usage of custom element in templates', function () {
+    describe('Component: Test usage of custom elements in templates', function () {
         var cmp = new MyComp({}),
             df = document.createDocumentFragment();
         cmp.render(df);

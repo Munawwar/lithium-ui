@@ -7,7 +7,7 @@ var assert = require("assert"),
 define(['core/Template.js'], function (Li) {
     var Htmlizer = Li.Template;
 
-    describe('run text and attr binding test', function () {
+    describe('Template: Test text and attr binding', function () {
         var html = fetch('text-and-attr-binding-tpl.html'),
             outputHtml = (new Htmlizer(html)).toString({
                 btnText: 'Click here',
@@ -26,7 +26,7 @@ define(['core/Template.js'], function (Li) {
         });
     });
 
-    describe('run container-less text binding test', function () {
+    describe('Template: Test container-less text binding', function () {
         var html = fetch('text-comment-tpl.html'),
             outputHtml = (new Htmlizer(html)).toString({
                 btnText: 'Click here'
@@ -40,7 +40,7 @@ define(['core/Template.js'], function (Li) {
         });
     });
 
-    describe('run html bind test', function () {
+    describe('Template: Test html binding', function () {
         var html = fetch('html-binding-tpl.html'),
             outputHtml = (new Htmlizer(html)).toString({
                 message: '<b>This</b> is a <b>serious message</b>.'
@@ -51,7 +51,7 @@ define(['core/Template.js'], function (Li) {
         });
     });
 
-    describe('run inline "if" statement test', function () {
+    describe('Template: Test inline "if" binding', function () {
         var html = fetch('if-inline-tpl.html'),
             outputHtml = (new Htmlizer(html)).toString({
                 btnText: 'Howdy!',
@@ -63,7 +63,7 @@ define(['core/Template.js'], function (Li) {
         });
     });
 
-    describe('run container-less nested "if" statement test', function () {
+    describe('Template: Test container-less nested "if" binding', function () {
         var html = fetch('if-comment-tpl.html'),
             outputHtml = (new Htmlizer(html)).toString({
                 btnText: 'Howdy!',
@@ -78,7 +78,7 @@ define(['core/Template.js'], function (Li) {
         });
     });
 
-    describe('run mixed "if" statement test', function () {
+    describe('Template: Test mixed "if" binding', function () {
         var html = fetch('if-mixed-tpl.html'),
             outputHtml = (new Htmlizer(html)).toString({
                 btnText: 'Howdy!',
@@ -90,7 +90,7 @@ define(['core/Template.js'], function (Li) {
         });
     });
 
-    describe('run inline "foreach" statement test', function () {
+    describe('Template: Test inline "foreach" binding', function () {
         var html = fetch('foreach-inline-tpl.html'),
             outputHtml = (new Htmlizer(html)).toString({
                 items: ['item1', 'item2', 'item3']
@@ -101,7 +101,7 @@ define(['core/Template.js'], function (Li) {
         });
     });
 
-    describe('run container-less "foreach" statement test', function () {
+    describe('Template: Test container-less "foreach" binding', function () {
         var html = fetch('foreach-comment-tpl.html'),
             outputHtml = (new Htmlizer(html)).toString({
                 items: [{
@@ -123,7 +123,7 @@ define(['core/Template.js'], function (Li) {
         });
     });
 
-    describe('run css and style binding test', function () {
+    describe('Template: Test css and style binding', function () {
         var html = fetch('css-and-style-binding-tpl.html'),
             outputHtml = (new Htmlizer(html)).toString({
                 isWarning: true,
@@ -138,7 +138,7 @@ define(['core/Template.js'], function (Li) {
         });
     });
 
-    describe('run binding context test', function () {
+    describe('Template: Test binding contexts', function () {
         var html = fetch('binding-context-tpl.html'),
             outputHtml = (new Htmlizer(html)).toString({
                 items: [{
@@ -183,7 +183,7 @@ define(['core/Template.js'], function (Li) {
         });
     });
 
-    describe('run "ifnot" binding test', function () {
+    describe('Template: Test "ifnot" binding', function () {
         var html = fetch('ifnot-tpl.html'),
             outputHtml = (new Htmlizer(html)).toString({
                 btnText: 'Howdy!',
@@ -195,7 +195,7 @@ define(['core/Template.js'], function (Li) {
         });
     });
 
-    describe('run inline "with" binding test', function () {
+    describe('Template: Test inline "with" binding', function () {
         var html = fetch('with-inline-tpl.html'),
             outputHtml = (new Htmlizer(html)).toString({
                 obj: {
@@ -215,7 +215,7 @@ define(['core/Template.js'], function (Li) {
         });
     });
 
-    describe('run container-less "with" binding test', function () {
+    describe('Template: Test container-less "with" binding', function () {
         var html = fetch('with-comment-tpl.html'),
             outputHtml = (new Htmlizer(html)).toString({
                 obj: {
@@ -235,7 +235,7 @@ define(['core/Template.js'], function (Li) {
         });
     });
 
-    describe('run no conflict test', function () {
+    describe('Template: Test no conflict option', function () {
         var html = fetch('noconflict-tpl.html'),
             outputHtml = (new Htmlizer(html, {noConflict: true})).toString({
                 btnText: 'Howdy!',
@@ -267,7 +267,7 @@ define(['core/Template.js'], function (Li) {
         });
     });
 
-    describe('run no conflict sub-template test', function () {
+    describe('Template: Test no conflict with sub-template', function () {
         var html = fetch('noconflict-subtemplate-tpl.html'),
             outputHtml = (new Htmlizer(html, {noConflict: true})).toString({
                 items: [{
@@ -289,7 +289,7 @@ define(['core/Template.js'], function (Li) {
         });
     });
 
-    describe('run template binding test', function () {
+    describe('Template: Test template binding', function () {
         var html = fetch('template.html'),
             subtplhtml = fetch('files/subtemplate.html'),
             outputHtml = (new Htmlizer(html)).toString({
