@@ -367,9 +367,15 @@
                     var expr = this.getBindingExpr(node, binding),
                         val = this.evaluate(binding, expr, node),
                         info = this.getNodeInfo(node),
-                        view = info.views && info.views[0];
+                        view = info.views && info.views[0],
+                        hasChanged = (!view && val); //first time attach
 
-                    if (view || (!view && val)) {
+                    if (view) {
+                        var isAttached = view.firstChild.parentNode;
+                        hasChanged = ((val && !isAttached) || (!val && isAttached));
+                    }
+
+                    if (hasChanged) {
                         if (!view) { //if view not created, the create it.
                             var tpl = this.tpl.getTNodeInfo(info.tNode).subTpl;
                             view = this.makeView(tpl, this.context, this.data, node);
@@ -633,9 +639,11 @@
                         var expr = this.getBindingExpr(node, binding),
                             val = this.evaluate(binding, expr, node);
                         if (val === null || val === undefined) {
-                            node.removeAttribute('value');
-                            node.value = '';
-                        } else if (node.value !== (val + '')) {
+                            if (node.value !== '') { // avoid unnecessary text cursor change.
+                                node.removeAttribute('value');
+                                node.value = '';
+                            }
+                        } else if (node.value !== (val + '')) { // avoid unnecessary text cursor change.
                             node.setAttribute('value', val);
                             node.value = val;
                         }
