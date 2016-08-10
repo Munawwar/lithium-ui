@@ -365,20 +365,23 @@
             "if": {
                 init: function (node, binding) {
                     var expr = this.getBindingExpr(node, binding),
-                        val = this.evaluate(binding, expr, node);
-                    if (val) {
-                        var info = this.getNodeInfo(node),
-                            view = info.views && info.views[0];
+                        val = this.evaluate(binding, expr, node),
+                        info = this.getNodeInfo(node),
+                        view = info.views && info.views[0];
+
+                    if (view || (!view && val)) {
                         if (!view) { //if view not created, the create it.
                             var tpl = this.tpl.getTNodeInfo(info.tNode).subTpl;
                             view = this.makeView(tpl, this.context, this.data, node);
                         }
                         var tempFrag = view.toDocumentFragment(); //if rendered, move nodes from document to DocumentFragment
 
-                        if (node.nodeType === 1) {
-                            node.appendChild(tempFrag);
-                        } else if (node.nodeType === 8) {
-                            node.parentNode.insertBefore(tempFrag, node.nextSibling);
+                        if (val) {
+                            if (node.nodeType === 1) {
+                                node.appendChild(tempFrag);
+                            } else if (node.nodeType === 8) {
+                                node.parentNode.insertBefore(tempFrag, node.nextSibling);
+                            }
                         }
                     }
                 },
