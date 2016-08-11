@@ -55,6 +55,46 @@ define([
             assert.equal(0, df.firstChild.children.length);
         });
     });
+
+    ([
+        'Observable: Test foreach binding updates',
+        'Observable: Test container-less foreach binding updates'
+    ]).forEach(function (testText, testNum) {
+        describe(testText, function () {
+            var html = fetch('foreach-' + (testNum + 1) + '-tpl.html'),
+                template = new Li.Template(html),
+                data = {
+                    list: Li.ObservableArray([1, 2, 3, 4, 5])
+                },
+                view = new Li.Template.View(template, data),
+                df = view.toDocumentFragment(data);
+
+            it('it should have 5 spans inside it', function () {
+                assert.equal(5, df.firstChild.children.length);
+            });
+
+            it('it should have 4 spans inside it after a splice(2, 1)', function () {
+                data.list.splice(2, 1);
+                assert.equal(4, df.firstChild.children.length);
+            });
+
+            it('it should have 5 spans inside it after a splice(2, 0, 3)', function () {
+                data.list.splice(2, 0, 3);
+                assert.equal(5, df.firstChild.children.length);
+            });
+
+            it('it should have spans in reverse order after sort()ing in descending order', function () {
+                data.list.sort(function (a, b) {
+                    return b - a;
+                });
+                assert.equal('5', df.firstChild.children[0].textContent);
+                assert.equal('4', df.firstChild.children[1].textContent);
+                assert.equal('3', df.firstChild.children[2].textContent);
+                assert.equal('2', df.firstChild.children[3].textContent);
+                assert.equal('1', df.firstChild.children[4].textContent);
+            });
+        });
+    });
 });
 
 /*Utility functions*/
