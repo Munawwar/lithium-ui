@@ -9,7 +9,7 @@ define([
     'core/Observable.js'
 ], function (Li) {
 
-    describe('Observable: Test text and attr binding updates', function () {
+    describe('Observable: Test updates to text and attr binding', function () {
         var html = fetch('text-and-attr-binding-tpl.html'),
             template = new Li.Template(html),
             data = {
@@ -35,7 +35,7 @@ define([
         });
     });
 
-    describe('Observable: Test if binding updates', function () {
+    describe('Observable: Test updates to if binding', function () {
         var html = fetch('if-mixed-tpl.html'),
             template = new Li.Template(html),
             data = {
@@ -57,8 +57,8 @@ define([
     });
 
     ([
-        'Observable: Test foreach binding updates',
-        'Observable: Test container-less foreach binding updates'
+        'Observable: Test updates to foreach binding',
+        'Observable: Test updates to container-less foreach binding'
     ]).forEach(function (testText, testNum) {
         describe(testText, function () {
             var html = fetch('foreach-' + (testNum + 1) + '-tpl.html'),
@@ -93,6 +93,27 @@ define([
                 assert.equal('2', df.firstChild.children[3].textContent);
                 assert.equal('1', df.firstChild.children[4].textContent);
             });
+        });
+    });
+
+    describe('Observable: Test diff-patch updates on foreach binding', function () {
+        var html = fetch('foreach-3-tpl.html'),
+            template = new Li.Template(html),
+            data = {
+                list: Li.ObservableArray([1, 2, 3, 4, 5])
+            },
+            view = new Li.Template.View(template, data),
+            df = view.toDocumentFragment(data);
+
+        it('it should have 4 spans inside it, with span 1 text as "2" and span 4 text as "5"', function () {
+            assert.equal(4, df.firstChild.children.length);
+            assert.equal('2', df.firstChild.children[0].textContent);
+            assert.equal('5', df.firstChild.children[3].textContent);
+        });
+
+        it('it should have 5 spans inside it after a push(6)', function () {
+            data.list.push(6);
+            assert.equal(5, df.firstChild.children.length);
         });
     });
 });

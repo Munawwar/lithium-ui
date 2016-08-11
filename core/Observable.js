@@ -1,6 +1,6 @@
-define(['./lui.js',
-    'jquery',
-    './base/lithium.js'
+define([
+    './lui.js',
+    'jquery'
 ], function (Li, $) {
     /**
      * Observable primitive value
@@ -66,17 +66,11 @@ define(['./lui.js',
                 //Set if not undefined
                 if (val !== undefined) {
                     if (Li.isArray(val)) {
-                        var oldValue = value;
                         value = val;
 
                         //Refresh UI
                         removeUnusedAndIterate(nodeBindings, uniqueBindings, function (info) {
-                            if (info.binding !== 'foreach') {
-                                updateBinding.call(this, info);
-                            } else {
-                                var bindingHandler = info.view.bindingHandler[info.binding];
-                                bindingHandler.splice.call(info.view, info.node, info.binding, 0, oldValue.length, val);
-                            }
+                            updateBinding.call(this, info);
                         }, this);
                     }
                 } else {
@@ -106,7 +100,7 @@ define(['./lui.js',
                         updateBinding.call(this, info);
                     } else {
                         var bindingHandler = info.view.bindingHandler[info.binding];
-                        bindingHandler.splice.call(info.view, info.node, info.binding, index, removeLength, items);
+                        bindingHandler.update.call(info.view, info.node, info.binding, index, removeLength, items);
                     }
                 }, this);
 
@@ -197,7 +191,7 @@ define(['./lui.js',
                     };
                 }
 
-                //TODO: Improve performance whn removing from view.
+                //TODO: Improve performance when removing from view.
                 var removedItems = [];
                 for (var i = value.length - 1; i >= 0; i -= 1) {
                     if (func(value[i])) {
@@ -219,7 +213,7 @@ define(['./lui.js',
         });
 
         observable.isLiObservable = true;
-        observable.isLiArray = true;
+        observable.isLiObservableArray = true;
 
         observable(initVal);
         return observable;

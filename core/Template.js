@@ -2,16 +2,16 @@
 /*jslint evil: true*/
 
 (function (factory, saferEval) {
-    define(['jquery',
-        './util/js-object-literal-parse.js',
+    define([
+        'jquery',
         './Observable.js',
-        './base/lithium.js'
-    ], function ($, parseObjectLiteral, Li) {
-        Li.Template = factory.call(this, saferEval, $, parseObjectLiteral, Li);
+        './util/js-object-literal-parse.js',
+        './arrayDiff.js'
+    ], function ($, Li, parseObjectLiteral, arrayDiff) {
+        Li.Template = factory.call(this, saferEval, $, Li, parseObjectLiteral, arrayDiff);
         return Li;
     }.bind(this));
-}(function (saferEval, $, parseObjectLiteral, Li) {
-    //var window = document.defaultView;
+}(function (saferEval, $, Li, parseObjectLiteral, arrayDiff) {
 
     function unwrap(str) {
         var o = {};
@@ -380,6 +380,7 @@
                             var tpl = this.tpl.getTNodeInfo(info.tNode).subTpl;
                             view = this.makeView(tpl, this.context, this.data, node);
                         }
+
                         var tempFrag = view.toDocumentFragment(); //if rendered, move nodes from document to DocumentFragment
 
                         if (val) {
@@ -417,6 +418,53 @@
                         this.spliceForEachItems(tpl, node, 0, info.views ? info.views.length : 0, val.items, val.as);
                     }
                 },
+                /*
+                 * Update binding using O(N) diff-patch algorithm (when N = length of old array + length of new array).
+                 * If index and removeLength/newItems arguments are passed, then it will mostly
+                 * do an effifient O(n) update (when n is number of items to insert+remove). If that
+                 * is not possible then it falls back to diff-patch.
+                 */
+                update: function (node, binding, index, removeLength, newItems) {
+                    var info = this.getNodeInfo(node),
+                        tNodeInfo = this.tpl.getTNodeInfo(info.tNode),
+                        oldObserver = info.observer,
+                        expr = tNodeInfo.bindings[binding],
+                        tpl = tNodeInfo.subTpl,
+                        val;
+
+                    if (typeof expr === 'string') {
+                        val = {items: this.evaluate(binding, expr, node)};
+                    } else {
+                        var inner = expr;
+                        val = {
+                            items: this.evaluate(binding, inner.data, node),
+                            as: inner.as.slice(1, -1) //strip string quote
+                        };
+                    }
+
+                    //If index and removeLength and/or newItems present
+                    //AND if we are sure that the expr evaluates to the same ObservableArray
+                    //as used the last time, then do an efficient update (no need of diff-patch algo).
+                    if (oldObserver && oldObserver === info.observer && Li.isNumber(index)) {
+                        this.spliceForEachItems(tpl, node, index, removeLength, newItems || [], val.as);
+                    } else if (!info.views || info.views.length === 0) { //then add them all
+                        this.spliceForEachItems(tpl, node, 0, 0, val.items, val.as);
+                    } else {
+                        var oldArr = info.views.map(function (view) {
+                            return view.context.$data;
+                        });
+                        var changes = arrayDiff(val.items, oldArr);
+                        changes.forEach(function (change) {
+                            if (change.replace) {
+                                this.spliceForEachItems(tpl, node, change.index, change.batch.length, change.batch, val.as);
+                            } else if (change.insert) {
+                                this.spliceForEachItems(tpl, node, change.index, 0, change.batch, val.as);
+                            } else { //remove
+                                this.spliceForEachItems(tpl, node, change.index, change.batch.length, [], val.as);
+                            }
+                        }, this);
+                    }
+                },
                 sort: function (node, binding, indexes) {
                     var info = this.getNodeInfo(node);
                     if (info.views) {
@@ -436,21 +484,6 @@
                             //Render inner template and insert berfore this node.
                             node.parentNode.insertBefore(output, info.blockEndNode);
                         }
-                    }
-                },
-                splice: function (node, binding, index, removeLength, newItems) {
-                    var tNode = this.getNodeInfo(node).tNode,
-                        tNodeInfo = this.tpl.getTNodeInfo(tNode),
-                        expr = tNodeInfo.bindings[binding],
-                        tpl = tNodeInfo.subTpl,
-                        as;
-
-                    if (typeof expr !== 'string') {
-                        as = expr.as.slice(1, -1);
-                    }
-
-                    if (tpl.frag.firstChild) {
-                        this.spliceForEachItems(tpl, node, index, removeLength, newItems || [], as);
                     }
                 }
             },
@@ -505,9 +538,9 @@
             html: {
                 init: function (node, binding) {
                     if (node.nodeType === 1) {
-                        var expr = this.getBindingExpr(node, binding);
+                        var expr = this.getBindingExpr(node, binding),
+                            val = this.evaluate(binding, expr, node);
                         $(node).empty();
-                        var val = this.evaluate(binding, expr, node);
                         if (val !== undefined && val !== null && val !== '') {
                             var nodes = util.parseHTML(val + '');
                             if (nodes) {
@@ -638,6 +671,7 @@
                     if (node.nodeType === 1) {
                         var expr = this.getBindingExpr(node, binding),
                             val = this.evaluate(binding, expr, node);
+
                         if (val === null || val === undefined) {
                             if (node.value !== '') { // avoid unnecessary text cursor change.
                                 node.removeAttribute('value');
@@ -1054,18 +1088,22 @@
          * Sets states such that Observable that are called from eval, can indentify what binding etc is being evaluated.
          * @private
          */
-        evaluate: function (binding, expr, node) {
+        evaluate: function (bindingSpecific, expr, node) {
             var old = Htmlizer.View.currentlyEvaluating;
             Htmlizer.View.currentlyEvaluating = this;
 
             this.currentlyEvaluating = {
                 view: this,
                 node: node,
-                binding: binding
+                binding: bindingSpecific
             };
 
             var value = saferEval.call(this.getRootView(), expr, this.context, this.data, node);
 
+            if (bindingSpecific ==='foreach') {
+                var info = this.getNodeInfo(node);
+                info.observer = Li.isObservableArray(value) ? value : null;
+            }
             if (value && Li.isObservable(value)) {
                 value = value();
             }

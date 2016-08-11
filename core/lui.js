@@ -95,6 +95,13 @@ define([
         },
 
         /**
+         * Check if type is an observable.
+         */
+        isObservableArray: function (o) {
+            return (Li.isFunction(o) && o.isLiObservableArray);
+        },
+
+        /**
          * Converts each property of object to an Observable
          */
         toObservable: function (obj) {
