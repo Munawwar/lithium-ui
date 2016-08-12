@@ -105,15 +105,25 @@ define([
             view = new Li.Template.View(template, data),
             df = view.toDocumentFragment(data);
 
-        it('it should have 4 spans inside it, with span 1 text as "2" and span 4 text as "5"', function () {
-            assert.equal(4, df.firstChild.children.length);
-            assert.equal('2', df.firstChild.children[0].textContent);
-            assert.equal('5', df.firstChild.children[3].textContent);
+        var firstEl = df.children[0],
+            list = df.children[1];
+        it('first span should have text as "5"', function () {
+            assert.equal('5', firstEl.textContent);
         });
 
-        it('it should have 5 spans inside it after a push(6)', function () {
+        it('div should have 4 spans inside it, with span 1 text as "2" and span 4 text as "5"', function () {
+            assert.equal(4, list.children.length);
+            assert.equal('2', list.children[0].textContent);
+            assert.equal('5', list.children[3].textContent);
+        });
+
+        it('first span should have text as "6" inside it after a push(6)', function () {
             data.list.push(6);
-            assert.equal(5, df.firstChild.children.length);
+            assert.equal('6', firstEl.textContent);
+        });
+
+        it('div should have 5 spans inside it after the previous push(6)', function () {
+            assert.equal(5, list.children.length);
         });
     });
 });
