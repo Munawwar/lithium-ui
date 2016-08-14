@@ -91,7 +91,7 @@ define([
             );
         },
 
-        render: function () {
+        attach: function () {
             this.super(arguments);
 
             var bgColor = window.getComputedStyle(this.el).backgroundColor;

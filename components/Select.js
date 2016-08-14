@@ -146,8 +146,8 @@ define([
             return this.dropdown.hide();
         },
 
-        render: function () {
-            this.dropdown.render(document.body);
+        attach: function () {
+            this.dropdown.attach(document.body);
             this.super(arguments);
         },
 

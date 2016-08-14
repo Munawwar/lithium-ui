@@ -23,25 +23,18 @@ define([
             this.super(arguments);
         },
 
-        render: function () {
-            this.super(arguments);
-            if (!this.closeBtn) {
-                $('.close', this.el).hide();
-            }
-        },
-
         /**
          * @override
          */
-        render: function () {
+        attach: function () {
             this.super(arguments);
 
             if (!this.closeBtn) {
                 setTimeout(function () {
-                    $(this.el).fadeOut(1000, this.unrender.bind(this));
+                    $(this.el).fadeOut(1000, this.detach.bind(this));
                 }.bind(this), 2000);
             } else {
-                $(this.el).on('click', this.unrender.bind(this));
+                $(this.el).on('click', this.detach.bind(this));
             }
         },
 

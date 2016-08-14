@@ -267,24 +267,24 @@ define([
         /**
          * Render component to target HTMLElement.
          */
-        render: function (target, childIndex) {
+        attach: function (target, childIndex) {
             //Store the root component being rendered
-            if (!Li.Component.renderingRoot) {
-                Li.Component.renderingRoot = this;
+            if (!Li.Component.attachingRoot) {
+                Li.Component.attachingRoot = this;
                 target.insertBefore(this.view.toDocumentFragment(), target.childNodes[childIndex]);
             }
-            //Call render() on sub-components as well, since they may need to do some post-processing.
+            //Call attach() on sub-components as well, since they may need to do some post-processing.
             this.view.getComponents().forEach(function (component) {
-                component.render(component.el.parentNode, Li.childIndex(component.el));
+                component.attach(component.el.parentNode, Li.childIndex(component.el));
             });
-            if (Li.Component.renderingRoot === this) {
-                delete Li.Component.renderingRoot;
+            if (Li.Component.attachingRoot === this) {
+                delete Li.Component.attachingRoot;
             }
         },
         /**
          * Remove this component from document.
          * Note: But it isn't removed from memory nor referenes to sub-components are removed.
-         * The nodes will be reused on render() call.
+         * The nodes will be reused on attach() call.
          * @protected
          */
         detach: function () {
@@ -295,10 +295,10 @@ define([
             }
         },
         /**
-         * Refresh component. This method can only be used after rendering.
+         * Refresh component. This method can only be used after attaching.
          */
         refresh: function () {
-            this.render(this.el.parentNode, Li.childIndex(this.el));
+            this.attach(this.el.parentNode, Li.childIndex(this.el));
         },
 
         /**

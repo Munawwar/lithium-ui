@@ -78,7 +78,7 @@ define([
             $el.css({display: "block"});
 
             if (!document.body.contains(this.el)) {
-                this.render(document.body);
+                this.attach(document.body);
             }
 
             if (position && sourceEl) {

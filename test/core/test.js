@@ -7,7 +7,7 @@ define(['core/Box.js'], function (Li) {
     describe('Component: Test Box component', function () {
         var box = new Li.Box({}),
             df = document.createDocumentFragment();
-        box.render(df);
+        box.attach(df);
 
         var el = box.el;
         it('should have root element', function () {
@@ -33,10 +33,10 @@ define(['core/Box.js'], function (Li) {
     describe('Component: Test usage of custom elements in templates', function () {
         var cmp = new MyComp({}),
             df = document.createDocumentFragment();
-        cmp.render(df);
+        cmp.attach(df);
 
         var el = cmp.el;
-        it('it should have rendered', function () {
+        it('it should have added to the document fragment', function () {
             assert.equal(el.children[0].nodeName, 'DIV');
         });
         it('class attribute test', function () {

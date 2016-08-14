@@ -120,7 +120,7 @@ define([
             }
         },
 
-        render: function () {
+        attach: function () {
             this.super(arguments);
 
             //Hide all
