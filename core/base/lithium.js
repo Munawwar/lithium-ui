@@ -303,7 +303,7 @@
          * @method uuid
          */
         uuid: function (len, hypenate) {
-            var count = 1, id = (new Array((len || 10) + 1).join('x')).replace(/x/g, function () {
+            var count = 1, id = ('x').repeat(len || 10).replace(/x/g, function () {
                 return ((count++ % 5) ? '' : '-') + (Math.random() * 100 % 36 | 0).toString(36);
             });
             return hypenate ? id : id.replace(/-/g, '');
