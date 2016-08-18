@@ -273,9 +273,9 @@
                         var cfg = {}, cmp;
                         //Parse node to a config
                         if (ClassRef.prototype.makeConfigFromView) {
-                            if (node.hasAttribute('params')) {
-                                cfg = util.parseObjectLiteral(node.getAttribute('params'));
-                                node.removeAttribute('params');
+                            if (node.hasAttribute('config')) {
+                                cfg = util.parseObjectLiteral(node.getAttribute('config'));
+                                node.removeAttribute('config');
                                 this.evaluateParams(cfg, node); //Convert values to right data type (like integers).
                             }
                             cfg = ClassRef.prototype.makeConfigFromView(node, cfg);
@@ -320,19 +320,19 @@
                             var inner = util.parseObjectLiteral(expr);
                             val = {
                                 ref: this.evaluate(binding, inner.ref, node),
-                                params: inner.params || {}
+                                config: inner.config || {}
                             };
-                            this.evaluateParams(val.params, node); //Convert values to right data type (like integers).
+                            this.evaluateParams(val.config, node); //Convert values to right data type (like integers).
                         } else {
                             val = {
                                 ref: this.evaluate(binding, expr, node),
-                                params: {}
+                                config: {}
                             };
                         }
 
                         var cmp = val.ref;
                         if (cmp instanceof Li.Component) {
-                            cmp.set(Object.assign(val.params, {parent: this.context.$root}));
+                            cmp.set(Object.assign(val.config, {parent: this.context.$root}));
 
                             //Add to components list for rendering later
                             this.components.push({cmp: cmp, node: node});
@@ -1068,8 +1068,8 @@
         },
 
         /**
-         * Recursively converts values of component 'params' config to the right data type (like integers).
-         * @param {Object} params Not a string. Make sure to convert params attribute to Object -> util.parseObjectLiteral(node.getAttribute('params'));
+         * Recursively converts values of component 'config' parsed object to the right data type (like integers).
+         * @param {Object} config Not a string. Make sure to convert config attribute to Object -> util.parseObjectLiteral(node.getAttribute('config'));
          * @param {HTMLELement} node
          * @private
          */
