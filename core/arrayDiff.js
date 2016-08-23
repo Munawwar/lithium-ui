@@ -1,4 +1,11 @@
 define([], function () {
+    /**
+     * This array diff algorithm is useful when one wants to detect small changes
+     * (like consecutive insertions or consecutive deletions) several times
+     * in short time intervals. Alternative algorithms like LCS woud be too expensive
+     * when running it too many times.
+     */
+
     //Algo 1 - Here index of both arrays are incremented when unequal
     //Good for detecting appends and pops(). For arrays of equal length this would be good to detect replace ops.
     function arrayDiff1(n, o) {
@@ -9,6 +16,7 @@ define([], function () {
             if (n[i] !== o[j]) {
                 changes.push({
                     replace: true,
+                    op: 'replace',
                     value: n[i],
                     index: j
                 });
@@ -17,6 +25,7 @@ define([], function () {
         for (; i < n.length; i += 1) { //if more items from n remains
             changes.push({
                 insert : true,
+                op: 'insert',
                 value: n[i],
                 index: i
             });
@@ -24,6 +33,7 @@ define([], function () {
         for (var end = j; j < o.length; j += 1) { //if more items from o remains
             changes.push({
                 remove : true,
+                op: 'remove',
                 value: o[j],
                 index: end
             });
@@ -45,6 +55,7 @@ define([], function () {
             } else {
                 changes.push({
                     insert: true,
+                    op: 'insert',
                     value: n[i],
                     index: j + d
                 });
@@ -55,6 +66,7 @@ define([], function () {
         for (; i < n.length; i += 1) { //if more items from n remains
             changes.push({
                 insert : true,
+                op: 'insert',
                 value: n[i],
                 index: j + d
             });
@@ -63,6 +75,7 @@ define([], function () {
         for (; j < o.length; j += 1) { //if more items from o remains
             changes.push({
                 remove : true,
+                op: 'remove',
                 value: o[j],
                 index: j + d
             });
@@ -85,6 +98,7 @@ define([], function () {
             } else {
                 changes.push({
                     remove: true,
+                    op: 'remove',
                     value: o[j],
                     index: j + d
                 });
@@ -95,6 +109,7 @@ define([], function () {
         for (; i < n.length; i += 1) { //if more items from n remains
             changes.push({
                 insert : true,
+                op: 'insert',
                 value: n[i],
                 index: j + d
             });
@@ -103,6 +118,7 @@ define([], function () {
         for (; j < o.length; j += 1) { //if more items from o remains
             changes.push({
                 remove : true,
+                op: 'remove',
                 value: o[j],
                 index: j + d
             });
@@ -112,7 +128,7 @@ define([], function () {
         return changes;
     }
 
-    function batchChanges (changes) {
+    function batchChanges(changes) {
         changes.forEach(function (change, i) {
             var len = changes.length;
             change.batch = [change.value];
@@ -122,7 +138,7 @@ define([], function () {
             for (var j = i + 1; j < len && changes[j].op === change.op; j += 1) {
                 change.batch.push(changes[j].value);
             }
-            if (j > (i+1)) {
+            if (j > (i + 1)) {
                 changes.splice(i + 1, j - (i + 1));
             }
         });
@@ -136,7 +152,7 @@ define([], function () {
      * @param {Array} n The new array
      * @param {Array} o The old array
      */
-    return function arrayDiff (n, o) {
+    return function arrayDiff(n, o) {
         var diff2 = arrayDiff2(n, o);
         if (diff2.length <= 1 || !o.length || !n.length) {
             return batchChanges(diff2);
