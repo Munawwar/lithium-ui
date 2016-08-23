@@ -371,7 +371,7 @@
                         hasChanged = (!view && val); //first time attach
 
                     if (view) {
-                        var isAttached = view.firstChild.parentNode;
+                        var isAttached = view.isAttachedToDOM();
                         hasChanged = ((val && !isAttached) || (!val && isAttached));
                     }
 
@@ -903,6 +903,14 @@
                 }
             }, this);
             return html;
+        },
+
+        /**
+         * Returns true if view is attached to another DOM hierarchy.
+         * Note: This doesn't necessarily mean the view is attached to window.document.
+         */
+        isAttachedToDOM: function () {
+            return (this.firstChild.parentNode && this.firstChild.parentNode.nodeType !== 11);
         },
 
         /**
