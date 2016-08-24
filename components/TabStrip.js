@@ -137,7 +137,7 @@ define([
                     itemNumber = $(target).index();
 
                 this.setActiveItem(itemNumber);
-                this.trigger('tabchanged', {component: this, tabIndex: itemNumber});
+                this.trigger('tabchanged', {tabIndex: itemNumber});
             }
         }
     });

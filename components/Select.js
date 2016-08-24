@@ -70,7 +70,7 @@ define([
                         Li.on(this.inputEl, 'keydown', this.dropdown.onKeyDown, this.dropdown);
                         Li.on(this.inputEl, 'keyup', this.onKeyUp, this);
 
-                        this.trigger('opened', {component: this});
+                        this.trigger('opened');
                     },
                     $closed: function () {
                         //make text field read-only again.
@@ -82,10 +82,10 @@ define([
                         this.inputEl.style.display = 'none';
 
                         this.el.focus();
-                        this.trigger('closed', {component: this});
+                        this.trigger('closed');
                     },
                     $clicked: function () {
-                        this.trigger('itemclicked', {component: this});
+                        this.trigger('itemclicked');
                     }
                 }
             });
@@ -152,8 +152,7 @@ define([
         },
 
         onChange: function (cfg) {
-            cfg.component = this;
-            this.trigger('change', cfg);
+            this.trigger('change');
         },
 
         /**

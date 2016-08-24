@@ -7,13 +7,13 @@
  */
 (function (factory) {
     if (typeof define === "function" && define.amd) {
-        define(['./lithium.js', 'jquery'], factory);
+        define(['./lithium.js'], factory);
     } else if (typeof exports === 'object') { //For NodeJS
-        module.exports = factory(require('./lithium'), require('jquery'));
+        module.exports = factory(require('./lithium'));
     } else { //global
-        factory(window.Li, jQuery);
+        factory(window.Li);
     }
-}(function (Li, $) {
+}(function (Li) {
     /**
      * Base class for Publishers.<br/>
      * This class helps you to achieve the Observer (also known as publisher-subscriber) design pattern.<br/>
@@ -27,21 +27,23 @@
     Li.Publisher = Li.extend(Object, {
         /**
          * Call all events listeners for the given event name.<br/>
-         * @param {String} eventType
-         * @param {Any} ... n number of arguments. These shall be directly passed onto the event listeners.
+         * @param {String} eventType Should be in lowercase.
+         * @param {Object} config This will be passed onto the event listeners.
          * @method trigger
          */
-        trigger: function (eventType) {
+        trigger: function (eventType, config) {
+            config = config || {};
             eventType = eventType.toLowerCase();
+            config.eventType = eventType;
+
             this._eventMap_ = this._eventMap_ || {};
             if ((!this._eventTypes_ || !this._eventTypes_[eventType]) && Li.warnings) {
                 console.warn(eventType + "? This event type has not been registered.");
             }
             if (!this._suspendEvents_ && this._eventMap_[eventType]) {
-                var i, len,
-                    events = this._eventMap_[eventType];
-                for (i = 0, len = events.length; i < len; i += 1) {
-                    events[i].fn.apply(events[i].scope, Li.slice(arguments, 1));
+                var subscribers = this._eventMap_[eventType];
+                for (var i = 0, len = subscribers.length; i < len; i += 1) {
+                    subscribers[i].fn.call(subscribers[i].scope, new Li.PublisherEvent({type: eventType, publisher: this}), config);
                 }
             }
         },
@@ -55,39 +57,27 @@
          * @param {Function} handler Function that gets notfied when a event of 'eventType' gets fired. This param is used only when eventType is a string.
          * @param {Object} scope The context in which the function should be called.
          * @method subscribe
-         * @return A UUID which can be used to remove the event when required.
          */
-        //TODO: Add option to bind arguments
-        subscribe: (function () {
-            var uuidGen = 1;
-            //TODO: Also set config like onetime = true etc
-            return function (eventType, handler, scope) {
-                if (!Li.isDefined(eventType)) {
-                    this._suspendEvents_ = false;
-                } else if (Li.isObject(eventType)) {
-                    var ret = {};
-                    Li.forEach(eventType, function (handler, type) {
-                        ret[type] = this.subscribe(type, handler, scope);
-                    }, this);
-                    return ret;
-                } else {
-                    this._eventMap_ = this._eventMap_ || {};
-                    var events = this._eventMap_,
-                        id = 'ls' + (uuidGen++);
-                    events[eventType] = events[eventType] || [];
-                    events[eventType].push({
-                        uuid: id,
-                        fn: handler,
-                        scope: scope
-                    });
-                    return id;
-                }
-            };
-        }()),
+        subscribe: function (eventType, handler, scope) {
+            if (!Li.isDefined(eventType)) {
+                this._suspendEvents_ = false;
+            } else if (Li.isObject(eventType)) {
+                Li.forEach(eventType, function (handler, type) {
+                    this.subscribe(type, handler, scope);
+                }, this);
+            } else {
+                this._eventMap_ = this._eventMap_ || {};
+                var events = this._eventMap_;
+                events[eventType] = events[eventType] || [];
+                events[eventType].push({
+                    fn: handler,
+                    scope: scope || undefined //handle null
+                });
+            }
+        },
 
         /**
-         * This function listens to a given publisher on the given event types,
-         * and refires the events from itself (scope of the event fired would be this object).
+         * This function listens to a given publisher on the given event types, and refires the events from itself.
          * This useful for chaining events.
          * @param {Li.Publisher} publisher A publisher instance.
          * @param {Array|null} eventTypes Event types to listen on. If eventType is null, it listens to all events of the publisher.
@@ -98,36 +88,36 @@
                 throw new Error('Object passed is not a publisher');
             }
             eventTypes = eventTypes || Object.keys(publisher._eventTypes_);
-            var i, len = eventTypes.length, eventType;
-            for (i = 0; i < len; i += 1) {
-                eventType = eventTypes[i];
-                publisher.subscribe(eventType, this.trigger.bind(this, eventType));
+            var relay = function relayFunction(e, cfg) {
+                this.trigger(e.type, cfg);
+            }.bind(this);
+            for (var i = 0, len = eventTypes.length; i < len; i += 1) {
+                publisher.subscribe(eventTypes[i], relay);
             }
         },
 
         /**
          * Remove an event listener.
          * If no parameters are specified, then all events are switched off till you call publisher.subscribe().
-         * @param {String|Function} uuidORfunc Can be the event listener as a Function object,
-         * OR the UUID returned by 'subscribe' function can also be used.
+         * @param {Function} handler Send in the same function that was used with the subscribe() method.
+         * @param {Object} [scope] Send in the same context object that was used with the subscribe() method.
          * @return {Boolean} Returns true if listener was successfully removed.
          * @method unsubscribe
          */
-        unsubscribe: function (eventType, uuidORfunc) {
+        unsubscribe: function (eventType, handler, scope) {
             if (!Li.isDefined(eventType)) {
                 this._suspendEvents_ = true;
                 return;
             }
             eventType = eventType.toLowerCase();
+            scope = scope || undefined; //handle null
             var found = false;
             if (this._eventMap_) {
-                var events = this._eventMap_[eventType], i, len,
-                    type = Li.isString(uuidORfunc) ? "uuid" : "fn",
-                    value = uuidORfunc;
-                if (events) {
-                    for (i = 0, len = events.length; i < len; i++) {
-                        if (events[i][type] === value) {
-                            events.splice(i, 1);
+                var subscribers = this._eventMap_[eventType];
+                if (subscribers) {
+                    for (var i = 0, len = subscribers.length; i < len; i += 1) {
+                        if (subscribers[i].fn === handler && subscribers[i].scope === scope) {
+                            subscribers.splice(i, 1);
                             found = true;
                             break;
                         }
@@ -137,6 +127,13 @@
             return found;
         }
     });
+
+    /**
+     * An almost "plain" object class. Used for differentiating publisher events.
+     */
+    Li.PublisherEvent = function PublisherEvent(cfg) {
+        Object.assign(this, cfg);
+    };
 
     /**
      * Given a class, it inherits event types from base class.
@@ -149,7 +146,7 @@
             var eventTypes = proto.eventTypes || [],
                 types = proto._eventTypes_; //This should recursively go up prototype
                                                   //chain and find the first _eventTypes_
-            proto._eventTypes_ = $.extend({}, types);
+            proto._eventTypes_ = Object.assign({}, types);
             eventTypes.forEach(function (eventType) {
                 proto._eventTypes_[eventType.toLowerCase()] = true;
             });

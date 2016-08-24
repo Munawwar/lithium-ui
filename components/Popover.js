@@ -203,7 +203,7 @@ define([
                     info = stack[i];
                     if (info.component !== caller && info.level >= level && info.component.dismissible) {
                         info.component.hide(); //this also removes item from stack
-                        info.component.trigger(eventName, {component: info.component});
+                        info.component.trigger(eventName);
                     }
                 }
             }

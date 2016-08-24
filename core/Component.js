@@ -524,6 +524,7 @@ define([
                 }
             }, this);
         },
+
         statics: {
             id: 1,
             getNewId: function () {

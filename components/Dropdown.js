@@ -238,7 +238,7 @@ define([
                     duration: options.inDuration,
                     easing: 'easeOutSine',
                     complete: function () {
-                        this.trigger('opened', {component: this});
+                        this.trigger('opened');
                     }.bind(this)
                 });
 
@@ -261,7 +261,7 @@ define([
 
                 this.super([{duration: options.outDuration}]);
 
-                this.trigger('closed', {component: this});
+                this.trigger('closed');
             }
         },
 
@@ -285,10 +285,10 @@ define([
                         prevValue = this.value();
                     this.value(value);
                     // Trigger onchange() event
-                    this.trigger('change', {component: this, value: value, prevValue: prevValue});
+                    this.trigger('change', {prevValue: prevValue});
                 }
             }
-            this.trigger('clicked', {component: this});
+            this.trigger('clicked');
 
             this.hide();
             e.stopPropagation();
