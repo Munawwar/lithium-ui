@@ -44,12 +44,10 @@ define([
         },
 
         toggle: function () {
-            if (!this.inProgress) {
-                if (this.collapsePanel.style.height === '0px') {
-                    this.open();
-                } else {
-                    this.close();
-                }
+            if (this.collapsePanel.style.height === '0px') {
+                this.open();
+            } else {
+                this.close();
             }
         },
 
