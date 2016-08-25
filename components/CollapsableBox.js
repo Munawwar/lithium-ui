@@ -36,6 +36,13 @@ define([
             });
         },
 
+        /**
+         * Returns true if open (or is in process of being opened).
+         */
+        isOpen: function () {
+            return (this.inProgress === 'open' || this.collapsePanel.style.height !== '0px');
+        },
+
         toggle: function () {
             if (!this.inProgress) {
                 if (this.collapsePanel.style.height === '0px') {
@@ -47,24 +54,32 @@ define([
         },
 
         open: function () {
-            this.inProgress = true;
-            this.collapsePanel.style.removeProperty('display');
-            $(this.collapsePanel).velocity('stop').velocity({height: this.collapsePanel.scrollHeight, opacity: 1}, {
-                complete: function () {
-                    this.collapsePanel.style.removeProperty('height');
-                    this.inProgress = false;
-                }.bind(this)
-            });
+            if (!this.inProgress) {
+                this.inProgress = 'open';
+                this.collapsePanel.style.removeProperty('display');
+                $(this.collapsePanel).velocity('stop').velocity({height: this.collapsePanel.scrollHeight, opacity: 1}, {
+                    complete: function () {
+                        this.collapsePanel.style.removeProperty('height');
+                        this.inProgress = false;
+                        this.trigger('opened');
+                    }.bind(this)
+                });
+                this.trigger('opening', {component: this});
+            }
         },
 
         close: function () {
-            this.inProgress = true;
-            $(this.collapsePanel).velocity('stop').velocity({height: 0, opacity: 0}, {
-                display: 'none',
-                complete: function () {
-                    this.inProgress = false;
-                }.bind(this)
-            });
+            if (!this.inProgress) {
+                this.inProgress = 'close';
+                $(this.collapsePanel).velocity('stop').velocity({height: 0, opacity: 0}, {
+                    display: 'none',
+                    complete: function () {
+                        this.inProgress = false;
+                        this.trigger('closed');
+                    }.bind(this)
+                });
+                this.trigger('closing');
+            }
         }
     });
 
