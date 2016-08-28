@@ -32,9 +32,7 @@
          * @method trigger
          */
         trigger: function (eventType, config) {
-            config = config || {};
             eventType = eventType.toLowerCase();
-            config.eventType = eventType;
 
             this._eventMap_ = this._eventMap_ || {};
             if ((!this._eventTypes_ || !this._eventTypes_[eventType]) && Li.warnings) {
