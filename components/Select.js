@@ -29,10 +29,10 @@ define([
         defaultOption: 0,
 
         constructor: function (cfg) {
-            this.dropdown = new Li.Dropdown({
+            this.dropdown = new Li.Dropdown(Object.assign(cfg.dropdownCfg || {}, {
                 defaultOption: this.defaultOption,
                 options: cfg.options
-            });
+            }));
             this.inputEl = Li.Select.inputEl;
             if (!document.body.contains(this.inputEl)) {
                 document.body.appendChild(this.inputEl);
