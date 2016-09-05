@@ -63,6 +63,7 @@ define([
                             relAnchor: ['start', 'start'],
                             allowOffscreen: true
                         });
+                        this.inputEl.hidden = false;
                         this.inputEl.style.removeProperty('display');
 
                         this.inputEl.focus();
@@ -79,6 +80,7 @@ define([
                         Li.off(this.inputEl, 'keydown', this.dropdown.onKeyDown, this.dropdown);
                         Li.off(this.inputEl, 'keyup', this.onKeyUp, this);
 
+                        this.inputEl.hidden = true;
                         this.inputEl.style.display = 'none';
 
                         this.el.focus();
@@ -189,7 +191,7 @@ define([
         },
 
         statics: {
-            inputEl: $.parseHTML('<input type="text" style="position:absolute; min-height: 12px; display: none;" />')[0]
+            inputEl: $.parseHTML('<input type="text" hidden style="position:absolute; min-height: 12px; display: none;" />')[0]
         }
     });
 

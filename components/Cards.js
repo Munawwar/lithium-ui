@@ -19,7 +19,8 @@ define([
          * @param {HTMLElement} el
          */
         addCard: function (el) {
-            el.style.display = 'none';
+            el.hidden = true;
+            el.style.display = 'none'; //IE 10-
             this.el.appendChild(el);
         },
 
@@ -48,7 +49,9 @@ define([
                 this.activeItem = itemNumber;
 
                 if (!animate) {
+                    items[prevItem].hidden = true;
                     items[prevItem].style.display = 'none';
+                    items[this.activeItem].hidden = false;
                     items[this.activeItem].style.removeProperty('display');
                 } else if (this.activeItem !== prevItem) {
                     this.el.classList.add('animating');
@@ -56,6 +59,7 @@ define([
                         zIndex: 2,
                         opacity: 1
                     });
+                    items[this.activeItem].hidden = false;
                     Li.style(items[this.activeItem], {
                         zIndex: 1,
                         opacity: 0,
@@ -63,6 +67,7 @@ define([
                     });
 
                     var c1 = function () {
+                            items[prevItem].hidden = true;
                             items[prevItem].style.display = 'none';
                         },
                         c2 = function () {
@@ -100,6 +105,7 @@ define([
 
             //Hide all
             Li.slice(this.el.children).forEach(function (el) {
+                el.hidden = true;
                 el.style.display = 'none';
             });
             //Unhide active one
