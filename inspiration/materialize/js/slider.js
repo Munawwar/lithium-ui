@@ -17,7 +17,7 @@
         // which slide is active and its associated content
         var $this = $(this);
         var $slider = $this.find('ul.slides').first();
-        var $slides = $slider.find('li');
+        var $slides = $slider.find('> li');
         var $active_index = $slider.find('.active').index();
         var $active, $indicators, $interval;
         if ($active_index != -1) { $active = $slides.eq($active_index); }
@@ -223,7 +223,7 @@
             panning = false;
             curr_index = $slider.find('.active').index();
 
-            if (!swipeRight && !swipeLeft) {
+            if (!swipeRight && !swipeLeft || $slides.length <=1) {
               // Return to original spot
               $curr_slide.velocity({ translateX: 0
                   }, {duration: 300, queue: false, easing: 'easeOutQuad'});

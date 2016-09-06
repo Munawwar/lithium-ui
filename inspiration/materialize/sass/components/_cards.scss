@@ -34,8 +34,11 @@
       max-height: 60%;
       overflow: hidden;
     }
-    .card-content {
+    .card-image + .card-content {
       max-height: 40%;
+    }
+    .card-content {
+      max-height: 100%;
       overflow: hidden;
     }
     .card-action {
@@ -43,8 +46,6 @@
       bottom: 0;
       left: 0;
       right: 0;
-      z-index: 1;
-      background-color: inherit;
     }
   }
 
@@ -59,6 +60,56 @@
   &.large {
     height: 500px;
   }
+
+  // Horizontal Cards
+  &.horizontal {
+    &.small, &.medium, &.large {
+      .card-image {
+        height: 100%;
+        max-height: none;
+        overflow: visible;
+
+        img {
+          height: 100%;
+        }
+      }
+    }
+
+    display: flex;
+
+    .card-image {
+      max-width: 50%;
+      img {
+        max-width: 100%;
+        width: auto;
+      }
+    }
+
+    .card-stacked {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      position: relative;
+
+      .card-content {
+        flex-grow: 1;
+      }
+    }
+  }
+
+  // Sticky Action Section
+  &.sticky-action {
+    .card-action {
+      z-index: 2;
+    }
+
+    .card-reveal {
+      z-index: 1;
+      padding-bottom: 64px;
+    }
+  }
+
+
 
 
   .card-image {
@@ -90,7 +141,6 @@
     padding: $card-padding;
     border-radius: 0 0 2px 2px;
 
-
     p {
       margin: 0;
       color: inherit;
@@ -101,13 +151,15 @@
   }
 
   .card-action {
+    position: relative;
+    background-color: inherit;
     border-top: 1px solid rgba(160,160,160,.2);
     padding: $card-padding;
 
-    a {
+    a:not(.btn):not(.btn-large):not(.btn-floating) {
       color: $card-link-color;
       margin-right: $card-padding;
-      @include transition(color .3s ease);
+      transition: color .3s ease;
       text-transform: uppercase;
 
       &:hover { color: $card-link-color-light; }
@@ -122,13 +174,12 @@
     overflow-y: auto;
     top: 100%;
     height: 100%;
-    z-index: 1;
+    z-index: 3;
     display: none;
 
     .card-title {
       cursor: pointer;
       display: block;
     }
-
   }
 }
