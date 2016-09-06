@@ -3996,8 +3996,11 @@ select {
     color: initial;
     position: absolute;
     right: 0;
-    top: 16px;
-    font-size: 10px; }
+    top: 0;
+    bottom: 0;
+    margin: auto 0;
+    font-size: 10px;
+    height: 10px; }
     .select-wrapper span.caret.disabled {
       color: rgba(0, 0, 0, 0.26); }
   .select-wrapper + label {
