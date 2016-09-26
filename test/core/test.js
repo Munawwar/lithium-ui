@@ -1,10 +1,10 @@
-var assert = require("assert"),
-    fs = require('fs'),
-    path = require('path'),
-    utils = require('../utils');
+var assert = nodeRequire("assert"),
+    fs = nodeRequire('fs'),
+    path = nodeRequire('path');
 
-define(['core/Box.js'], function (Li) {
+define(['core/Box.js', '../utils.js'], function (Li, utils) {
     describe('Component: Test Box component', function () {
+        console.log('asdadad');
         var box = new Li.Box({}),
             df = document.createDocumentFragment();
         box.attach(df);
@@ -14,13 +14,14 @@ define(['core/Box.js'], function (Li) {
             assert.equal(el, df.firstChild);
         });
 
-        it('test component markup', function () {
+        it('test component markup', function (done) {
             //Remove text nodes
             if (el.firstChild.nodeType === 3) {
                 el.normalize();
                 el.removeChild(el.firstChild);
             }
             assert.equal(utils.toHTML(df), '<div id="cmp-1" data-type="Li.Box" class="li-box"></div>');
+            done();
         });
     });
 
