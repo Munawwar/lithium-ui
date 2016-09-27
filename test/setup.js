@@ -1,6 +1,12 @@
 var jsdom = require('jsdom').jsdom,
     path = require('path');
-GLOBAL.document = jsdom('', {url: 'file://' + __dirname + path.sep + 'index.html'});
+GLOBAL.document = jsdom('', {
+    url: 'file://' + __dirname + path.sep + 'index.html',
+    features: {
+        FetchExternalResources : false,
+        ProcessExternalResources: false
+    }
+});
 GLOBAL.window = document.defaultView;
 
 GLOBAL.jQuery = GLOBAL.$ = require('jquery');
