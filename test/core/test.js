@@ -27,7 +27,7 @@ define(['core/Box.js'], function (Li) {
     var MyComp = Li.extend('MyComp', Li.Box, {
         innerTpl: new Li.Template(
             '<li-box ref="innercomp" class="round-box" style="color: red;"></li-box>' +
-            '<li-box params="style: \'color: red;\'"></li-box>'
+            '<li-box config="style: \'color: red;\'"></li-box>'
         )
     });
     describe('Component: Test usage of custom elements in templates', function () {
@@ -48,7 +48,7 @@ define(['core/Box.js'], function (Li) {
         it('ref attribute test', function () {
             assert.equal(true, (cmp.innercomp instanceof Li.Box) && cmp.innercomp.el === el.children[0]);
         });
-        it('params attribute test', function () {
+        it('config attribute test', function () {
             assert.equal(el.children[1].style.color, 'red');
         });
     });
