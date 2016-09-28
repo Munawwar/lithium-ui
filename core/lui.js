@@ -128,7 +128,7 @@ define([
     });
 
     //Utility functions.
-    //TODO: I am placing it here since it is convinent. Maybe not the most appropriate place?
+    //TODO: I am placing it here since it is convenient. Maybe not the most appropriate place?
     Li.mix(Li, {
         /**
          * The utility helps in placing a position absolute element relative to another element's vertex/edge.

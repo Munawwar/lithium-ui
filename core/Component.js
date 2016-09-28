@@ -122,6 +122,7 @@ define([
             var el = this.outerTpl.firstElementChild;
             if (cfg.addAttribute['data-bind']) {
                 var dataBind = el.getAttribute('data-bind');
+                //FIXME: Following is buggy since the right context isn't used for binding.
                 el.setAttribute('data-bind', (dataBind ? (dataBind + ', ') : '') + cfg.addAttribute['data-bind']);
             }
 
