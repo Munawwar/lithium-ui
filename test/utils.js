@@ -9,11 +9,7 @@ module.exports = {
      */
     toHTML: (function () {
         function unwrap(str) {
-            var o = {};
-            str.split(',').forEach(function (val) {
-                o[val] = true;
-            });
-            return o;
+            return Li.toMap(str.split(','), true);
         }
 
         //HTML 4 and 5 void tags

@@ -295,6 +295,20 @@
         },
 
         /**
+         * Converts an array of string (or string-convertible) items into a object map with
+         * each of it's key as an array item and it's corresponding value as the item's index, and returns the map.
+         * @param {Boolean} [fill] If set, all map values will be set to the given value. If left undefined
+         * then item's index is used.
+         */
+        toMap: function (arr, fill) {
+            var map = {};
+            arr.forEach(function (str, i) {
+                map[str] = (fill !== undefined ? fill : i);
+            });
+            return map;
+        },
+
+        /**
          * Generates an unique alpha-numeric identifier.<br/>
          * To get the same permutation as RFC-4122 use len=24.
          * @param [len=10] Length of the UUID.
