@@ -11,7 +11,7 @@ define([
             uniqueBindings = {},
             observable = function (val) {
                 //Check whether value is called from a template or not.
-                var view = Li.Template.View.currentlyEvaluating;
+                var view = Li.View.currentlyEvaluating;
                 if (view) {
                     var info = view.currentlyEvaluating;
                     if (!uniqueBindings[getHash(info)] && !view.retired) {
@@ -51,7 +51,7 @@ define([
             uniqueBindings = {},
             trackDependency = function () {
                 //Check whether value is called from a template or not.
-                var view = Li.Template.View.currentlyEvaluating;
+                var view = Li.View.currentlyEvaluating;
                 if (view) {
                     var info = view.currentlyEvaluating;
                     if (!uniqueBindings[getHash(info)] && !view.retired) {

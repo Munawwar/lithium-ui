@@ -4,7 +4,7 @@ var assert = require("assert"),
     fs = require('fs'),
     path = require('path');
 
-define(['core/Template.js'], function (Li) {
+define(['core/View.js'], function (Li) {
     var Htmlizer = Li.Template;
 
     describe('Template: Test text and attr binding', function () {

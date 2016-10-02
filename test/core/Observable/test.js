@@ -17,7 +17,7 @@ define([
                 titleText: Li.Observable('titleattr'),
                 cls: Li.Observable('btn btn-default') //bootstrap 3 button css class
             },
-            view = new Li.Template.View(template, data),
+            view = new Li.View(template, data),
             df = view.toDocumentFragment(data);
 
         //Do some ops on obervable
@@ -41,7 +41,7 @@ define([
             data = {
                 opened: Li.Observable(false)
             },
-            view = new Li.Template.View(template, data),
+            view = new Li.View(template, data),
             df = view.toDocumentFragment(data);
 
         //Do some ops on obervable
@@ -66,7 +66,7 @@ define([
                 data = {
                     list: Li.ObservableArray([1, 2, 3, 4, 5])
                 },
-                view = new Li.Template.View(template, data),
+                view = new Li.View(template, data),
                 df = view.toDocumentFragment(data);
 
             it('it should have 5 spans inside it', function () {
@@ -102,7 +102,7 @@ define([
             data = {
                 list: Li.ObservableArray([1, 2, 3, 4, 5])
             },
-            view = new Li.Template.View(template, data),
+            view = new Li.View(template, data),
             df = view.toDocumentFragment(data);
 
         var firstEl = df.children[0],

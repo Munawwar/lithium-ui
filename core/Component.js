@@ -2,7 +2,7 @@ define([
     './lui.js',
     'jquery',
     './base/lithium.pubsub.js',
-    './Template.js',
+    './View.js',
     './Observable.js',
 
     './Component.ko!tpl'
@@ -153,7 +153,7 @@ define([
          */
         initializeView: function () {
             var tpl = new Li.Template(this.outerTpl);
-            this.view = new Li.Template.View(tpl, this);
+            this.view = new Li.View(tpl, this);
             this.el = this.view.fragment.firstElementChild;
             Object.defineProperty(this.el, 'liComponent', {value: this});
         },
