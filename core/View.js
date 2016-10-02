@@ -234,7 +234,7 @@ define([
                     //as used the last time, then do an efficient update (no need of diff-patch algo).
                     if (oldObserver && oldObserver === info.observer && Li.isNumber(index)) {
                         this.spliceForEachItems(tpl, node, index, removeLength, newItems || [], val.as);
-                    } else if (!info.views || info.views.length === 0) { //then add them all
+                    } else if (!info.views || info.views.length === 0) { //then add & create them all
                         this.spliceForEachItems(tpl, node, 0, 0, val.items, val.as);
                     } else {
                         var oldArr = info.views.map(function (view) {
@@ -243,6 +243,7 @@ define([
                         var changes = arrayDiff(val.items, oldArr);
                         changes.forEach(function (change) {
                             if (change.replace) {
+                                //TODO: Can we do this more efficiently by reusing DOM nodes?
                                 this.spliceForEachItems(tpl, node, change.index, change.batch.length, change.batch, val.as);
                             } else if (change.insert) {
                                 this.spliceForEachItems(tpl, node, change.index, 0, change.batch, val.as);
@@ -494,7 +495,7 @@ define([
             }
         },
         /**
-         * Partial render. Renders everything except sub-components.
+         * Renders View into a DocumentFragment and returns it.
          * @private
          */
         toDocumentFragment: function () {
@@ -662,33 +663,21 @@ define([
             return components;
         },
 
+        /**
+         * Renders View and returns output as a string.
+         */
         toString: function () {
-            var frag = this.toDocumentFragment(), html = '';
-            Li.traverse(frag, frag, function (node, isOpenTag) {
+            var frag = this.toDocumentFragment(),
+                html = '';
+            for (var node = frag.firstChild; node; node = node.nextSibling) {
                 if (node.nodeType === 1) {
-                    var tag = node.nodeName.toLowerCase();
-                    if (isOpenTag) {
-                        html += '<' + tag;
-                        Li.slice(node.attributes).forEach(function (attr) {
-                            html += ' ' + attr.name + '="' + attr.value.replace(/"/g, '&quot;') + '"';
-                        });
-                        html += (voidTags[tag] ? '/>' : '>');
-                    } else if (!voidTags[tag]) {
-                        html += '</' + tag + '>';
-                    }
-                }
-                if (isOpenTag && node.nodeType === 3) {
-                    var text = node.nodeValue || '';
-                    //escape <,> and &. Except text node inside script or style tag.
-                    if (!(/^(?:script|style)$/i).test(node.parentNode.nodeName)) {
-                        text = text.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;");
-                    }
-                    html += text;
-                }
-                if (isOpenTag && node.nodeType === 8) {
+                    html += node.outerHTML;
+                } else if (node.nodeType === 3) {
+                    html += node.nodeValue || '';
+                } else if (node.nodeType === 8) {
                     html += '<!-- ' + node.data.trim() + ' -->';
                 }
-            }, this);
+            }
             return html;
         },
 
