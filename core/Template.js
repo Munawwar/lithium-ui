@@ -26,10 +26,10 @@
     /**
      * @param {String|DocumentFragment} template If string, then it is better if the HTML is balanced, else it probably won't be correctly converted to DOM.
      * @param {Object} cfg
-     * @param {Object} cfg.noConflict Will ensure Htmlizer doesn't conflict with KnockoutJS. i.e data-htmlizer attribute will be used and
+     * @param {Object} cfg.noConflict Will ensure Template doesn't conflict with KnockoutJS. i.e data-htmlizer attribute will be used and
      * containerless statements beginning and ending with "ko" prefix will be ignored.
      */
-    function Htmlizer(template, cfg) {
+    function Template(template, cfg) {
         this.cfg = cfg;
         Object.assign(this, cfg);
         if (typeof template === 'string') {
@@ -43,7 +43,7 @@
         this.prepare();
     }
 
-    Htmlizer.prototype = {
+    Template.prototype = {
         /**
          * Identifies sub-templates, comment statement blocks and populates nodeInfoList and nodeMap.
          * @private
@@ -81,7 +81,7 @@
                             nodeInfo.bindings = bindings;
                             if (bindings.foreach || bindings['with'] || bindings['if']) {
                                 tempFrag = util.moveToFragment(Li.slice(node.childNodes));
-                                nodeInfo.subTpl = new Htmlizer(tempFrag, Object.assign({}, this.cfg));
+                                nodeInfo.subTpl = new Template(tempFrag, Object.assign({}, this.cfg));
                             }
                             this.setTNodeInfo(node, nodeInfo);
                         }
@@ -110,7 +110,7 @@
                             if (block.key === 'foreach' || block.key === 'with' || block.key === 'if' || block.key === 'ifnot') {
                                 blockNodes = util.getImmediateNodes(frag, block.start, block.end);
                                 tempFrag = util.moveToFragment(blockNodes);
-                                nodeInfo.subTpl = new Htmlizer(tempFrag, Object.assign({}, this.cfg));
+                                nodeInfo.subTpl = new Template(tempFrag, Object.assign({}, this.cfg));
                             }
                             this.setTNodeInfo(node, nodeInfo);
                         }
@@ -140,14 +140,14 @@
          * @param {Object} data
          */
         toDocumentFragment: function (data, context) {
-            return (new Htmlizer.View(this, data, context)).toDocumentFragment();
+            return (new Template.View(this, data, context)).toDocumentFragment();
         },
 
         /**
          * @param {Object} data
          */
         toString: function (data, context) {
-            return (new Htmlizer.View(this, data, context)).toString();
+            return (new Template.View(this, data, context)).toString();
         },
 
         /**
@@ -228,7 +228,7 @@
      * @param {Object} context [Context] in which this view should run. Used internally.
      * @param {Li.Template.View} [parentView] parent of this view. Used internally.
      */
-    Htmlizer.View = function (template, data, context, parentView) {
+    Template.View = function (template, data, context, parentView) {
         this.tpl = template;
         this.data = data;
         this.context = context || {
@@ -258,9 +258,9 @@
         this.toDocumentFragment();
     };
 
-    Htmlizer.View.saferEval = saferEval;
+    Template.View.saferEval = saferEval;
 
-    Htmlizer.View.prototype = {
+    Template.View.prototype = {
         bindingHandler: {
             componenttag: {
                 init: function (node, tNode, ClassRef) {
@@ -1010,7 +1010,7 @@
 
         /**
          * @private
-         * @param {Htmlizer} template Htmlizer instance that contains the body of the foreach statement
+         * @param {Template} template Template instance that contains the body of the foreach statement
          * @param {Node} node
          * @param {Object} context
          * @param {Number} index Index at which items are to be inserted/removed.
@@ -1045,7 +1045,7 @@
                         newContext._as.push([as, item]);
                     }
 
-                    var view = new Htmlizer.View(template, this.data, newContext, this);
+                    var view = new Template.View(template, this.data, newContext, this);
 
                     info.views.splice(index + opIndex, 0, view);
 
@@ -1093,8 +1093,8 @@
          * @private
          */
         evaluate: function (bindingSpecific, expr, node) {
-            var old = Htmlizer.View.currentlyEvaluating;
-            Htmlizer.View.currentlyEvaluating = this;
+            var old = Template.View.currentlyEvaluating;
+            Template.View.currentlyEvaluating = this;
 
             this.currentlyEvaluating = {
                 view: this,
@@ -1112,7 +1112,7 @@
                 value = value();
             }
 
-            Htmlizer.View.currentlyEvaluating = old;
+            Template.View.currentlyEvaluating = old;
             this.currentlyEvaluating = null;
 
             return value;
@@ -1146,7 +1146,7 @@
          * @private
          */
         makeView: function (template, newContext, data, node) {
-            var view = new Htmlizer.View(template, data, newContext, this),
+            var view = new Template.View(template, data, newContext, this),
                 info = this.getNodeInfo(node);
 
             info.views = info.views || [];
@@ -1172,7 +1172,7 @@
         }
     };
 
-    var util = Htmlizer.util = {
+    var util = Template.util = {
         regex: {
             commentStatment: /(?:ko|hz)[ ]+([^:]+):(.+)/
         },
@@ -1279,7 +1279,7 @@
         }
     };
 
-    return Htmlizer;
+    return Template;
 }, function () {
     //Templates could be attempting to reference undefined variables. Hence try catch is required.
     if (arguments.length === 4) {
