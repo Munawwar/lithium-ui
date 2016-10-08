@@ -50,8 +50,8 @@
         };
     }
     /*Polyfill String.prototype.repeat*/
-    if (!String.prototype.repeat2) {
-        String.prototype.repeat2 = function (count) {
+    if (!String.prototype.repeat) {
+        String.prototype.repeat = function (count) {
             return (new Array(count + 1)).join(this);
         };
     }
