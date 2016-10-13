@@ -860,7 +860,7 @@ define([
         evaluateParams: function (cfg, node) {
             Li.forEach(cfg, function (expr, key) {
                 if (typeof expr === 'string') {
-                    cfg[key] = saferEval.call(this.getRootView(), expr, this.context, this.data, node);
+                    cfg[key] = saferEval.call(this.getRootView(), expr, this.context, node);
                 } else { //object
                     this.evaluateParams(expr);
                 }
@@ -882,7 +882,7 @@ define([
                 binding: bindingSpecific
             };
 
-            var value = saferEval.call(this.getRootView(), expr, this.context, this.data, node);
+            var value = saferEval.call(this.getRootView(), expr, this.context, node);
 
             if (bindingSpecific ==='foreach') {
                 var info = this.getNodeInfo(node);

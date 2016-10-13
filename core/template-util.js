@@ -123,17 +123,17 @@
     return util;
 }, function () {
     //Templates could be attempting to reference undefined variables. Hence try catch is required.
-    if (arguments.length === 4) {
+    if (arguments.length === 3) {
         var evaluator;
         if (!(evaluator = this.exprEvaluatorCache[arguments[0]])) {
-            evaluator = this.exprEvaluatorCache[arguments[0]] = new Function('$context', '$data', '$element', 'with($context){with($data){return ' + arguments[0] + '}}');
+            evaluator = this.exprEvaluatorCache[arguments[0]] = new Function('$context', '$element', 'with($context){with($data){return ' + arguments[0] + '}}');
         }
         try {
-            return evaluator(arguments[1] || {}, arguments[2] || {}, arguments[3]);
+            return evaluator(arguments[1], arguments[2]);
         } catch (e) {
             console.warn('Warning: ' + e.stack);
         }
     } else {
-        throw new Error('Expression evaluator needs at least 4 arguments.');
+        throw new Error('Expression evaluator needs at least 3 arguments.');
     }
 }));
