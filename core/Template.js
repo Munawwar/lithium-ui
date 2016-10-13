@@ -47,12 +47,8 @@ define([
                     var nodeInfo = {},
                         bindings;
                     if (node.nodeType === 1) { //element
-                        var classRef;
-                        if (node.nodeName.includes('-')) {
-                            classRef = Li.getClass(node.nodeName.replace(/-/g, '.'));
-                        }
-
-                        var bindOpts = node.getAttribute(this.noConflict ? 'data-htmlizer' : 'data-bind');
+                        var classRef = util.getClassFromNode(node),
+                            bindOpts = node.getAttribute(this.noConflict ? 'data-htmlizer' : 'data-bind');
                         if (bindOpts) {
                             bindings = util.parseObjectLiteral(bindOpts);
                             this.checkForConflictingBindings(bindings, classRef);

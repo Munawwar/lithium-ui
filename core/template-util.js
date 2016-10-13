@@ -64,6 +64,19 @@
         },
 
         /**
+         * Returns a reference to the constructor of a Class using a node (name).
+         * @param {HTMLElement} node
+         */
+        getClassFromNode: function (node) {
+            var classRef = null;
+            //Check for at least one hyphen.
+            if (node.nodeType === 1 && node.nodeName.includes('-')) {
+                classRef = Li.getClass(node.nodeName.replace(/-/g, '.'));
+            }
+            return classRef;
+        },
+
+        /**
          * Will stop iterating if callback returns true.
          * @private
          */

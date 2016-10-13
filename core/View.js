@@ -48,6 +48,7 @@ define([
     var saferEval = util.saferEval;
 
     View.prototype = {
+
         bindingHandler: {
             componenttag: {
                 init: function (node, tNode, ClassRef) {
@@ -279,11 +280,13 @@ define([
             },
             text: {
                 init: function (node, binding, tNode, blocks) {
-                    var expr = this.getBindingExpr(node, binding),
-                        val = this.evaluate(binding, expr, node);
+                    var out = this.evaluationHelper(node, binding),
+                        val = out.val;
+                    node = out.node;
                     if (val === null || val === undefined) {
                         val = '';
                     }
+
                     if (node.nodeType === 1) {
                         $(node).empty();
                         node.appendChild(document.createTextNode(val));
@@ -330,9 +333,10 @@ define([
             attr: {
                 init: function (node, bindingSpecific) {
                     if (node.nodeType === 1) {
-                        var expr = this.getBindingExpr(node, bindingSpecific),
-                            attr = bindingSpecific.split('.')[1],
-                            val = this.evaluate(bindingSpecific, expr, node);
+                        var attr = bindingSpecific.split('.')[1],
+                            out = this.evaluationHelper(node, bindingSpecific),
+                            val = out.val;
+                        node = out.node;
                         if (val || typeof val === 'string' || typeof val === 'number') {
                             node.setAttribute(attr, val + '');
                         } else { //undefined, null, false
@@ -347,9 +351,10 @@ define([
             css: {
                 init: function (node, bindingSpecific) {
                     if (node.nodeType === 1) {
-                        var expr = this.getBindingExpr(node, bindingSpecific),
-                            className = bindingSpecific.split('.')[1],
-                            val = this.evaluate(bindingSpecific, expr, node);
+                        var className = bindingSpecific.split('.')[1],
+                            out = this.evaluationHelper(node, bindingSpecific),
+                            val = out.val;
+                        node = out.node;
                         if (val) {
                             $(node).addClass(className);
                         } else {
@@ -368,9 +373,10 @@ define([
                 return {
                     init: function (node, bindingSpecific) {
                         if (node.nodeType === 1) {
-                            var expr = this.getBindingExpr(node, bindingSpecific),
-                                prop = bindingSpecific.split('.')[1],
-                                val = this.evaluate(bindingSpecific, expr, node);
+                            var prop = bindingSpecific.split('.')[1],
+                                out = this.evaluationHelper(node, bindingSpecific),
+                                val = out.val;
+                            node = out.node;
                             if (val || typeof val === 'string' || typeof val === 'number') {
                                 node.style.setProperty(prop.replace(/[A-Z]/g, toCssProp), val + '');
                             } else { //undefined, null, false
@@ -390,9 +396,11 @@ define([
                 init: function (node, binding) {
                     //binding could be 'disable' or 'enable'
                     if (node.nodeType === 1) {
-                        var expr = this.getBindingExpr(node, binding),
-                            val = this.evaluate(binding, expr, node),
-                            disable = (binding === 'disable' ? val : !val);
+                        var out = this.evaluationHelper(node, binding),
+                            val = out.val;
+                        node = out.node;
+
+                        var disable = (binding === 'disable' ? val : !val);
                         if (disable) {
                             node.setAttribute('disabled', 'disabled');
                         } else {
@@ -415,8 +423,9 @@ define([
             checked: {
                 init: function (node, binding) {
                     if (node.nodeType === 1) {
-                        var expr = this.getBindingExpr(node, binding),
-                            val = this.evaluate(binding, expr, node);
+                        var out = this.evaluationHelper(node, binding),
+                            val = out.val;
+                        node = out.node;
                         if (val) {
                             node.setAttribute('checked', 'checked');
                             node.checked = true;
@@ -433,9 +442,9 @@ define([
             value: {
                 init: function (node, binding) {
                     if (node.nodeType === 1) {
-                        var expr = this.getBindingExpr(node, binding),
-                            val = this.evaluate(binding, expr, node);
-
+                        var out = this.evaluationHelper(node, binding),
+                            val = out.val;
+                        node = out.node;
                         if (val === null || val === undefined) {
                             if (node.value !== '') { // avoid unnecessary text cursor change.
                                 node.removeAttribute('value');
@@ -454,8 +463,9 @@ define([
             visible: {
                 init: function (node, binding) {
                     if (node.nodeType === 1) {
-                        var expr = this.getBindingExpr(node, binding),
-                            val = this.evaluate(binding, expr, node);
+                        var out = this.evaluationHelper(node, binding),
+                            val = out.val;
+                        node = out.node;
                         if (val) {
                             if (node.style.display === 'none') {
                                 node.style.removeProperty('display');
@@ -470,6 +480,25 @@ define([
                 }
             }
         },
+
+        /**
+         * Helper used within binding handlers.
+         * @private
+         */
+        evaluationHelper: function (node, binding) {
+            var expr = this.getBindingExpr(node, binding),
+                val = this.evaluate(binding, expr, node),
+                classRef = util.getClassFromNode(node);
+            if (classRef) {
+                var cmp = this.componentMap[Li.getUID(node)];
+                node = cmp.el;
+            }
+            return {
+                val: val,
+                node: node
+            };
+        },
+
         /**
          * Renders View into a DocumentFragment and returns it.
          * @private
@@ -511,11 +540,8 @@ define([
                         stack.push(node);
                         tStack.push(tNode);
 
-                        var classRef;
                         //Check for Li.Component custom tag.
-                        if (node.nodeName.includes('-')) {
-                            classRef = Li.getClass(node.nodeName.replace(/-/g, '.'));
-                        }
+                        var classRef = util.getClassFromNode(node);
 
                         bindings = (this.tpl.getTNodeInfo(tNode) || {}).bindings;
                         if (bindings) {
@@ -530,7 +556,6 @@ define([
                         if (classRef) { //handle Li.Component custom tag
                             //First render component in-memory..
                             control = this.bindingHandler.componenttag.init.call(this, node, tNode, classRef);
-                            var cmp = this.componentMap[Li.getUID(node)];
 
                             //..then apply bindings of custom tag.
                             //Order is important as data-bind of custom tag should override, data-bind of
@@ -538,7 +563,7 @@ define([
                             Li.forEach(bindings || {}, function (expr, bindingSpecific) {
                                 var binding = bindingSpecific.split('.')[0];
                                 if (expr !== null && this.bindingHandler[binding]) {
-                                    this.bindingHandler[binding].init.call(this, cmp.el, bindingSpecific);
+                                    this.bindingHandler[binding].init.call(this, node, bindingSpecific);
                                 }
                             }, this);
 
@@ -568,10 +593,7 @@ define([
                         if (ret) {
                             return ret;
                         }
-                    }
-
-                    //HTML comment node
-                    if (node.nodeType === 8) {
+                    } else if (node.nodeType === 8) { //HTML comment node
                         var stmt = node.data.trim();
 
                         //Ignore all containerless statements beginning with "ko" if noConflict = true.
