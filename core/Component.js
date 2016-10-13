@@ -37,14 +37,6 @@ define([
          * If null, then no template. Some components don't have different "inner" and "outer", (eg component with a single void tag like <input>).
          */
         innerTpl: undefined,
-        /**
-         * CSS class to use on root element.
-         */
-        cls: null,
-        /**
-         * Inline CSS style to apply to root element.
-         */
-        style: null,
 
         /**
          * Called after Li.extend() succeeds. Called exactly once for a class.
@@ -121,9 +113,8 @@ define([
             cfg.addAttribute['data-type'] = this.type;
 
             var el = this.outerTpl.firstElementChild,
-                cls = (Li.isString(cfg.cls) ? cfg.cls : (Li.isString(this.cls) ? this.cls : el.getAttribute('class')));
-            cfg.cls = (this.type.toLowerCase().replace(/\./g, '-') + ' ' + (Li.isString(cls) ? cls : '')).trim();
-            cfg.style = cfg.style || this.style;
+                cls = (Li.isString(cfg.cls) ? cfg.cls : el.getAttribute('class')) || '';
+            cfg.cls = (this.type.toLowerCase().replace(/\./g, '-') + ' ' + cls).trim();
 
             //Make own copy of observable from prototype.
             this._observables.forEach(function (prop) {
@@ -203,9 +194,11 @@ define([
 
             if (cfg.cls) {
                 el.setAttribute('class', cfg.cls);
+                delete cfg.cls;
             }
             if (cfg.style) {
                 el.setAttribute('style', cfg.style);
+                delete cfg.style;
             }
             /*Order is important. Removal of class and style needs to be done before adding class and style.*/
             if (cfg.removeClass) {
@@ -237,16 +230,16 @@ define([
             }
 
             //Handle the rest
-            for (var prop in cfg) {
+            Object.keys(cfg).forEach(function (prop) {
                 var val = cfg[prop];
                 if (val !== undefined) {
-                    if (Li.isObservable(this[prop]) && this.hasOwnProperty(prop)) {
+                    if (this.hasOwnProperty(prop) && Li.isObservable(this[prop])) {
                         this[prop](val);
                     } else {
                         this[prop] = val;
                     }
                 }
-            }
+            }, this);
         },
 
         /**

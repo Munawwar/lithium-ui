@@ -9,7 +9,6 @@ define([
      * Base class for Window.
      */
     Li.Modal = Li.extend('Li.Modal', Li.Popover, {
-        cls: 'modal', //materializecss CSS class
         /**
          * Footer template
          * @type {Li.Template|DocumentFragment}

@@ -1,5 +1,5 @@
 <script type="text/html" id="li-modal-outer">
-    <div>
+    <div class="modal">
         <div class="modal-content">
             <!-- ko template: innerTpl --><!-- /ko -->
         </div>

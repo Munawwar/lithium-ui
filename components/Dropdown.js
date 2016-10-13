@@ -14,7 +14,6 @@ define([
          */
         listItemTpl: null,
 
-        cls: 'dropdown-content select-dropdown',
         /**
          * @cfg {Array[]} options Array of {value: <value>, text: <text>} objects.
          *  Optionally disabled property and cls property (for CSS class) is allowed.

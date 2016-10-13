@@ -10,14 +10,12 @@ define([
      * Base class for Window.
      */
     Li.Popover = Li.extend('Li.Popover', Li.Box, {
-        cls: 'modal', //materializecss CSS class
-
         /**
          * Can popover be closed by user?
          */
         dismissible: true,
 
-        constructor: function () {
+        constructor: function (cfg) {
             /**
              * @event clickclosed Fires when popover is closed due to clicking outside popover.
              */
@@ -27,6 +25,8 @@ define([
             /**
              * @event autoclosed Fires when popover is closed due to another popover being opened at same level or higher.
              */
+
+            cfg.cls = ('modal ' + (cfg.cls || '')).trim();
 
             this.super(arguments);
         },

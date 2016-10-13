@@ -9,8 +9,6 @@ define([
      * Button.
      */
     Li.Button = Li.extend('Li.Button', Li.Component, {
-        cls: 'waves-effect',
-
         /**
          * Text to display on button
          */

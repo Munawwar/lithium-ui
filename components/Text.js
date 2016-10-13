@@ -8,7 +8,6 @@ define([
      * Text field.
      */
     Li.Text = Li.extend('Li.Text', Li.Component, {
-        cls: 'form-control',
         placeholder: Li.Observable(''),
 
         /**

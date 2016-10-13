@@ -8,11 +8,6 @@ define([
     './util/js-object-literal-parse.js',
     './arrayDiff.js'
 ], function ($, Li, _1, util, parseObjectLiteral, arrayDiff) {
-
-    //HTML 4 and 5 void tags
-    var voidTags = Li.toMap(('area,base,basefont,br,col,command,embed,frame,hr,img,input,' +
-        'keygen,link,meta,param,source,track,wbr').split(','), true);
-
     /**
      * @param {Li.Template} template Li.Template instance
      * @param {Object} data Any data

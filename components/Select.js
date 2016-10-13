@@ -18,7 +18,6 @@ define([
         ```
      */
     Li.Select = Li.extend('Li.Select', Li.Component, {
-        cls: 'select-wrapper btn-flat mimick-textfield',
         /**
          * Disabled when true.
          */

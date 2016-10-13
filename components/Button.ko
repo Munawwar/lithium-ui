@@ -1,3 +1,3 @@
 <script type="text/html" id="li-button-outer">
-    <button data-bind="text: text, css: {disabled: disabled, toggled: toggled}, disable: disabled"></button>
+    <button class="waves-effect" data-bind="text: text, css: {disabled: disabled, toggled: toggled}, disable: disabled"></button>
 </script>

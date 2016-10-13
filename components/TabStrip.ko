@@ -1,5 +1,5 @@
 <script type="text/html" id="li-tabstrip-outer">
-    <div>
+    <div class="tabs">
         <div ref="tabsEl" class="tabs" role="tablist">
             <!-- ko template: innerTpl --><!-- /ko -->
         </div>

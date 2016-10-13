@@ -24,8 +24,6 @@ define([
          */
         activeItem: 0,
 
-        cls: 'tabs',
-
         align: Li.Observable('horizontal'),
 
         makeConfigFromView: function (element, cfg) {
@@ -46,13 +44,13 @@ define([
             return this.super(arguments);
         },
 
-        constructor: function () {
+        constructor: function (cfg) {
             /**
              * @event tabchanged Fires when user changes tab.
              * Doesn't fire on API calls (non-user interaction changes).
              */
 
-            this.cls = this.cls + ' ' + this.align();
+            cfg.cls = ((cfg.cls || '') + ' ' + this.align()).trim();
 
             this.super(arguments);
 
