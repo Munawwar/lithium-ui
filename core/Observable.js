@@ -232,11 +232,11 @@ define([
     };
 
     /**
-     * Get unique hash for a node and it's binding.
+     * Get unique hash for a given view, node and it's binding.
      * @param {Object} currentlyEvaluating The contents of view.currentlyEvaluating.
      */
     function getHash(currentlyEvaluating) {
-        return Li.getUID(currentlyEvaluating.node) + '#' + currentlyEvaluating.binding;
+        return currentlyEvaluating.view.id + '#' + Li.getUID(currentlyEvaluating.node) + '#' + currentlyEvaluating.binding;
     }
 
     function updateBinding(info) {

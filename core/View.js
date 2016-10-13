@@ -20,6 +20,7 @@ define([
      * @param {Li.View} [parentView] parent of this view. Used internally.
      */
     function View(template, data, context, parentView) {
+        this.id = Li.uuid();
         this.tpl = template;
         this.data = data;
         this.context = context || {
@@ -45,7 +46,7 @@ define([
 
         this.retired = false;
 
-        //Partially render the view, as Components and sub-components need to be constructed before render.
+        //Render the view in-memory, as Components and sub-components need to be constructed.
         this.toDocumentFragment();
     }
 
@@ -83,18 +84,6 @@ define([
                         this.componentMap[Li.getUID(node)] = cmp;
 
                         return {domTraverse: 'continue'}; //ignore inner content
-                    }
-                },
-                update: function (node, attr) {
-                    var cmp = this.componentMap[Li.getUID(node)];
-                    if (cmp) {
-                        var cfg = {};
-                        if (attr === 'class') {
-                            cfg.cls = node.getAttribute(attr);
-                        } else {
-                            cfg[attr] = node.getAttribute(attr);
-                        }
-                        cmp.set(cfg);
                     }
                 }
             },
@@ -275,6 +264,7 @@ define([
                     }
                 }
             },
+            //TODO: Deprecate 'with' binding.
             "with": {
                 init: function (node, binding, tNode) {
                     var tNodeInfo = this.tpl.getTNodeInfo(tNode),
@@ -357,9 +347,6 @@ define([
                 },
                 update: function (node, bindingSpecific) {
                     this.bindingHandler.attr.init.call(this, node, bindingSpecific);
-                    if (node.nodeType === 1) {
-                        this.bindingHandler.componenttag.update.call(this, node, bindingSpecific.split('.')[1]);
-                    }
                 }
             },
             css: {
@@ -377,9 +364,6 @@ define([
                 },
                 update: function (node, bindingSpecific) {
                     this.bindingHandler.css.init.call(this, node, bindingSpecific);
-                    if (node.nodeType === 1) {
-                        this.bindingHandler.componenttag.update.call(this, node, 'class');
-                    }
                 }
             },
             style: (function () {
@@ -401,9 +385,6 @@ define([
                     },
                     update: function (node, bindingSpecific) {
                         this.bindingHandler.style.init.call(this, node, bindingSpecific);
-                        if (node.nodeType === 1) {
-                            this.bindingHandler.componenttag.update.call(this, node, 'style');
-                        }
                     }
                 };
             }()),
@@ -537,7 +518,7 @@ define([
 
                         var classRef;
                         //Check for Li.Component custom tag.
-                        if (node.nodeName.indexOf('-') > -1) {
+                        if (node.nodeName.includes('-')) {
                             classRef = Li.getClass(node.nodeName.replace(/-/g, '.'));
                         }
 
@@ -550,35 +531,44 @@ define([
                         }
 
                         var ret;
-                        Li.forEach(bindings || {}, function (expr, bindingSpecific) {
-                            var binding = bindingSpecific.split('.')[0];
-                            if (expr !== null && this.bindingHandler[binding]) {
-                                control = this.bindingHandler[binding].init.call(this,
-                                    node, bindingSpecific, tNode, blocks) || {};
-                                if (control.domTraverse) {
-                                    ret = control.domTraverse;
-                                }
-                                if (control.skipOtherbindings) {
-                                    return true;
-                                }
-                                if (control.ignoreTillNode) {
-                                    ignoreTillNode = control.ignoreTillNode;
-                                }
-                            }
-                        }, this);
 
                         if (classRef) { //handle Li.Component custom tag
+                            //First render component in-memory..
                             control = this.bindingHandler.componenttag.init.call(this, node, tNode, classRef);
-                            if (control.domTraverse) {
-                                ret = control.domTraverse;
-                            }
-                        } else { // check for 'ref' attribute and handle it.
+                            var cmp = this.componentMap[Li.getUID(node)];
+
+                            //..then apply bindings of custom tag.
+                            //Order is important as data-bind of custom tag should override, data-bind of
+                            //component root tag. Also Observable()s needs to track in the same order.
+                            Li.forEach(bindings || {}, function (expr, bindingSpecific) {
+                                var binding = bindingSpecific.split('.')[0];
+                                if (expr !== null && this.bindingHandler[binding]) {
+                                    this.bindingHandler[binding].init.call(this, cmp.el, bindingSpecific);
+                                }
+                            }, this);
+
+                            ret = control.domTraverse;
+                        } else {
+                            // check for 'ref' attribute and handle it.
                             var ref = node.getAttribute('ref');
                             if (ref) {
                                 this.createReference(ref, node);
                                 node.removeAttribute('ref');
                             }
+
+                            //Apply bindings.
+                            Li.forEach(bindings || {}, function (expr, bindingSpecific) {
+                                var binding = bindingSpecific.split('.')[0];
+                                if (expr !== null && this.bindingHandler[binding]) {
+                                    control = this.bindingHandler[binding].init.call(this,
+                                        node, bindingSpecific, tNode, blocks) || {};
+                                    if (control.domTraverse) {
+                                        ret = control.domTraverse;
+                                    }
+                                }
+                            }, this);
                         }
+
 
                         if (ret) {
                             return ret;
@@ -611,9 +601,6 @@ define([
                             if (expr !== null && this.bindingHandler[binding]) {
                                 control = this.bindingHandler[binding].init.call(this,
                                     node, binding, tNode, blocks) || {};
-                                if (control.skipOtherbindings) {
-                                    return true;
-                                }
                                 if (control.ignoreTillNode) {
                                     ignoreTillNode = control.ignoreTillNode;
                                 }
@@ -862,7 +849,7 @@ define([
                 if (typeof expr === 'string') {
                     cfg[key] = saferEval.call(this.getRootView(), expr, this.context, node);
                 } else { //object
-                    this.evaluateParams(expr);
+                    this.evaluateParams(expr, node);
                 }
             }, this);
         },

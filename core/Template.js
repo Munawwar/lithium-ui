@@ -48,7 +48,7 @@ define([
                         bindings;
                     if (node.nodeType === 1) { //element
                         var classRef;
-                        if (node.nodeName.indexOf('-') > -1) {
+                        if (node.nodeName.includes('-')) {
                             classRef = Li.getClass(node.nodeName.replace(/-/g, '.'));
                         }
 

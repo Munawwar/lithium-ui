@@ -119,14 +119,9 @@ define([
             cfg.addAttribute = cfg.addAttribute || {};
             cfg.addAttribute.id = this.id;
             cfg.addAttribute['data-type'] = this.type;
-            var el = this.outerTpl.firstElementChild;
-            if (cfg.addAttribute['data-bind']) {
-                var dataBind = el.getAttribute('data-bind');
-                //FIXME: Following is buggy since the right context isn't used for binding.
-                el.setAttribute('data-bind', (dataBind ? (dataBind + ', ') : '') + cfg.addAttribute['data-bind']);
-            }
 
-            var cls = (Li.isString(cfg.cls) ? cfg.cls : (Li.isString(this.cls) ? this.cls : el.getAttribute('class')));
+            var el = this.outerTpl.firstElementChild,
+                cls = (Li.isString(cfg.cls) ? cfg.cls : (Li.isString(this.cls) ? this.cls : el.getAttribute('class')));
             cfg.cls = (this.type.toLowerCase().replace(/\./g, '-') + ' ' + (Li.isString(cls) ? cls : '')).trim();
             cfg.style = cfg.style || this.style;
 
@@ -181,12 +176,9 @@ define([
          */
         set: function (cfg) {
             /*Handle special configs*/
-            /* The reason for not using data-bind on root element for handling some of these is to:
-             * 1. avoid data-bind coming from custom element from conflicting with root element data-bind.
-             * By not having data-bind on root element, esp for certain components like Li.Button and Li.Text
-             * we avoid a conflict situation. OTOH Li.Button and Li.Text should be using custom element from
-             * web component standard? (Browser compatibility is an issue though).
-             * 2. avoid adding the same data-bind on all root elements of all components.
+            /* The reason for not using data-bind on root element of Component for handling some of these
+             * is to avoid the hassle of adding common data-binds when a derived component overrides the
+             * outerTpl/root element.
              */
             var el = this.el || this.outerTpl.firstElementChild;
             /* Order is important. Removal of attributes needs to be done before adding attributes to keep expectations.*/
