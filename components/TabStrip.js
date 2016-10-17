@@ -50,7 +50,7 @@ define([
              * Doesn't fire on API calls (non-user interaction changes).
              */
 
-            cfg.cls = ((cfg.cls || '') + ' ' + this.align()).trim();
+            cfg.addClass = ((cfg.addClass || '') + ' ' + this.align()).trim();
 
             this.super(arguments);
 

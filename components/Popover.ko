@@ -1,0 +1,5 @@
+<script type="text/html" id="li-popover-outer">
+    <div class="modal">
+        <!-- ko template: innerTpl --><!-- /ko -->
+    </div>
+</script>

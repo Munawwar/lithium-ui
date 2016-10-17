@@ -4,14 +4,16 @@
  */
 define([
     'jquery',
-    '../core/Box.js'
+    '../core/Box.js',
+
+    './Popover.ko!tpl'
 ], function ($, Li) {
     /**
      * Base class for Window.
      */
     Li.Popover = Li.extend('Li.Popover', Li.Box, {
         /**
-         * Can popover be closed by user?
+         * Configure whether popover can be closed by user or not.
          */
         dismissible: true,
 
@@ -25,8 +27,6 @@ define([
             /**
              * @event autoclosed Fires when popover is closed due to another popover being opened at same level or higher.
              */
-
-            cfg.cls = ('modal ' + (cfg.cls || '')).trim();
 
             this.super(arguments);
         },
