@@ -65,20 +65,20 @@ define([
                                 bindings[binding] = null;
                             });
                             nodeInfo.bindings = bindings;
+
+                            //Move inner DOM nodes for if,ifnot,foreach and with binding to their own Templates.
                             if (bindings.foreach || bindings['with'] || bindings['if']) {
                                 tempFrag = util.moveToFragment(Li.slice(node.childNodes));
                                 nodeInfo.subTpl = new Template(tempFrag, Object.assign({}, this.cfg));
                             }
+
                             this.setTNodeInfo(node, nodeInfo);
                         }
 
                         if (classRef) { //skip traversal of component custom element's inner elements
                             return 'continue';
                         }
-                    }
-
-                    //HTML comment node
-                    if (node.nodeType === 8) {
+                    } else if (node.nodeType === 8) { //HTML comment node
                         var stmt = node.data.trim(), match;
 
                         //Ignore all containerless statements beginning with "ko" if noConflict = true.
@@ -93,11 +93,14 @@ define([
                             match = stmt.match(util.regex.commentStatment);
                             nodeInfo.bindings = {};
                             nodeInfo.bindings[match[1].trim()] = match[2];
+
+                            //Move inner DOM nodes for if,ifnot,foreach and with binding to their own Templates.
                             if (block.key === 'foreach' || block.key === 'with' || block.key === 'if' || block.key === 'ifnot') {
                                 blockNodes = util.getImmediateNodes(frag, block.start, block.end);
                                 tempFrag = util.moveToFragment(blockNodes);
                                 nodeInfo.subTpl = new Template(tempFrag, Object.assign({}, this.cfg));
                             }
+
                             this.setTNodeInfo(node, nodeInfo);
                         }
                     }

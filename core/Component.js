@@ -3,7 +3,6 @@ define([
     'jquery',
     './base/lithium.pubsub.js',
     './View.js',
-    './Observable.js',
 
     './Component.ko!tpl'
 ], function (Li, $) {
@@ -116,13 +115,6 @@ define([
                 cls = (Li.isString(cfg.cls) ? cfg.cls : el.getAttribute('class')) || '';
             cfg.cls = (this.type.toLowerCase().replace(/\./g, '-') + ' ' + cls).trim();
 
-            //Make own copy of observable from prototype.
-            this._observables.forEach(function (prop) {
-                if (!this.hasOwnProperty(prop)) {
-                    var val = this[prop];
-                    this[prop] = Li.Observable(val());
-                }
-            }, this);
             this.listeners = {};
 
             //Set config
@@ -233,11 +225,7 @@ define([
             Object.keys(cfg).forEach(function (prop) {
                 var val = cfg[prop];
                 if (val !== undefined) {
-                    if (this.hasOwnProperty(prop) && Li.isObservable(this[prop])) {
-                        this[prop](val);
-                    } else {
-                        this[prop] = val;
-                    }
+                    this[prop] = val;
                 }
             }, this);
         },

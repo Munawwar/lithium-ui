@@ -6,65 +6,65 @@ var assert = require("assert"),
 
 define([
     'core/Template.js',
-    'core/Observable.js'
+    'core/View.js'
 ], function (Li) {
 
-    describe('Observable: Test updates to text and attr binding', function () {
+    describe('View: Test updates to text and attr binding', function () {
         var html = fetch('text-and-attr-binding-tpl.html'),
             template = new Li.Template(html),
             data = {
-                btnText: Li.Observable('btntext'),
-                titleText: Li.Observable('titleattr'),
-                cls: Li.Observable('btn btn-default') //bootstrap 3 button css class
+                btnText: 'btntext',
+                titleText: 'titleattr',
+                cls: 'btn btn-default' //bootstrap 3 button css class
             },
             view = new Li.View(template, data),
             df = view.toDocumentFragment(data);
 
         //Do some ops on obervable
         it('it should have text = "btntext1"', function () {
-            data.btnText('btntext1');
+            view.update({btnText: 'btntext1'});
             assert.equal('btntext1', df.firstChild.textContent.trim());
         });
         it('it should also have class = "btn"', function () {
-            data.cls('btn');
+            view.update({cls: 'btn'});
             assert.equal('btn', df.firstChild.className.trim());
         });
         it('it should also have title = "titleattr1"', function () {
-            data.titleText('titleattr1');
+            view.update({titleText: 'titleattr1'});
             assert.equal('titleattr1', df.firstChild.getAttribute('title'));
         });
     });
 
-    describe('Observable: Test updates to if binding', function () {
+    describe('View: Test updates to if binding', function () {
         var html = fetch('if-mixed-tpl.html'),
             template = new Li.Template(html),
             data = {
-                opened: Li.Observable(false)
+                opened: false
             },
             view = new Li.View(template, data),
             df = view.toDocumentFragment(data);
 
         //Do some ops on obervable
         it('it should have button when opened = true', function () {
-            data.opened(true);
+            view.update({opened: true});
             assert.equal('BUTTON', df.firstChild.children[0].nodeName);
         });
 
         it('it shouldn\'t have button when opened = false', function () {
-            data.opened(false);
+            view.update({opened: false});
             assert.equal(0, df.firstChild.children.length);
         });
     });
 
     ([
-        'Observable: Test updates to foreach binding',
-        'Observable: Test updates to container-less foreach binding'
+        'View: Test updates to foreach binding',
+        'View: Test updates to container-less foreach binding'
     ]).forEach(function (testText, testNum) {
         describe(testText, function () {
             var html = fetch('foreach-' + (testNum + 1) + '-tpl.html'),
                 template = new Li.Template(html),
                 data = {
-                    list: Li.ObservableArray([1, 2, 3, 4, 5])
+                    list: [1, 2, 3, 4, 5]
                 },
                 view = new Li.View(template, data),
                 df = view.toDocumentFragment(data);
@@ -75,11 +75,13 @@ define([
 
             it('it should have 4 spans inside it after a splice(2, 1)', function () {
                 data.list.splice(2, 1);
+                view.update();
                 assert.equal(4, df.firstChild.children.length);
             });
 
             it('it should have 5 spans inside it after a splice(2, 0, 3)', function () {
                 data.list.splice(2, 0, 3);
+                view.update();
                 assert.equal(5, df.firstChild.children.length);
             });
 
@@ -87,6 +89,7 @@ define([
                 data.list.sort(function (a, b) {
                     return b - a;
                 });
+                view.update();
                 assert.equal('5', df.firstChild.children[0].textContent);
                 assert.equal('4', df.firstChild.children[1].textContent);
                 assert.equal('3', df.firstChild.children[2].textContent);
@@ -96,11 +99,11 @@ define([
         });
     });
 
-    describe('Observable: Test diff-patch updates on foreach binding', function () {
+    describe('View: Test more updates on foreach binding', function () {
         var html = fetch('foreach-3-tpl.html'),
             template = new Li.Template(html),
             data = {
-                list: Li.ObservableArray([1, 2, 3, 4, 5])
+                list: [1, 2, 3, 4, 5]
             },
             view = new Li.View(template, data),
             df = view.toDocumentFragment(data);
@@ -119,6 +122,7 @@ define([
 
         it('first span should have text as "6" inside it after a push(6)', function () {
             data.list.push(6);
+            view.update();
             assert.equal('6', firstEl.textContent);
         });
 

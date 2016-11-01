@@ -3,11 +3,9 @@
 define([
     'jquery',
     './Template.js',
-    './Observable.js',
     './template-util.js',
-    './util/js-object-literal-parse.js',
-    './arrayDiff.js'
-], function ($, Li, _1, util, parseObjectLiteral, arrayDiff) {
+    './util/js-object-literal-parse.js'
+], function ($, Li, util, parseObjectLiteral) {
     /**
      * @param {Li.Template} template Li.Template instance
      * @param {Object} data Any data
@@ -53,7 +51,7 @@ define([
             componenttag: {
                 init: function (node, tNode, ClassRef) {
                     node.innerHTML = tNode.innerHTML;
-                    if (ClassRef) {
+                    if (ClassRef) { //Create component instance from tag and config attribute.
                         var cfg = {}, cmp;
                         //Parse node to a config
                         if (ClassRef.prototype.makeConfigFromView) {
@@ -187,16 +185,10 @@ define([
                     }
 
                     if (tpl.frag.firstChild && val.items instanceof Array) {
-                        this.spliceForEachItems(tpl, node, 0, info.views ? info.views.length : 0, val.items, val.as);
+                        this.appendForEachItems(tpl, node, 0, val.items, val.as);
                     }
                 },
-                /*
-                 * Update binding using O(N) diff-patch algorithm (when N = length of old array + length of new array).
-                 * If index and removeLength/newItems arguments are passed, then it will mostly
-                 * do an effifient O(n) update (when n is number of items to insert+remove). If that
-                 * is not possible then it falls back to diff-patch.
-                 */
-                update: function (node, binding, index, removeLength, newItems) {
+                update: function (node, binding) {
                     var info = this.getNodeInfo(node),
                         tNodeInfo = this.tpl.getTNodeInfo(info.tNode),
                         oldObserver = info.observer,
@@ -214,54 +206,10 @@ define([
                         };
                     }
 
-                    //If index and removeLength and/or newItems present
-                    //AND if we are sure that the expr evaluates to the same ObservableArray
-                    //as used the last time, then do an efficient update (no need of diff-patch algo).
-                    if (oldObserver && oldObserver === info.observer && Li.isNumber(index)) {
-                        this.spliceForEachItems(tpl, node, index, removeLength, newItems || [], val.as);
-                    } else if (!info.views || info.views.length === 0) { //then add & create them all
-                        this.spliceForEachItems(tpl, node, 0, 0, val.items, val.as);
-                    } else {
-                        var oldArr = info.views.map(function (view) {
-                            return view.context.$data;
-                        });
-                        var changes = arrayDiff(val.items, oldArr);
-                        changes.forEach(function (change) {
-                            if (change.replace) {
-                                //TODO: Can we do this more efficiently by reusing DOM nodes?
-                                this.spliceForEachItems(tpl, node, change.index, change.batch.length, change.batch, val.as);
-                            } else if (change.insert) {
-                                this.spliceForEachItems(tpl, node, change.index, 0, change.batch, val.as);
-                            } else { //remove
-                                this.spliceForEachItems(tpl, node, change.index, change.batch.length, [], val.as);
-                            }
-                        }, this);
-                    }
-                },
-                sort: function (node, binding, indexes) {
-                    var info = this.getNodeInfo(node);
-                    if (info.views) {
-                        var output = document.createDocumentFragment();
-
-                        //Sort views
-                        info.views = indexes.map(function (i) {
-                            return info.views[i];
-                        });
-
-                        info.views.forEach(function (view) {
-                            output.appendChild(view.toDocumentFragment()); //removes from document and appends to 'output'
-                        });
-                        if (node.nodeType === 1) {
-                            node.appendChild(output);
-                        } else if (node.nodeType === 8) {
-                            //Render inner template and insert berfore this node.
-                            node.parentNode.insertBefore(output, info.blockEndNode);
-                        }
-                    }
+                    this.updateForEachItems(tpl, node, val.items, val.as);
                 }
             },
-            //TODO: Deprecate 'with' binding.
-            "with": {
+            "with": { //FIXME: Remove with binding.
                 init: function (node, binding, tNode) {
                     var tNodeInfo = this.tpl.getTNodeInfo(tNode),
                         expr = tNodeInfo.bindings[binding],
@@ -558,8 +506,8 @@ define([
                             control = this.bindingHandler.componenttag.init.call(this, node, tNode, classRef);
 
                             //..then apply bindings of custom tag.
-                            //Order is important as data-bind of custom tag should override, data-bind of
-                            //component root tag. Also Observable()s needs to track in the same order.
+                            //Order is important as data-bind of custom tag should override,
+                            //data-bind of component root tag.
                             Li.forEach(bindings || {}, function (expr, bindingSpecific) {
                                 var binding = bindingSpecific.split('.')[0];
                                 if (expr !== null && this.bindingHandler[binding]) {
@@ -648,6 +596,40 @@ define([
             this.firstChild = output.firstChild;
             this.lastChild = output.lastChild;
             return output;
+        },
+
+        /**
+         * Update view using the data bindings.
+         */
+        update: function (config) {
+            if (Li.isObject(config)) {
+                if (this.data instanceof Li.Component) {
+                    this.data.set(config);
+                } else {
+                    $.extend(true, this.data, config);
+                }
+            }
+
+            //var blocks = this.tpl.getVirtualBlocks();
+            this.nodeInfoList.forEach(function (info) {
+                var node = info.node,
+                    tNode = info.tNode,
+                    bindings = (this.tpl.getTNodeInfo(tNode) || {}).bindings;
+
+                Li.forEach(bindings || {}, function (expr, bindingSpecific) {
+                    var binding = bindingSpecific.split('.')[0];
+                    if (expr !== null && this.bindingHandler[binding]) {
+                        this.bindingHandler[binding].update.call(this, node, bindingSpecific);
+                    }
+                }, this);
+
+                //Update sub-views (for if and foreach bindings).
+                if (info.views) {
+                    info.views.forEach(function (view) {
+                        view.update();
+                    });
+                }
+            }, this);
         },
 
         /**
@@ -796,31 +778,22 @@ define([
          * @private
          * @param {Template} template Template instance that contains the body of the foreach statement
          * @param {Node} node
-         * @param {Object} context
          * @param {Number} index Index at which items are to be inserted/removed.
-         * @param {Number} removeLength Number of items to remove
          * @param {Array} items Array of items to insert to index
          * @param {String} as Name reference for item
          */
-        spliceForEachItems: function (template, node, opIndex, removeLength, items, as) {
+        appendForEachItems: function (template, node, opIndex, items, as) {
             var info = this.getNodeInfo(node);
             info.views = info.views || [];
 
-            if (removeLength) {
-                info.views.splice(opIndex, removeLength).forEach(function (view) {
-                    view.retire();
-                }, this);
-            }
-
             if (items.length) {
-                var output = document.createDocumentFragment(),
-                    viewAtInsertIndex = info.views[opIndex];
+                var output = document.createDocumentFragment();
 
                 items.forEach(function (item, index) {
                     var newContext = this.getNewContext(this.context, this.data);
                     //foreach special properties
                     newContext.$data = newContext.$rawData = item;
-                    newContext.$index = Li.Observable(index + opIndex);
+                    newContext.$index = index + opIndex;
 
                     if (as) {
                         newContext[as] = item;
@@ -837,21 +810,57 @@ define([
                     output.appendChild(view.toDocumentFragment());
                 }, this);
 
-                if (viewAtInsertIndex) {
-                    viewAtInsertIndex.firstChild.parentNode.insertBefore(output, viewAtInsertIndex.firstChild);
-                } else {
-                    if (node.nodeType === 1) {
-                        node.appendChild(output);
-                    } else if (node.nodeType === 8) {
-                        //Render inner template and insert berfore this node.
-                        node.parentNode.insertBefore(output, info.blockEndNode);
-                    }
+                if (node.nodeType === 1) {
+                    node.appendChild(output);
+                } else if (node.nodeType === 8) {
+                    //Render inner template and insert berfore this node.
+                    node.parentNode.insertBefore(output, info.blockEndNode);
                 }
             }
+        },
 
-            //Update index of items that come after last inserted/removed value.
-            for (var i = opIndex + items.length; i < info.views.length; i += 1) {
-                info.views[i].context.$index(i);
+        /**
+         * @private
+         * @param {Template} template Template instance that contains the body of the foreach statement
+         * @param {Node} node
+         * @param {Array} items Array of items to insert to index
+         * @param {String} as Name reference for item
+         */
+        updateForEachItems: function (template, node, items, as) {
+            var info = this.getNodeInfo(node);
+            info.views = info.views || [];
+
+            //Remove views if items have been removed from array.
+            if (items.length < info.views.length) {
+                var removeLength = info.views.length - items.length;
+                info.views.splice(items.length, removeLength).forEach(function (view) {
+                    view.retire();
+                }, this);
+            }
+
+            //Update existing views.
+            info.views.forEach(function (view, index) {
+                var item = items[index],
+                    context = view.context;
+
+                //foreach special properties
+                context.$data = context.$rawData = item;
+                context.$index = index;
+
+                if (as) {
+                    context[as] = item;
+                    //Add to _as so that sub templates can access them.
+                    context._as = newContext._as || [];
+                    context._as.pop();
+                    context._as.push([as, item]);
+                }
+
+                view.update();
+            }, this);
+
+            //Add views if items have been added to array.
+            if (items.length > info.views.length) {
+                this.appendForEachItems(template, node, info.views.length, items.slice(info.views.length), as);
             }
         },
 
@@ -873,33 +882,10 @@ define([
 
         /**
          * Evaluate a JS expression for a binding on a node.
-         * Sets states such that Observable that are called from eval, can indentify what binding etc is being evaluated.
          * @private
          */
         evaluate: function (bindingSpecific, expr, node) {
-            var old = View.currentlyEvaluating;
-            View.currentlyEvaluating = this;
-
-            this.currentlyEvaluating = {
-                view: this,
-                node: node,
-                binding: bindingSpecific
-            };
-
-            var value = saferEval.call(this.getRootView(), expr, this.context, node);
-
-            if (bindingSpecific ==='foreach') {
-                var info = this.getNodeInfo(node);
-                info.observer = Li.isObservableArray(value) ? value : null;
-            }
-            if (value && Li.isObservable(value)) {
-                value = value();
-            }
-
-            View.currentlyEvaluating = old;
-            this.currentlyEvaluating = null;
-
-            return value;
+            return saferEval.call(this.getRootView(), expr, this.context, node);
         },
 
         /**

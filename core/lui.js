@@ -32,15 +32,6 @@ define([
             P.prototype = proto;
             var inst = new P();
 
-            //Find all observables from prototype and note them down in _observables.
-            //A Component instance can use _observables to make it's own copy of these observables.
-            proto._observables = [];
-            for (var prop in inst) {
-                if (Li.isObservable(inst[prop])) {
-                    proto._observables.push(prop);
-                }
-            }
-
             if (Li.isFunction(inst.afterExtend)) {
                 inst.afterExtend(proto);
             }
@@ -85,45 +76,6 @@ define([
                 }
             }
             return tpl;
-        },
-
-        /**
-         * Check if type is an observable.
-         */
-        isObservable: function (o) {
-            return (Li.isFunction(o) && o.isLiObservable);
-        },
-
-        /**
-         * Check if type is an observable.
-         */
-        isObservableArray: function (o) {
-            return (Li.isFunction(o) && o.isLiObservableArray);
-        },
-
-        /**
-         * Converts each property of object to an Observable
-         */
-        toObservable: function (obj) {
-            Li.forEach(obj, function (val, key) {
-                obj[key] = Li.Observable(val);
-            });
-            return obj;
-        },
-
-        /**
-         * Get values from each property of ab object.
-         * If property is an observable, then find it's primitive value.
-         */
-        fromObservable: function (obj) {
-            if (!obj) {
-                return obj;
-            }
-            var ret = {};
-            Li.forEach(obj, function (val, key) {
-                ret[key] = (Li.isObservable(val) ? val() : val);
-            });
-            return ret;
         }
     });
 
