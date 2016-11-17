@@ -8,7 +8,7 @@ define([
      * Dropdown component. It cannot be used without first filling the
      * fieldEl property (the element that triggers the dropdown to show).
      */
-    Li.Dropdown = Li.extend('Li.Dropdown', Li.Popover, {
+    Li.Dropdown = Li.component('li-dropdown', Li.Popover, {
         /**
          * List item template.
          */
@@ -49,7 +49,7 @@ define([
             proto.constructor.super.afterExtend(proto);
 
             var tpl;
-            if (proto === Li.getClass('Li.Dropdown').prototype || (proto instanceof Li.Dropdown)) {
+            if (proto === Li.getClass('li-dropdown').prototype || (proto instanceof Li.Dropdown)) {
                 var prefix = proto.type.toLowerCase().replace(/\./g, '-');
                 tpl = Li.findTemplate('id', prefix + '-listitem');
                 if (tpl) {

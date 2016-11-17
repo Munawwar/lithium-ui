@@ -3,28 +3,27 @@ define([
     './base/lithium.js'
 ], function ($, Li) {
 
-    /**
-     * Create the class using baseClass and proto paramters.
-     *
-     * If type is sent as parameter, class type will be registered with Li as a component
-     * so that it can be used in HTML views with custom tags.
-     * This automatically also adds the 'type' as a string to prototype of class (which Li.Component uses in rendered markup).
-     * @param {String} [type] Unique name (including namespace) to be used for the new class. eg 'Li.Box'.
-     * If this paramter isn't passed, then the new class to be created is not treated as a component.
-     * @param {Function} baseClass
-     * @param {Object} proto Prototype to use for creating the new class.
-     */
-    Li.extend = (function () {
-        var oldFunc = Li.extend;
-        return function (type, baseClass, protoObj) {
+    Li.mix(Li, {
+        version: '2.0.0',
+
+        /**
+         * Create and register a component type.
+         *
+         * @param {String} [type] Unique name (including namespace) to be used for the new class. eg 'li-box'.
+         * This automatically also adds the 'type' as a string to prototype of class.
+         * All components by default can be used in HTML views using custom tags.
+         * @param {Function} [baseClass=Li.Component] Optional parameter specifying the base class for component. By default it's Li.Component.
+         * @param {Object} proto Prototype to use for creating the new class.
+         */
+        component: function (type, baseClass, protoObj) {
             if (arguments.length < 3) {
-                return oldFunc.apply(Li, arguments);
+                protoObj = baseClass;
+                baseClass = Li.Component;
             }
 
-            //If three parameters are given then the class is to be treated as a component.
             protoObj.type = type;
             var typeLowerCase = type.toLowerCase(),
-                classRef = oldFunc.call(Li, baseClass, protoObj);
+                classRef = Li.extend(baseClass, protoObj);
             this.componentClasses[typeLowerCase] = classRef;
 
             var proto = classRef.prototype,
@@ -45,11 +44,7 @@ define([
                 inst.afterExtend(proto);
             }
             return classRef;
-        };
-    }());
-
-    Li.mix(Li, {
-        uiVersion: '0.1.0',
+        },
 
         /**
          * Holds all classes inherited through Li.extend.

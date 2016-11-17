@@ -9,7 +9,7 @@
     if (typeof define === "function" && define.amd) {
         define(['./lithium.js'], factory);
     } else if (typeof exports === 'object') { //For NodeJS
-        module.exports = factory(require('./lithium'));
+        module.exports = factory(require('./lithium.js'));
     } else { //global
         factory(window.Li);
     }

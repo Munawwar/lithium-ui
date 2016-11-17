@@ -7,7 +7,7 @@ define([
     /**
      * Text field.
      */
-    Li.Text = Li.extend('Li.Text', Li.Component, {
+    Li.Text = Li.component('li-text', {
         placeholder: Li.Observable(''),
 
         /**

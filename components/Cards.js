@@ -9,7 +9,7 @@ define([
      * A container that swtiches between different inner components.
      * You can use Box to achieve layouts.
      */
-    Li.Cards = Li.extend('Li.Cards', Li.Box, {
+    Li.Cards = Li.component('li-cards', {
         /**
          * Active item
          */

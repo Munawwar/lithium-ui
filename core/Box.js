@@ -1,11 +1,10 @@
 define(['./Component.js'], function (Li) {
 
     /**
+     * Li.Box is deprecated. It may be removed in future.
      * Previously Box and Component were different. But now it is same.
      */
-    Li.Box = Li.extend('Li.Box', Li.Component, {
-        innerTpl: new Li.Template(' ') //dummy innerTpl
-    });
+    Li.Box = Li.component('li-box', {});
 
     return Li;
 });

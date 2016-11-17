@@ -8,7 +8,7 @@ define([
     /**
      * Base class for Window.
      */
-    Li.Modal = Li.extend('Li.Modal', Li.Popover, {
+    Li.Modal = Li.component('li-modal', Li.Popover, {
         /**
          * Footer template
          * @type {Li.Template|DocumentFragment}
@@ -39,7 +39,7 @@ define([
         afterExtend: function (proto) {
             this.super(arguments);
 
-            if (proto === Li.getClass('Li.Component').prototype || (proto instanceof Li.Component)) {
+            if (proto === Li.getClass('li-component').prototype || (proto instanceof Li.Component)) {
                 var prefix = proto.type.toLowerCase().replace(/\./, '-'),
                     tpl = Li.findTemplate('id', prefix + '-header');
                 tpl = Li.findTemplate('id', prefix + '-footer');

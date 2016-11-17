@@ -27,7 +27,7 @@ define(['./TabStrip.js', './Cards.js'], function (Li) {
      *      </li-cards>
      * </li-tabpanel>
      */
-    Li.TabPanel = Li.extend('Li.TabPanel', Li.Box, {
+    Li.TabPanel = Li.component('li-tabpanel', {
 
         constructor: function () {
             this.super(arguments);

@@ -14,7 +14,7 @@
     if (typeof define === "function" && define.amd) {
         define(['jquery', './polyfills.js'], factory);
     } else if (typeof exports === 'object') { //For NodeJS
-        module.exports = factory(require('jquery'));
+        module.exports = factory(require('jquery'), require('./polyfills.js'));
     } else { //global
         root.Li = factory(jQuery);
     }

@@ -71,7 +71,7 @@
             var classRef = null;
             //Check for at least one hyphen.
             if (node.nodeType === 1 && node.nodeName.includes('-')) {
-                classRef = Li.getClass(node.nodeName.replace(/-/g, '.'));
+                classRef = Li.getClass(node.nodeName);
             }
             return classRef;
         },

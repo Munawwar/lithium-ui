@@ -20,11 +20,11 @@ define(['core/Box.js'], function (Li) {
                 el.normalize();
                 el.removeChild(el.firstChild);
             }
-            assert.equal(utils.toHTML(df), '<div id="cmp-1" data-type="Li.Box" class="li-box"></div>');
+            assert.equal(utils.toHTML(df), '<div id="cmp-1" data-type="li-box" class="li-box"></div>');
         });
     });
 
-    var MyComp = Li.extend('MyComp', Li.Box, {
+    var MyComp = Li.component('my-comp', {
         innerTpl: new Li.Template(
             '<li-box ref="innercomp" class="round-box" style="color: red;"></li-box>' +
             '<li-box config="style: \'color: red;\'"></li-box>'

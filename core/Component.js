@@ -11,7 +11,7 @@ define([
     /**
      * Base class for all components.
      */
-    Li.Component = Li.extend('Li.Component', Li.Publisher, {
+    Li.Component = Li.component('li-component', Li.Publisher, {
         /**
          * Root (top most) element of this component
          * @readonly
@@ -36,10 +36,10 @@ define([
          *
          * If null, then no template. Some components don't have different "inner" and "outer", (eg component with a single void tag like <input>).
          */
-        innerTpl: undefined,
+        innerTpl: new Li.Template(' '), //dummy innerTpl
 
         /**
-         * Called after Li.extend() succeeds. Called exactly once for a class.
+         * Called from within Li.component(). Called exactly once for a class.
          * IMPORTANT Note: This method is used like a static method. So don't use 'this' keyword inside it.
          * @param {Object} proto Prototype object of this class.
          * @protected
@@ -51,7 +51,7 @@ define([
             // if Li.Component or extends Li.Component.
             //Note: When Li.Component is being created, it's afterExtend method is called before Li.Component is available in the Li namespace.
             //Therefore, use the Li.getClass() method.
-            if (proto === Li.getClass('Li.Component').prototype || (proto instanceof Li.Component)) {
+            if (proto === Li.getClass('li-component').prototype || (proto instanceof Li.Component)) {
                 var prefix = proto.type.toLowerCase().replace(/\./g, '-');
                 tpl = Li.findTemplate('id', prefix + '-outer', true);
                 if (tpl) { //not to override prototype, if template doesn't exist

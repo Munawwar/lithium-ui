@@ -17,7 +17,7 @@ define([
         </li-select>
         ```
      */
-    Li.Select = Li.extend('Li.Select', Li.Component, {
+    Li.Select = Li.component('li-select', {
         /**
          * Disabled when true.
          */

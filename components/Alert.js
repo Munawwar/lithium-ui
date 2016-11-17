@@ -10,7 +10,7 @@ define([
     /**
      * Alert.
      */
-    Li.Alert = Li.extend('Li.Alert', Li.Component, {
+    Li.Alert = Li.component('li-alert', {
         html: 'Alert!',
         alertType: 'warning',
         cls: 'alert-stick-top',

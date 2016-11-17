@@ -9,7 +9,7 @@ define([
     /**
      * Class for Font selection dropdown.
      */
-    Li.CollapsableBox = Li.extend('Li.CollapsableBox', Li.Box, {
+    Li.CollapsableBox = Li.component('li-collapsablebox', {
         /**
          * Collapse button text
          */

@@ -11,7 +11,7 @@ define([
     /**
      * Base class for Window.
      */
-    Li.Popover = Li.extend('Li.Popover', Li.Box, {
+    Li.Popover = Li.component('li-popover', {
         /**
          * Configure whether popover can be closed by user or not.
          */
@@ -158,7 +158,7 @@ define([
              * Static method to manage singletons
              */
             singleton: function (cfg) {
-                if (!cfg.type || cfg.type === 'Li.Popover' || cfg.type === 'Li.Modal') {
+                if (!cfg.type || cfg.type === 'li-popover' || cfg.type === 'li-modal') {
                     throw new Error('Window Type is needed. And it should be a derived class of Li.Popover or Li.Modal.');
                 }
                 var instance = Li.Popover.singletonCache[cfg.type];

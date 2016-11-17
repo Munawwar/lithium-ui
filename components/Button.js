@@ -8,7 +8,7 @@ define([
     /**
      * Button.
      */
-    Li.Button = Li.extend('Li.Button', Li.Component, {
+    Li.Button = Li.component('li-button', {
         /**
          * Text to display on button
          */

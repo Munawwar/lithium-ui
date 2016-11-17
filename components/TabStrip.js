@@ -18,7 +18,7 @@ define([
      * </li-tabstrip>
      */
     //TODO: align option hasn't be implemented
-    Li.TabStrip = Li.extend('Li.TabStrip', Li.Box, {
+    Li.TabStrip = Li.component('li-tabstrip', {
         /**
          * Active tab item.
          */
