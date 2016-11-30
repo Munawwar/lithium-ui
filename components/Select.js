@@ -152,8 +152,8 @@ define([
             this.super(arguments);
         },
 
-        onChange: function (cfg) {
-            this.trigger('change');
+        onChange: function (event, cfg) {
+            this.trigger('change', cfg);
         },
 
         /**
