@@ -110,11 +110,19 @@ define([
                 $indicator = $(this.indicatorEl);
             // Update indicator
             if (($index - $prev_index) >= 0) {
-                $indicator.velocity({"right": $tabs_width - (($index + 1) * $tab_width)}, { duration: 300, queue: false, easing: 'easeOutQuad'});
-                $indicator.velocity({"left": $index * $tab_width}, {duration: 300, queue: false, easing: 'easeOutQuad', delay: 90});
+                $indicator.velocity({
+                    "right": Math.max(0, $tabs_width - (($index + 1) * $tab_width))
+                }, { duration: 300, queue: false, easing: 'easeOutQuad'});
+                $indicator.velocity({
+                    "left": Math.max(0, $index * $tab_width)
+                }, {duration: 300, queue: false, easing: 'easeOutQuad', delay: 90});
             } else {
-                $indicator.velocity({"left": $index * $tab_width}, { duration: 300, queue: false, easing: 'easeOutQuad'});
-                $indicator.velocity({"right": $tabs_width - (($index + 1) * $tab_width)}, {duration: 300, queue: false, easing: 'easeOutQuad', delay: 90});
+                $indicator.velocity({
+                    "left": Math.max(0, $index * $tab_width)
+                }, { duration: 300, queue: false, easing: 'easeOutQuad'});
+                $indicator.velocity({
+                    "right": Math.max(0, $tabs_width - (($index + 1) * $tab_width))
+                }, {duration: 300, queue: false, easing: 'easeOutQuad', delay: 90});
             }
         },
 
