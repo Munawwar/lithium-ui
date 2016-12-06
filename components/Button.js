@@ -61,7 +61,7 @@ define([
         },
 
         openFABMenu: function () {
-            $this = $(this.el);
+            var $this = $(this.el);
             if ($this.hasClass('active') === false) {
                 $this.addClass('active');
                 $this.find('ul .btn-floating').velocity(
@@ -79,9 +79,8 @@ define([
         },
 
         closeFABMenu: function () {
-            $this = $(this.el);
+            var $this = $(this.el);
             $this.removeClass('active');
-            var time = 0;
             $this.find('ul .btn-floating').velocity("stop", true);
             $this.find('ul .btn-floating').velocity(
                 { opacity: "0", scaleX: ".4", scaleY: ".4", translateY: "40px"},
@@ -92,7 +91,7 @@ define([
         attach: function () {
             this.super(arguments);
 
-            var bgColor = window.getComputedStyle(this.el).backgroundColor;
+            var bgColor = window.getComputedStyle(this.el).backgroundColor,
                 sRGB = (bgColor === 'transparent' ? 'rgb(255,255,255)' : bgColor).slice(4, -1).replace(/ /g, '').split(',');
             sRGB.forEach(function (v, i) {
                 sRGB[i] = parseInt(v, 10) / 255;
@@ -133,7 +132,7 @@ define([
                     addClass: 'waves-' + (luminance <= 0.5 ? 'light' : 'dark'),
                     removeClass: 'waves-' + (luminance <= 0.5 ? 'dark' : 'light')
                 });
-            }
+            };
         }())
     });
 
