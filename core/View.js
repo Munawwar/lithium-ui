@@ -2,52 +2,54 @@
 
 define([
     'jquery',
+    './base/lithium.pubsub.js',
     './Template.js',
     './Observable.js',
     './template-util.js',
     './util/js-object-literal-parse.js',
     './arrayDiff.js'
-], function ($, Li, _1, util, parseObjectLiteral, arrayDiff) {
-    /**
-     * @param {Li.Template} template Li.Template instance
-     * @param {Object} data Any data
-     * @param {Object} context [Context] in which this view should run. Used internally.
-     * @param {Li.View} [parentView] parent of this view. Used internally.
-     */
-    function View(template, data, context, parentView) {
-        this.id = Li.uuid();
-        this.tpl = template;
-        this.data = data;
-        this.context = context || {
-            $parents: [],
-            $root: data,
-            $data: data,
-            $rawData: data
-        };
-        this.parentView = parentView || null;
-
-        //Track first and last child after render.
-        this.fragment = null;
-        this.firstChild = null;
-        this.lastChild = null;
-
-        this.nodeInfoList = []; //will contain the binding information for each node.
-        this.nodeMap = {}; //used to quickly map a node to it's nodeInfo.
-
-        this.components = [];
-        this.componentMap = {};
-        this.exprEvaluatorCache = {}; //cache function for each expression, so that it doesn't need to
-        //be eval'ed all the time.
-
-        this.retired = false;
-
-        //Render the view in-memory, as Components and sub-components need to be constructed.
-        this.toDocumentFragment();
-    }
-
+], function ($, Li, _1, _2, util, parseObjectLiteral, arrayDiff) {
     var saferEval = util.saferEval;
 
-    View.prototype = {
+    Li.View = Li.extend(Li.Publisher, {
+        /**
+         * @param {Li.Template} template Li.Template instance
+         * @param {Object} data Any data
+         * @param {Object} context [Context] in which this view should run. Used internally.
+         * @param {Li.View} [parentView] parent of this view. Used internally.
+         */
+        constructor: function View(template, data, context, parentView) {
+            this.id = Li.uuid();
+            this.tpl = template;
+            this.data = data;
+            this.context = context || {
+                $parents: [],
+                $root: data,
+                $data: data,
+                $rawData: data
+            };
+            this.parentView = parentView || null;
+
+            //Track first and last child after render.
+            this.fragment = null;
+            this.firstChild = null;
+            this.lastChild = null;
+
+            this.nodeInfoList = []; //will contain the binding information for each node.
+            this.nodeMap = {}; //used to quickly map a node to it's nodeInfo.
+
+            this.components = [];
+            this.componentMap = {};
+            this.exprEvaluatorCache = {}; //cache function for each expression, so that it doesn't need to
+            //be eval'ed all the time.
+
+            this.retired = false;
+
+            this.super(arguments);
+
+            //Render the view in-memory, as Components and sub-components need to be constructed.
+            this.toDocumentFragment();
+        },
 
         bindingHandler: {
             componenttag: {
@@ -711,6 +713,8 @@ define([
 
                 this.components = [];
                 this.componentMap = {};
+
+                this.trigger('retired');
             }
             this.retired = true;
         },
@@ -830,7 +834,7 @@ define([
                         newContext._as.push([as, item]);
                     }
 
-                    var view = new View(template, this.data, newContext, this);
+                    var view = new Li.View(template, this.data, newContext, this);
 
                     info.views.splice(index + opIndex, 0, view);
 
@@ -878,8 +882,8 @@ define([
          * @private
          */
         evaluate: function (bindingSpecific, expr, node) {
-            var old = View.currentlyEvaluating;
-            View.currentlyEvaluating = this;
+            var old = Li.View.currentlyEvaluating;
+            Li.View.currentlyEvaluating = this;
 
             this.currentlyEvaluating = {
                 view: this,
@@ -897,7 +901,7 @@ define([
                 value = value();
             }
 
-            View.currentlyEvaluating = old;
+            Li.View.currentlyEvaluating = old;
             this.currentlyEvaluating = null;
 
             return value;
@@ -931,7 +935,7 @@ define([
          * @private
          */
         makeView: function (template, newContext, data, node) {
-            var view = new View(template, data, newContext, this),
+            var view = new Li.View(template, data, newContext, this),
                 info = this.getNodeInfo(node);
 
             info.views = info.views || [];
@@ -955,8 +959,7 @@ define([
             }
             return this.rootView;
         }
-    };
+    });
 
-    Li.View = View;
     return Li;
 });

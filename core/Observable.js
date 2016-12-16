@@ -9,6 +9,11 @@ define([
         var value,
             nodeBindings = [],
             uniqueBindings = {},
+            onViewRetire = function (event) {
+                var view = event.publisher;
+                untrackView(view, nodeBindings, uniqueBindings);
+                view.unsubscribe('retired', onViewRetire);
+            },
             observable = function (val) {
                 //Check whether value is called from a template or not.
                 var view = Li.View.currentlyEvaluating;
@@ -17,6 +22,7 @@ define([
                     if (!uniqueBindings[getHash(info)] && !view.retired) {
                         uniqueBindings[getHash(info)] = info;
                         nodeBindings.push(info);
+                        view.subscribe('retired', onViewRetire);
                     }
                 }
 
@@ -28,7 +34,7 @@ define([
                     //TODO: For objects, use oldValue.isEqual(val);
                     if (oldValue !== val) {
                         //Refresh UI
-                        removeUnusedAndIterate(nodeBindings, uniqueBindings, updateBinding, this);
+                        forEachNodeBinding(nodeBindings, updateBinding, this);
                     }
                 } else {
                     return value;
@@ -69,7 +75,7 @@ define([
                         value = val;
 
                         //Refresh UI
-                        removeUnusedAndIterate(nodeBindings, uniqueBindings, function (info) {
+                        forEachNodeBinding(nodeBindings, function (info) {
                             updateBinding.call(this, info);
                         }, this);
                     }
@@ -95,7 +101,7 @@ define([
                 var removedItems = value.splice.apply(value, [index, removeLength].concat(items));
 
                 //Refresh UI
-                removeUnusedAndIterate(nodeBindings, uniqueBindings, function (info) {
+                forEachNodeBinding(nodeBindings, function (info) {
                     if (info.binding !== 'foreach') {
                         updateBinding.call(this, info);
                     } else {
@@ -137,7 +143,7 @@ define([
                         return (len - i - 1);
                     });
                 //Refresh UI
-                removeUnusedAndIterate(nodeBindings, uniqueBindings, function (info) {
+                forEachNodeBinding(nodeBindings, function (info) {
                     if (info.binding !== 'foreach') {
                         updateBinding.call(this, info);
                     } else {
@@ -171,7 +177,7 @@ define([
 
                 //Refresh UI
                 if (hasChanged) {
-                    removeUnusedAndIterate(nodeBindings, uniqueBindings, function (info) {
+                    forEachNodeBinding(nodeBindings, function (info) {
                         if (info.binding !== 'foreach') {
                             updateBinding.call(this, info);
                         } else {
@@ -246,13 +252,10 @@ define([
         }
     }
 
-    function removeUnusedAndIterate(nodeBindings, uniqueBindings, callback, scope) {
+    function untrackView(view, nodeBindings, uniqueBindings) {
         var bindingsToRemove;
-        //Refresh UI
         nodeBindings.forEach(function (info, index) {
-            if (!info.view.retired) {
-                callback.call(scope, info, index);
-            } else {
+            if (info.view === view) {
                 bindingsToRemove = bindingsToRemove || [];
                 bindingsToRemove.push(index);
                 delete uniqueBindings[getHash(info)];
@@ -265,6 +268,16 @@ define([
                 nodeBindings.splice(pos, 1);
             });
         }
+    }
+
+    function forEachNodeBinding(nodeBindings, callback, scope) {
+        nodeBindings.forEach(function (info, index) {
+            if (!info.view.retired) {
+                callback.call(scope, info, index);
+            } else {
+                console.warn('Memory leak: Retired view still in data structure.');
+            }
+        }, this);
     }
 
     return Li;
