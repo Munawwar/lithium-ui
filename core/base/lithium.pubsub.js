@@ -40,9 +40,14 @@
             }
             if (!this._suspendEvents_ && this._eventMap_[eventType]) {
                 var subscribers = this._eventMap_[eventType];
-                for (var i = 0, len = subscribers.length; i < len; i += 1) {
-                    subscribers[i].fn.call(subscribers[i].scope, new Li.PublisherEvent({type: eventType, publisher: this}), config);
-                }
+                //Slice subscriber list to handle unsubscription inside of a subscriber.
+                subscribers.list.slice().forEach(function (subscriber) {
+                    //First check if this subscriber was removed inside of a previously called subscriber.
+                    if (!subscribers.map[getSubscriberHash(subscriber)]) {
+                        return;
+                    }
+                    subscriber.fn.call(subscriber.scope, new Li.PublisherEvent({type: eventType, publisher: this}), config);
+                }, this);
             }
         },
 
@@ -65,12 +70,19 @@
                 }, this);
             } else {
                 this._eventMap_ = this._eventMap_ || {};
-                var events = this._eventMap_;
-                events[eventType] = events[eventType] || [];
-                events[eventType].push({
-                    fn: handler,
-                    scope: scope || undefined //handle null
-                });
+                this._eventMap_[eventType] = this._eventMap_[eventType] || { list: [], map: [] };
+                var subscribers = this._eventMap_[eventType],
+                    subscriber = {
+                        fn: handler,
+                        scope: scope || undefined //handle null
+                    },
+                    hash = getSubscriberHash(subscriber);
+
+                // Do not subscribe is same function-scope combination was previously used to subscribe.
+                if (!subscribers.map[hash]) {
+                    subscribers.list.push(subscriber);
+                    subscribers.map[hash] = true;
+                }
             }
         },
 
@@ -113,18 +125,25 @@
             if (this._eventMap_) {
                 var subscribers = this._eventMap_[eventType];
                 if (subscribers) {
-                    for (var i = 0, len = subscribers.length; i < len; i += 1) {
-                        if (subscribers[i].fn === handler && subscribers[i].scope === scope) {
-                            subscribers.splice(i, 1);
-                            found = true;
-                            break;
+                    found = subscribers.list.some(function (subscriber, i) {
+                        if (subscriber.fn === handler && subscriber.scope === scope) {
+                            subscribers.list.splice(i, 1);
+                            delete subscribers.map[getSubscriberHash(subscriber)];
+                            return true;
                         }
-                    }
+                    });
                 }
             }
             return found;
         }
     });
+
+    function getSubscriberHash(subscriber) {
+        if (subscriber.scope) {
+            return Li.getUID(subscriber.fn) + '#' + Li.getUID(subscriber.scope);
+        }
+        return Li.getUID(subscriber.fn);
+    }
 
     /**
      * An almost "plain" object class. Used for differentiating publisher events.
