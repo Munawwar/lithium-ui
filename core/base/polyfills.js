@@ -10,7 +10,7 @@
     } else if (typeof exports === 'object') { //For NodeJS
         module.exports = factory();
     } else { //global
-        root.Li = factory();
+        factory();
     }
 }(this, function () {
     /*Polyfill Object.assign*/
@@ -56,6 +56,28 @@
         };
     }
 
+    /*Polyfill Array.prototype.find and findIndex*/
+    if (!Array.prototype.find) {
+        Array.prototype.find = function (comparator, context) {
+            for (var i = 0; i < this.length; i += 1) {
+                var value = this[i];
+                if (comparator.call(context, value, i, this)) {
+                    return value;
+                }
+            }
+        };
+    }
+    if (!Array.prototype.findIndex) {
+        Array.prototype.findIndex = function (comparator, context) {
+            for (var i = 0; i < this.length; i += 1) {
+                var value = this[i];
+                if (comparator.call(context, value, i, this)) {
+                    return i;
+                }
+            }
+            return -1;
+        };
+    }
 
     /* **** DOM Polyfills **** */
     if (this.Element) { // is node.js
