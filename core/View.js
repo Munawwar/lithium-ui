@@ -521,6 +521,7 @@ define([
                 output = document.createDocumentFragment();
 
             this.nodeInfoList = []; //clear previous node info. View instance can only bind to one document fragment.
+            this.nodeMap = {};
 
             //Evaluate
             var blocks = this.tpl.getVirtualBlocks(),
