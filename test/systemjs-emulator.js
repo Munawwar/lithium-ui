@@ -2,15 +2,15 @@
  * MIT License
  */
 
-/*global GLOBAL, console*/
+/*global global, console*/
 
 var path = require('path');
 
-GLOBAL.nodeRequire = require;
+global.nodeRequire = require;
 
 var modules = {};
 function getDependencies(deps, callerScript) {
-    var cfg = GLOBAL.SystemJS.cfg,
+    var cfg = global.SystemJS.cfg,
         callerPath = callerScript.split(path.sep).slice(0, -1).join(path.sep); //Remove script name.
 
     //Find dependencies
@@ -63,7 +63,7 @@ var System = function (deps, callback) {
 
     callback.apply(null, deps);
 };
-GLOBAL.System = GLOBAL.SystemJS = System;
+global.System = global.SystemJS = System;
 
 Object.assign(System, {
     config: function (cfg) {
@@ -101,7 +101,7 @@ Object.assign(System, {
     }
 });
 
-GLOBAL.define = function (name, deps, moduleFactory) {
+global.define = function (name, deps, moduleFactory) {
     var args = Array.prototype.slice.call(arguments);
 
     moduleFactory = args.pop();
@@ -127,7 +127,7 @@ GLOBAL.define = function (name, deps, moduleFactory) {
     modules[callerScript] = ret;
 };
 
-GLOBAL.define.amd = false; //This is done intentioanlly, so that code using UMD takes uses' node require()s.
+global.define.amd = false; //This is done intentioanlly, so that code using UMD takes uses' node require()s.
 
 /*
  * Find the caller script path from an Error object.
@@ -147,7 +147,7 @@ function findCallerFromError(err) {
  * Load a 'string!plugin' dependency.
  */
 function handlePlugin(depPath, callerScript) {
-    var cfg = GLOBAL.SystemJS.cfg,
+    var cfg = global.SystemJS.cfg,
         match = depPath.match(/([^!]+)!(\w+)$/),
         fileName = match[1],
         name = match[2],
@@ -187,7 +187,7 @@ function callPlugin(pluginName, filepath, callerPath, onload) {
                 depPath[i] = path.resolve(callerPath, depPath);
             }
         });
-        GLOBAL.define(deps, callback);
+        global.define(deps, callback);
     };
     req.toUrl = function (depPath) {
         return path.resolve(callerPath, depPath);

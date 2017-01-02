@@ -1,6 +1,6 @@
 /*global document, LOCALEID, DEFAULTLOCALEID*/
 
-/* GLOBAL.document expected to be set on nodejs */
+/* global.document expected to be set on nodejs */
 (function () {
     var window = document.defaultView;
 
