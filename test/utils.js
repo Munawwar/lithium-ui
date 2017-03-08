@@ -1,4 +1,4 @@
-var Li = require('../core/base/lithium');
+var Li = require('../core/lui');
 
 module.exports = {
     /**

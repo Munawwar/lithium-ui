@@ -1,14 +1,13 @@
 /*global console*/
 /*jslint evil: true*/
 
-(function (factory, saferEval) {
-    define([
-        'jquery',
-        './lui.js',
-        './util/js-object-literal-parse.js'
-    ], function ($, Li, parseObjectLiteral) {
-        return factory.call(this, saferEval, $, Li, parseObjectLiteral);
-    }.bind(this));
+module.exports = (function (factory, saferEval) {
+    return factory(
+        saferEval,
+        require('jquery'),
+        require('./lui.js'),
+        require('./util/js-object-literal-parse.js')
+    );
 }(function (saferEval, $, Li, parseObjectLiteral) {
     var util = {
         saferEval: saferEval,

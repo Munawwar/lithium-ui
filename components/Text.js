@@ -1,87 +1,85 @@
-define([
-    '../core/Component.js',
-    'jquery',
+var Li = require('../core/Component.js');
+var $ = require('jquery');
 
-    './Text.ko!tpl'
-], function (Li, $) {
+require('./Text.ko');
+
+/**
+ * Text field.
+ */
+Li.Text = Li.component('li-text', {
+    placeholder: Li.Observable(''),
+
     /**
-     * Text field.
+     * @override
      */
-    Li.Text = Li.component('li-text', {
-        placeholder: Li.Observable(''),
+    makeConfigFromView: function (target, cfg) {
+        cfg = this.super(arguments);
+        if (cfg.value === undefined) {
+            cfg.value = target.textContent || cfg.value; //if no text, set back to undefined
+        }
+        return cfg;
+    },
 
-        /**
-         * @override
-         */
-        makeConfigFromView: function (target, cfg) {
-            cfg = this.super(arguments);
-            if (cfg.value === undefined) {
-                cfg.value = target.textContent || cfg.value; //if no text, set back to undefined
+    getValue: function () {
+        return this.el.value;
+    },
+    setValue: function (value) {
+        this.el.value = value;
+    },
+    clear: function () {
+        this.el.value = '';
+    }
+});
+
+/*
+    * Code from Materialize CSS
+    */
+// Function to update labels of text fields
+(function () {
+    Li.Text.update = function (rootEl) {
+        var input_selector = 'input[type=text], input[type=password], input[type=email], input[type=url], input[type=tel], input[type=number], input[type=search], textarea';
+        $(input_selector, rootEl).each(function(index, element) {
+            if ($(element).val().length > 0 || $(this).attr('placeholder') !== undefined) {
+                $(this).siblings('label').addClass('active');
+            } else {
+                $(this).siblings('label, i').removeClass('active');
             }
-            return cfg;
-        },
+        });
+    };
 
-        getValue: function () {
-            return this.el.value;
-        },
-        setValue: function (value) {
-            this.el.value = value;
-        },
-        clear: function () {
-            this.el.value = '';
+    // Text based inputs
+    var input_selector = 'input[type=text], input[type=password], input[type=email], input[type=url], input[type=tel], input[type=number], input[type=search], textarea';
+
+    // Handle HTML5 autofocus
+    $('input[autofocus]').siblings('label, i').addClass('active');
+
+    // Add active if form auto complete
+    $(document).on('change', input_selector, function () {
+        if($(this).val().length !== 0 || $(this).attr('placeholder') !== undefined) {
+            $(this).siblings('label').addClass('active');
         }
     });
 
-    /*
-     * Code from Materialize CSS
-     */
-    // Function to update labels of text fields
-    (function () {
-        Li.Text.update = function (rootEl) {
-            var input_selector = 'input[type=text], input[type=password], input[type=email], input[type=url], input[type=tel], input[type=number], input[type=search], textarea';
-            $(input_selector, rootEl).each(function(index, element) {
-                if ($(element).val().length > 0 || $(this).attr('placeholder') !== undefined) {
-                    $(this).siblings('label').addClass('active');
-                } else {
-                    $(this).siblings('label, i').removeClass('active');
-                }
-            });
-        };
+    // Add active if input element has been pre-populated on document ready
+    $(document).ready(function() {
+        Li.Text.update();
+    });
 
-        // Text based inputs
-        var input_selector = 'input[type=text], input[type=password], input[type=email], input[type=url], input[type=tel], input[type=number], input[type=search], textarea';
+    // Add active when element has focus
+    $(document).on('focus', input_selector, function () {
+        $(this).siblings('label, i').addClass('active');
+    });
 
-        // Handle HTML5 autofocus
-        $('input[autofocus]').siblings('label, i').addClass('active');
+    $(document).on('blur', input_selector, function () {
+        var $inputElement = $(this);
+        if ($inputElement.val().length === 0 && $inputElement.attr('placeholder') === undefined) {
+            $inputElement.siblings('label, i').removeClass('active');
+        }
 
-        // Add active if form auto complete
-        $(document).on('change', input_selector, function () {
-            if($(this).val().length !== 0 || $(this).attr('placeholder') !== undefined) {
-                $(this).siblings('label').addClass('active');
-            }
-        });
+        if ($inputElement.val().length === 0 && $inputElement.attr('placeholder') !== undefined) {
+            $inputElement.siblings('i').removeClass('active');
+        }
+    });
+}());
 
-        // Add active if input element has been pre-populated on document ready
-        $(document).ready(function() {
-            Li.Text.update();
-        });
-
-        // Add active when element has focus
-        $(document).on('focus', input_selector, function () {
-            $(this).siblings('label, i').addClass('active');
-        });
-
-        $(document).on('blur', input_selector, function () {
-            var $inputElement = $(this);
-            if ($inputElement.val().length === 0 && $inputElement.attr('placeholder') === undefined) {
-                $inputElement.siblings('label, i').removeClass('active');
-            }
-
-            if ($inputElement.val().length === 0 && $inputElement.attr('placeholder') !== undefined) {
-                $inputElement.siblings('i').removeClass('active');
-            }
-        });
-    }());
-
-    return Li;
-});
+module.exports = Li;

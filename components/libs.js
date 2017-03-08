@@ -1,13 +1,12 @@
-define([
-    'jquery',
-    './lib/jquery.easing.js',
-    './lib/jquery.hammer.js',
-    './lib/velocity.min.js',
+var $ = require('jquery');
 
-    './lib/materialize/css/materialize.css!css'
-], function ($) {
-    //Helpers
-    $.fn.reverse = [].reverse;
+require('./lib/jquery.easing.js');
+require('./lib/jquery.hammer.js');
+require('./lib/velocity.min.js');
 
-    return $;
-})
+require('./lib/materialize/css/materialize.css');
+
+//Helpers
+$.fn.reverse = [].reverse;
+
+module.exports = $;

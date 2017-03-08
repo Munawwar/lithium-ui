@@ -1,28 +1,45 @@
+/*var Module = require('module');
+var originalRequire = Module.prototype.require;
+Module.prototype.require = function (path) {
+    if ((/\.(ko|css)$/i).test(path)) {
+        return console.log(path);
+    }
+    return originalRequire.apply(this, arguments);
+};
+*/
+
+var nodePath = require('path');
+global.rootRequire = function rootRequire(path) {
+    return require(nodePath.resolve('./', path));
+};
+
 var jsdom = require('jsdom').jsdom,
     path = require('path');
-GLOBAL.document = jsdom('', {
+
+global.document = jsdom('', {
     url: 'file://' + __dirname + path.sep + 'index.html',
     features: {
         FetchExternalResources : false,
         ProcessExternalResources: false
     }
 });
-GLOBAL.window = document.defaultView;
+global.window = document.defaultView;
 
-GLOBAL.jQuery = GLOBAL.$ = require('jquery');
-GLOBAL.navigator = window.navigator;
-GLOBAL.location = window.location;
-GLOBAL.XMLHttpRequest = window.XMLHttpRequest;
+global.jQuery = global.$ = require('jquery');
+global.navigator = window.navigator;
+global.location = window.location;
+global.XMLHttpRequest = window.XMLHttpRequest;
 
-require('./systemjs-emulator');
-System.config({
+
+// require('./systemjs-emulator');
+
+global.System = require('./system.src.js');
+global.System.config({
     baseURL: '../',
     paths: {
         'jquery': 'node_modules/jquery/dist/jquery.js', //unwrap the package.json path for dumb systemjs emulator.
-        /*Plugins*/
-        'tpl': 'test/requirejs-tpl.js',
-        'css': 'test/require-css-dummy.js'
+        // Plugins
+        'tpl': 'test/systemjs-tpl.js',
+        'css': 'test/systemjs-css.js'
     }
 });
-
-

@@ -4,15 +4,7 @@
  */
 
 /*global jQuery, HTMLElement*/
-(function (root, factory) {
-    if (typeof define === "function" && define.amd) {
-        define([''], factory);
-    } else if (typeof exports === 'object') { //For NodeJS
-        module.exports = factory();
-    } else { //global
-        factory();
-    }
-}(this, function () {
+(function () {
     /*Polyfill Object.assign*/
     if (!Object.assign) { // IE 11
         Object.assign = function (target) {
@@ -100,6 +92,4 @@
             };
         }
     }
-
-    return null;
-}));
+}());

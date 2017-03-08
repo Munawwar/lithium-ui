@@ -1,109 +1,145 @@
-/*global describe, it*/
+/*global System, describe, it, jQuery*/
 
 var assert = require("assert"),
     fs = require('fs'),
     path = require('path');
 
-define(['core/View.js'], function (Li) {
-    var Htmlizer = Li.Template;
+var Li;
 
-    describe('Template: Test text and attr binding', function () {
+before(function () {
+    return System.import('core/View.js')
+        .then(function (LiRef) {
+            Li = LiRef;
+        });
+});
+
+describe('Template: Test text and attr binding', function () {
+    var df;
+    before(function () {
         var html = fetch('text-and-attr-binding-tpl.html'),
-            outputHtml = (new Htmlizer(html)).toString({
+            outputHtml = (new Li.Template(html)).toString({
                 btnText: 'Click here',
                 titleText: 'abc " def',
                 cls: 'btn btn-default' //bootstrap 3 button css class
-            }),
-            df = htmlToDocumentFragment(outputHtml);
-        it('it should have text = "Click here"', function () {
-            assert.equal('Click here', df.firstChild.textContent.trim());
-        });
-        it('it should also have class = "btn btn-default"', function () {
-            assert.equal('btn btn-default', df.firstChild.className.trim());
-        });
-        it('it should also have title = "abc &quot; def"', function () {
-            assert.equal('abc " def', df.firstChild.getAttribute('title'));
-        });
+            });
+        df = htmlToDocumentFragment(outputHtml);
     });
 
-    describe('Template: Test container-less text binding', function () {
+    it('it should have text = "Click here"', function () {
+        assert.equal('Click here', df.firstChild.textContent.trim());
+    });
+    it('it should also have class = "btn btn-default"', function () {
+        assert.equal('btn btn-default', df.firstChild.className.trim());
+    });
+    it('it should also have title = "abc &quot; def"', function () {
+        assert.equal('abc " def', df.firstChild.getAttribute('title'));
+    });
+});
+
+describe('Template: Test container-less text binding', function () {
+    var df;
+    before(function () {
         var html = fetch('text-comment-tpl.html'),
-            outputHtml = (new Htmlizer(html)).toString({
+            outputHtml = (new Li.Template(html)).toString({
                 btnText: 'Click here'
-            }),
-            df = htmlToDocumentFragment(outputHtml);
-        it('button element should have 3 child nodes', function () {
-            assert.equal(3, df.firstChild.childNodes.length);
-        });
-        it('and it should be a text node with text = "Click here"', function () {
-            assert.equal('Click here', df.firstChild.textContent.trim());
-        });
+            });
+        df = htmlToDocumentFragment(outputHtml);
     });
 
-    describe('Template: Test html binding', function () {
+    it('button element should have 3 child nodes', function () {
+        assert.equal(3, df.firstChild.childNodes.length);
+    });
+    it('and it should be a text node with text = "Click here"', function () {
+        assert.equal('Click here', df.firstChild.textContent.trim());
+    });
+});
+
+describe('Template: Test html binding', function () {
+    var df;
+    before(function () {
         var html = fetch('html-binding-tpl.html'),
-            outputHtml = (new Htmlizer(html)).toString({
+            outputHtml = (new Li.Template(html)).toString({
                 message: '<b>This</b> is a <b>serious message</b>.'
-            }),
-            df = htmlToDocumentFragment(outputHtml);
-        it('it should have 3 HTMLElements', function () {
-            assert.equal(3, countElements(df));
-        });
+            });
+        df = htmlToDocumentFragment(outputHtml);
     });
 
-    describe('Template: Test inline "if" binding', function () {
+    it('it should have 3 HTMLElements', function () {
+        assert.equal(3, countElements(df));
+    });
+});
+
+describe('Template: Test inline "if" binding', function () {
+    var df;
+    before(function () {
         var html = fetch('if-inline-tpl.html'),
-            outputHtml = (new Htmlizer(html)).toString({
+            outputHtml = (new Li.Template(html)).toString({
                 btnText: 'Howdy!',
                 cls: 'btn btn-default' //bootstrap 3 button css class
-            }),
-            df = htmlToDocumentFragment(outputHtml);
-        it('it should have 2 HTMLElements', function () {
-            assert.equal(2, countElements(df));
-        });
+            });
+        df = htmlToDocumentFragment(outputHtml);
     });
 
-    describe('Template: Test container-less nested "if" binding', function () {
+    it('it should have 2 HTMLElements', function () {
+        assert.equal(2, countElements(df));
+    });
+});
+
+describe('Template: Test container-less nested "if" binding', function () {
+    var df;
+    before(function () {
         var html = fetch('if-comment-tpl.html'),
-            outputHtml = (new Htmlizer(html)).toString({
+            outputHtml = (new Li.Template(html)).toString({
                 btnText: 'Howdy!',
                 cls: 'btn btn-default' //bootstrap 3 button css class
-            }),
-            df = htmlToDocumentFragment(outputHtml);
-        it('it should have 3 HTMLElements', function () {
-            assert.equal(3, countElements(df));
-        });
-        it('button element should have text in it', function () {
-            assert.equal('Howdy!', df.querySelector('.btn').firstChild.nodeValue);
-        });
+            });
+        df = htmlToDocumentFragment(outputHtml);
     });
 
-    describe('Template: Test mixed "if" binding', function () {
+    it('it should have 3 HTMLElements', function () {
+        assert.equal(3, countElements(df));
+    });
+    it('button element should have text in it', function () {
+        assert.equal('Howdy!', df.querySelector('.btn').firstChild.nodeValue);
+    });
+});
+
+describe('Template: Test mixed "if" binding', function () {
+    var df;
+    before(function () {
         var html = fetch('if-mixed-tpl.html'),
-            outputHtml = (new Htmlizer(html)).toString({
+            outputHtml = (new Li.Template(html)).toString({
                 btnText: 'Howdy!',
                 cls: 'btn btn-default' //bootstrap 3 button css class
-            }),
-            df = htmlToDocumentFragment(outputHtml);
-        it('it should have 1 HTMLElement', function () {
-            assert.equal(1, countElements(df));
-        });
+            });
+        df = htmlToDocumentFragment(outputHtml);
     });
 
-    describe('Template: Test inline "foreach" binding', function () {
+    it('it should have 1 HTMLElement', function () {
+        assert.equal(1, countElements(df));
+    });
+});
+
+describe('Template: Test inline "foreach" binding', function () {
+    var df;
+    before(function () {
         var html = fetch('foreach-inline-tpl.html'),
-            outputHtml = (new Htmlizer(html)).toString({
+            outputHtml = (new Li.Template(html)).toString({
                 items: ['item1', 'item2', 'item3']
-            }),
-            df = htmlToDocumentFragment(outputHtml);
-        it('it should have 4 HTMLElements', function () {
-            assert.equal(4, countElements(df));
-        });
+            });
+        df = htmlToDocumentFragment(outputHtml);
     });
 
-    describe('Template: Test container-less "foreach" binding', function () {
+    it('it should have 4 HTMLElements', function () {
+        assert.equal(4, countElements(df));
+    });
+});
+
+describe('Template: Test container-less "foreach" binding', function () {
+    var df;
+    before(function () {
         var html = fetch('foreach-comment-tpl.html'),
-            outputHtml = (new Htmlizer(html)).toString({
+            outputHtml = (new Li.Template(html)).toString({
                 items: [{
                     name: 'item1',
                     subItems: [{
@@ -116,138 +152,154 @@ define(['core/View.js'], function (Li) {
                 }, {
                     name: 'item3'
                 }]
-            }),
-            df = htmlToDocumentFragment(outputHtml);
-        it('it should have 6 HTMLElements', function () {
-            assert.equal(6, countElements(df));
-        });
+            });
+        df = htmlToDocumentFragment(outputHtml);
     });
 
-    describe('Template: Test css and style binding', function () {
+    it('it should have 6 HTMLElements', function () {
+        assert.equal(6, countElements(df));
+    });
+});
+
+describe('Template: Test css and style binding', function () {
+    var df;
+    before(function () {
         var html = fetch('css-and-style-binding-tpl.html'),
-            outputHtml = (new Htmlizer(html)).toString({
+            outputHtml = (new Li.Template(html)).toString({
                 isWarning: true,
                 bold: false
-            }),
-            df = htmlToDocumentFragment(outputHtml);
-        it('it should have class="warning"', function () {
-            assert.equal('warning', df.firstChild.className.trim());
-        });
-        it('it should have style="font-weight: normal"', function () {
-            assert.equal('normal', df.firstChild.style.fontWeight);
-        });
+            });
+        df = htmlToDocumentFragment(outputHtml);
     });
 
-    describe('Template: Test binding contexts', function () {
+    it('it should have class="warning"', function () {
+        assert.equal('warning', df.firstChild.className.trim());
+    });
+    it('it should have style="font-weight: normal"', function () {
+        assert.equal('normal', df.firstChild.style.fontWeight);
+    });
+});
+
+describe('Template: Test binding contexts', function () {
+    var df, children;
+    before(function () {
         var html = fetch('binding-context-tpl.html'),
-            outputHtml = (new Htmlizer(html)).toString({
+            outputHtml = (new Li.Template(html)).toString({
                 items: [{
                     name: 'item1',
                     subItems: [{
                         name: 'subitem1'
                     }]
                 }]
-            }),
-            df = htmlToDocumentFragment(outputHtml);
+            });
+        df = htmlToDocumentFragment(outputHtml);
+        children = df.firstElementChild.children;
+    });
 
-        var count = 0;
-        traverse(df, df, function (node, isOpenTag) {
-            if (isOpenTag && node.nodeType === 1 && node.nodeName === 'SPAN') {
-                count += 1;
-                if (count === 1) {
-                    it('span 1 text should be "SPAN"', function () {
-                        assert.equal('SPAN', node.textContent);
-                    });
-                }
-                if (count >= 2 && count <= 3) {
-                    it('span ' + count + ' text should be "item1"', function () {
-                        assert.equal('item1', node.textContent);
-                    });
-                }
-                if (count === 4) {
-                    it('span 4 text should be "0"', function () {
-                        assert.equal('0', node.textContent);
-                    });
-                }
-                if (count >= 5 && count <= 6) {
-                    it('span ' + count + ' text should be "subitem1"', function () {
-                        assert.equal('subitem1', node.textContent);
-                    });
-                }
-                if (count === 7) {
-                    it('span 6 text should be "true"', function () {
-                        assert.equal('true', node.textContent);
-                    });
-                }
-            }
+    it('span 1 text should be "SPAN"', function () {
+        assert.equal('SPAN', children[0].textContent);
+    });
+
+    ([2, 3]).forEach(function (count) {
+        it('span ' + count + ' text should be "item1"', function () {
+            assert.equal('item1', children[count - 1].textContent);
         });
     });
 
-    describe('Template: Test "ifnot" binding', function () {
+    it('span 4 text should be "0"', function () {
+        assert.equal('0', children[3].textContent);
+    });
+
+    ([5, 6]).forEach(function (count) {
+        it('span ' + count + ' text should be "subitem1"', function () {
+            assert.equal('subitem1', children[count - 1].textContent);
+        });
+    });
+
+    it('span 7 text should be "true"', function () {
+        assert.equal('true', children[6].textContent);
+    });
+});
+
+describe('Template: Test "ifnot" binding', function () {
+    var df;
+    before(function () {
         var html = fetch('ifnot-tpl.html'),
-            outputHtml = (new Htmlizer(html)).toString({
+            outputHtml = (new Li.Template(html)).toString({
                 btnText: 'Howdy!',
                 cls: 'btn btn-default' //bootstrap 3 button css class
-            }),
-            df = htmlToDocumentFragment(outputHtml);
-        it('it should have 1 HTMLElements', function () {
-            assert.equal(1, countElements(df));
-        });
+            });
+        df = htmlToDocumentFragment(outputHtml);
     });
 
-    describe('Template: Test inline "with" binding', function () {
+    it('it should have 1 HTMLElements', function () {
+        assert.equal(1, countElements(df));
+    });
+});
+
+describe('Template: Test inline "with" binding', function () {
+    var df, count = 0;
+    before(function () {
         var html = fetch('with-inline-tpl.html'),
-            outputHtml = (new Htmlizer(html)).toString({
+            outputHtml = (new Li.Template(html)).toString({
                 obj: {
                     val: 10
                 }
-            }),
-            df = htmlToDocumentFragment(outputHtml);
-        var count = 0;
+            });
+        df = htmlToDocumentFragment(outputHtml);
+
         traverse(df, df, function (node, isOpenTag) {
             if (isOpenTag && node.nodeType === 1 && node.nodeName === 'SPAN' &&
                 node.textContent === "10") {
                 count += 1;
             }
         });
-        it('it should have 4 SPANs with "10" as text content', function () {
-            assert.equal(4, count);
-        });
     });
 
-    describe('Template: Test container-less "with" binding', function () {
+    it('it should have 4 SPANs with "10" as text content', function () {
+        assert.equal(4, count);
+    });
+});
+
+describe('Template: Test container-less "with" binding', function () {
+    var df, count = 0;
+    before(function () {
         var html = fetch('with-comment-tpl.html'),
-            outputHtml = (new Htmlizer(html)).toString({
+            outputHtml = (new Li.Template(html)).toString({
                 obj: {
                     val: 10
                 }
-            }),
-            df = htmlToDocumentFragment(outputHtml);
-        var count = 0;
+            });
+        df = htmlToDocumentFragment(outputHtml);
+
         traverse(df, df, function (node, isOpenTag) {
             if (isOpenTag && node.nodeType === 1 && node.nodeName === 'SPAN' &&
                 node.textContent === "10") {
                 count += 1;
             }
         });
-        it('it should have 4 SPANs with "10" as text content', function () {
-            assert.equal(4, count);
-        });
     });
 
-    describe('Template: Test no conflict option', function () {
+    it('it should have 4 SPANs with "10" as text content', function () {
+        assert.equal(4, count);
+    });
+});
+
+describe('Template: Test no conflict option', function () {
+    var df;
+    var btnCount = 0, firstBtnHasNoDataHtmlizer = true, secondBtnHasDataBind = true;
+    before(function () {
         var html = fetch('noconflict-tpl.html'),
-            outputHtml = (new Htmlizer(html, {noConflict: true})).toString({
+            outputHtml = (new Li.Template(html, {noConflict: true})).toString({
                 btnText: 'Howdy!',
                 cls: 'btn btn-default' //bootstrap 3 button css class
-            }),
-            df = htmlToDocumentFragment(outputHtml);
+            });
+        df = htmlToDocumentFragment(outputHtml);
 
-        var btnCount = 0, firstBtnHasNoDataHtmlizer = true, secondBtnHasDataBind = true;
         traverse(df, df, function (node, isOpenTag) {
             if (isOpenTag && node.nodeType === 1 && node.nodeName === "BUTTON") {
                 btnCount += 1;
-                if (btnCount === 1 && node.getAttribute('data-htmlizer')) {
+                if (btnCount === 1 && node.getAttribute('data-Li.Template')) {
                     firstBtnHasNoDataHtmlizer = false;
                 }
                 if (btnCount === 2 && !node.getAttribute('data-bind')) {
@@ -255,21 +307,25 @@ define(['core/View.js'], function (Li) {
                 }
             }
         });
-
-        it('it should have 2 buttons', function () {
-            assert.equal(2, btnCount);
-        });
-        it('of which first button shouldn\'t have data-htmlizer attribute', function () {
-            assert.equal(true, firstBtnHasNoDataHtmlizer);
-        });
-        it('and second button should have data-bind attribute', function () {
-            assert.equal(true, secondBtnHasDataBind);
-        });
     });
 
-    describe('Template: Test no conflict with sub-template', function () {
+
+    it('it should have 2 buttons', function () {
+        assert.equal(2, btnCount);
+    });
+    it('of which first button shouldn\'t have data-Li.Template attribute', function () {
+        assert.equal(true, firstBtnHasNoDataHtmlizer);
+    });
+    it('and second button should have data-bind attribute', function () {
+        assert.equal(true, secondBtnHasDataBind);
+    });
+});
+
+describe('Template: Test no conflict with sub-template', function () {
+    var df;
+    before(function () {
         var html = fetch('noconflict-subtemplate-tpl.html'),
-            outputHtml = (new Htmlizer(html, {noConflict: true})).toString({
+            outputHtml = (new Li.Template(html, {noConflict: true})).toString({
                 items: [{
                     name: 'item1',
                     subItems: [{
@@ -282,31 +338,34 @@ define(['core/View.js'], function (Li) {
                 }, {
                     name: 'item3'
                 }]
-            }),
-            df = htmlToDocumentFragment(outputHtml);
-        it('it should have 6 HTMLElements', function () {
-            assert.equal(6, countElements(df));
-        });
+            });
+        df = htmlToDocumentFragment(outputHtml);
     });
 
-    describe('Template: Test template binding', function () {
+    it('it should have 6 HTMLElements', function () {
+        assert.equal(6, countElements(df));
+    });
+});
+
+describe('Template: Test template binding', function () {
+    var df;
+    before(function () {
         var html = fetch('template.html'),
             subtplhtml = fetch('files/subtemplate.html'),
-            outputHtml = (new Htmlizer(html)).toString({
+            outputHtml = (new Li.Template(html)).toString({
                 name: 'Franklin',
                 credits: 250,
-                subtpl: new Htmlizer(subtplhtml)
-            }),
-            df = htmlToDocumentFragment(outputHtml);
-        it('div should have h3 tag', function () {
-            assert.equal('H3', df.firstChild.childNodes[1].tagName);
-        });
-        it('h3 should have text as "Franklin"', function () {
-            assert.equal('Franklin', df.firstChild.childNodes[1].firstChild.nodeValue);
-        });
+                subtpl: new Li.Template(subtplhtml)
+            });
+        df = htmlToDocumentFragment(outputHtml);
     });
 
-    return '42';
+    it('div should have h3 tag', function () {
+        assert.equal('H3', df.firstChild.childNodes[1].tagName);
+    });
+    it('h3 should have text as "Franklin"', function () {
+        assert.equal('Franklin', df.firstChild.childNodes[1].firstChild.nodeValue);
+    });
 });
 
 /*Utility functions*/
