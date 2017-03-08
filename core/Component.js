@@ -5,7 +5,7 @@ require('./base/lithium.pubsub.js');
 require('./View.js');
 require('./Observable.js');
 
-require('./Component.ko!tpl');
+require('./Component.ko');
 /**
  * Base class for all components.
  */

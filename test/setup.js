@@ -37,9 +37,11 @@ global.System = require('./system.src.js');
 global.System.config({
     baseURL: '../',
     paths: {
-        'jquery': 'node_modules/jquery/dist/jquery.js', //unwrap the package.json path for dumb systemjs emulator.
+        'jquery': 'node_modules/jquery/dist/jquery.js' //unwrap the package.json path for dumb systemjs emulator.
+    },
+    meta: {
         // Plugins
-        'tpl': 'test/systemjs-tpl.js',
-        'css': 'test/systemjs-css.js'
+        '*.ko': { loader: 'test/systemjs-tpl.js' },
+        '*.css': { loader: 'test/systemjs-css.js' }
     }
 });
