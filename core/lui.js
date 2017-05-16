@@ -7,22 +7,25 @@ Object.assign(Li, {
     /**
      * Create and register a component type.
      *
-     * @param {String} [type] Unique name (including namespace) to be used for the new class. eg 'li-box'.
-     * This automatically also adds the 'type' as a string to prototype of class.
-     * All components by default can be used in HTML views using custom tags.
+     * @param {String} [customTag] custom tag for the component. It should have at least one hypen. eg 'li-box'.
+     * This automatically also adds a 'customTag' property as a string to prototype of class.
      * @param {Function} [baseClass=Li.Component] Optional parameter specifying the base class for component. By default it's Li.Component.
      * @param {Object} proto Prototype to use for creating the new class.
      */
-    component: function (type, baseClass, protoObj) {
+    component: function (customTag, baseClass, protoObj) {
         if (arguments.length < 3) {
             protoObj = baseClass;
             baseClass = Li.Component;
         }
 
-        protoObj.type = type;
-        var typeLowerCase = type.toLowerCase(),
-            classRef = Li.extend(baseClass, protoObj);
-        this.componentClasses[typeLowerCase] = classRef;
+        if (!(/[a-zA-Z]+\-[a-zA-Z0-9\-]+/).test(customTag)) {
+            throw new Error('Component custom tag should only contain english alphabetic characters and at least one hyphen');
+        }
+
+        customTag = customTag.toLowerCase();
+        protoObj.customTag = customTag;
+        var classRef = Li.extend(baseClass, protoObj);
+        this.componentClasses[customTag] = classRef;
 
         var proto = classRef.prototype,
             P = function () {};
@@ -53,8 +56,8 @@ Object.assign(Li, {
     /**
      * Get a class reference from list of registered classes.
      */
-    getClass: function (type) {
-        var classRef = this.componentClasses[type.toLowerCase()];
+    getClass: function (customTag) {
+        var classRef = this.componentClasses[customTag.toLowerCase()];
         if (!classRef) {
             throw new Error('Class does not exist');
         }

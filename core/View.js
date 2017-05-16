@@ -65,7 +65,6 @@ Li.View = Li.extend(Li.Publisher, {
                         }
                         cfg = ClassRef.prototype.makeConfigFromView(node, cfg);
                     }
-                    cfg.type = ClassRef.prototype.type;
                     cfg.parent = this.context.$root;
 
                     //Create instance from config
@@ -127,7 +126,7 @@ Li.View = Li.extend(Li.Publisher, {
                             tempFrag = view.toDocumentFragment();
                         node.parentNode.insertBefore(tempFrag, node.nextSibling);
                     } else {
-                        console.warn('Sub-template "' + expr.trim() + '" for component ' + this.context.$root.type + ' is undefined');
+                        console.warn('Sub-template "' + expr.trim() + '" for component ' + this.context.$root.customTag + ' is undefined');
                     }
                     node.parentNode.removeChild(node);
                     var block = util.findBlockFromStartNode(blocks, tNode);

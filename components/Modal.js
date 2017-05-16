@@ -39,7 +39,7 @@ Li.Modal = Li.component('li-modal', Li.Popover, {
         this.super(arguments);
 
         if (proto === Li.getClass('li-component').prototype || (proto instanceof Li.Component)) {
-            var prefix = proto.type.toLowerCase().replace(/\./, '-'),
+            var prefix = proto.customTag,
                 tpl = Li.findTemplate('id', prefix + '-header');
             tpl = Li.findTemplate('id', prefix + '-footer');
             if (tpl) {

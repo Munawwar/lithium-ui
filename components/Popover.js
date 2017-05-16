@@ -158,7 +158,7 @@ Li.Popover = Li.component('li-popover', {
          */
         singleton: function (cfg) {
             if (!cfg.type || cfg.type === 'li-popover' || cfg.type === 'li-modal') {
-                throw new Error('Window Type is needed. And it should be a derived class of Li.Popover or Li.Modal.');
+                throw new Error('config.type (window type) is needed. And it should be a derived class of Li.Popover or Li.Modal.');
             }
             var instance = Li.Popover.singletonCache[cfg.type];
             if (!instance) {

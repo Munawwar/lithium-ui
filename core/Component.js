@@ -50,7 +50,7 @@ Li.Component = Li.component('li-component', Li.Publisher, {
         //Note: When Li.Component is being created, it's afterExtend method is called before Li.Component is available in the Li namespace.
         //Therefore, use the Li.getClass() method.
         if (proto === Li.getClass('li-component').prototype || (proto instanceof Li.Component)) {
-            var prefix = proto.type.toLowerCase().replace(/\./g, '-');
+            var prefix = proto.customTag;
             tpl = Li.findTemplate('id', prefix + '-outer', true);
             if (tpl) { //not to override prototype, if template doesn't exist
                 proto.outerTpl = tpl;
@@ -108,11 +108,11 @@ Li.Component = Li.component('li-component', Li.Publisher, {
         this.outerTpl = this.outerTpl.cloneNode(true); //create clone so as to not modify prototype outerTpl
         cfg.addAttribute = cfg.addAttribute || {};
         cfg.addAttribute.id = this.id;
-        cfg.addAttribute['data-type'] = this.type;
+        cfg.addAttribute['data-type'] = this.customTag;
 
         var el = this.outerTpl.firstElementChild,
             cls = (Li.isString(cfg.cls) ? cfg.cls : el.getAttribute('class')) || '';
-        cfg.cls = (this.type.toLowerCase().replace(/\./g, '-') + ' ' + cls).trim();
+        cfg.cls = (this.customTag + ' ' + cls).trim();
 
         //Make own copy of observable from prototype.
         this._observables.forEach(function (prop) {

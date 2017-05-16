@@ -48,7 +48,7 @@ Li.Dropdown = Li.component('li-dropdown', Li.Popover, {
 
         var tpl;
         if (proto === Li.getClass('li-dropdown').prototype || (proto instanceof Li.Dropdown)) {
-            var prefix = proto.type.toLowerCase().replace(/\./g, '-');
+            var prefix = proto.customTag;
             tpl = Li.findTemplate('id', prefix + '-listitem');
             if (tpl) {
                 proto.listItemTpl = tpl;
