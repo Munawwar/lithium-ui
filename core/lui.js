@@ -2,7 +2,7 @@ var Li = require('./base/lithium.js');
 var $ = require('jquery');
 
 Object.assign(Li, {
-    version: '2.0.0',
+    version: '1.1.0',
 
     /**
      * Create and register a component type.
