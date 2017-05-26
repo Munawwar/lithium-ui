@@ -15,9 +15,9 @@ Out-of-the-box LUI gives:
 - ..including ability to write your own UI components and also inherit any component.
 - HTML view with data binding (using KnockoutJS inspired templating engine and observables).
 - All components can be used as custom elements in view markup by default.
-- AMD and SystemJS support.
+- SystemJS support.
 - [CSS3 flexbox helper classes](https://github.com/Munawwar/flex-helper) for faster, simpler layouting.
-- node.js testability (with jsdom and [systemjs-emulator](https://github.com/Munawwar/lithium-ui/blob/master/test/setup.js)).
+- node.js testability (with jsdom).
 - Several [ready-to-use components](https://github.com/Munawwar/lithium-ui/tree/master/components). Using them is optional of course.
 
 ### Why use Lithium UI?
@@ -44,25 +44,26 @@ Component (App/Form.js)
 /**
  * A Form window
  */
-define(['lui/core/Box', 'tpl!./myform.ko'], function (Li) {
-    return Li.extend('app.form', Li.Box, {
-        name: Li.Observable(''), //An observable..like KnockoutJS
+var Li = require('lui/core/Box');
+require('./myform.ko');
 
-        constructor: function (config) {
-            this.super(arguments);
+module.exports = Li.component('app-form', {
+    name: Li.Observable(''), //An observable..like KnockoutJS
 
-            this.on({
-              "submitBtn": { //listen to events on button
-                  click: function () {
-                      //Update observable
-                      this.name($('.namefield', this.el)[0].value);
-                      console.log('Data submitted: ' + this.name());
-                      this.submitBtn.disable();
-                  }
+    constructor: function (config) {
+        this.super(arguments);
+
+        this.on({
+          "submitBtn": { //listen to events on button
+              click: function () {
+                  //Update observable
+                  this.name($('.namefield', this.el)[0].value);
+                  console.log('Data submitted: ' + this.name());
+                  this.submitBtn.disable();
               }
-            });
-        }
-    });
+          }
+        });
+    }
 });
 ```
 Use the component in another template now:
