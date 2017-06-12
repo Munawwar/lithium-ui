@@ -186,10 +186,6 @@ var Li = {
                 Li.mix(derivedC, statics);
             }
 
-            if (Li.Observable && derivedC.prototype instanceof Li.Observable) {
-                Li.inheritEvents(derivedC);
-            }
-
             return derivedC;
         };
     }()),

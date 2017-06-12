@@ -29,14 +29,11 @@ Li.Publisher = Li.extend(Object, {
         eventType = eventType.toLowerCase();
 
         this._eventMap_ = this._eventMap_ || {};
-        if ((!this._eventTypes_ || !this._eventTypes_[eventType]) && Li.warnings) {
-            console.warn(eventType + "? This event type has not been registered.");
-        }
-        if (!this._suspendEvents_ && this._eventMap_[eventType]) {
+        if (this._eventMap_[eventType]) {
             var subscribers = this._eventMap_[eventType];
-            //Slice subscriber list to handle unsubscription inside of a subscriber.
+            // Slice subscriber list to handle unsubscription inside of a subscriber.
             subscribers.list.slice().forEach(function (subscriber) {
-                //First check if this subscriber was removed inside of a previously called subscriber.
+                // First check if this subscriber was removed inside of a previously called subscriber.
                 if (!subscribers.map[getSubscriberHash(subscriber)]) {
                     return;
                 }
@@ -47,7 +44,6 @@ Li.Publisher = Li.extend(Object, {
 
     /**
      * Adds a listener.
-     * If no parameters are specified, then this would re-enable events that were switched off by publisher.unsubscribe();
      * @param {String|Object} object The event type that you want to listen to as string.
      * Or an object with event types and handlers as key-value pairs (with event type as the keys).
      * You can also subscribe for an event that has not yet been registered as an event. Hence the order of registeration is not a concern.
@@ -57,14 +53,15 @@ Li.Publisher = Li.extend(Object, {
      */
     subscribe: function (eventType, handler, scope) {
         if (!Li.isDefined(eventType)) {
-            this._suspendEvents_ = false;
-        } else if (Li.isObject(eventType)) {
+            return;
+        }
+        if (Li.isObject(eventType)) {
             Li.forEach(eventType, function (handler, type) {
                 this.subscribe(type, handler, scope);
             }, this);
         } else {
             this._eventMap_ = this._eventMap_ || {};
-            this._eventMap_[eventType] = this._eventMap_[eventType] || { list: [], map: [] };
+            this._eventMap_[eventType] = this._eventMap_[eventType] || { list: [], map: {} };
             var subscribers = this._eventMap_[eventType],
                 subscriber = {
                     fn: handler,
@@ -72,7 +69,7 @@ Li.Publisher = Li.extend(Object, {
                 },
                 hash = getSubscriberHash(subscriber);
 
-            // Do not subscribe is same function-scope combination was previously used to subscribe.
+            // Do not subscribe if same function-scope combination was previously used to subscribe.
             if (!subscribers.map[hash]) {
                 subscribers.list.push(subscriber);
                 subscribers.map[hash] = true;
@@ -88,21 +85,21 @@ Li.Publisher = Li.extend(Object, {
      * @method relayEvents
      */
     relayEvents: function (publisher, eventTypes) {
-        if (!publisher._eventTypes_) {
+        if (!(publisher instanceof Li.Publisher)) {
             throw new Error('Object passed is not a publisher');
         }
-        eventTypes = eventTypes || Object.keys(publisher._eventTypes_);
         var relay = function relayFunction(e, cfg) {
             this.trigger(e.type, cfg);
         }.bind(this);
-        for (var i = 0, len = eventTypes.length; i < len; i += 1) {
-            publisher.subscribe(eventTypes[i], relay);
-        }
+        eventTypes.forEach(function (eventType) {
+            publisher.subscribe(eventType, relay);
+        }, this);
     },
 
     /**
-     * Remove an event listener.
+     * Remove an event listener or all event listener for an event type.
      * If no parameters are specified, then all events are switched off till you call publisher.subscribe().
+     * @param {String} eventType Event type
      * @param {Function} handler Send in the same function that was used with the subscribe() method.
      * @param {Object} [scope] Send in the same context object that was used with the subscribe() method.
      * @return {Boolean} Returns true if listener was successfully removed.
@@ -110,7 +107,6 @@ Li.Publisher = Li.extend(Object, {
      */
     unsubscribe: function (eventType, handler, scope) {
         if (!Li.isDefined(eventType)) {
-            this._suspendEvents_ = true;
             return;
         }
         eventType = eventType.toLowerCase();
@@ -119,13 +115,22 @@ Li.Publisher = Li.extend(Object, {
         if (this._eventMap_) {
             var subscribers = this._eventMap_[eventType];
             if (subscribers) {
-                found = subscribers.list.some(function (subscriber, i) {
-                    if (subscriber.fn === handler && subscriber.scope === scope) {
-                        subscribers.list.splice(i, 1);
-                        delete subscribers.map[getSubscriberHash(subscriber)];
-                        return true;
-                    }
-                });
+                // If caller intentionally only supplied single argument,
+                // then unsubscrube all listeners for event type.
+                if (arguments.length === 1) {
+                    found = (subscribers.list > 0);
+                    this._eventMap_[eventType] = { list: [], map: {} };
+                // else unsubscribe only for the given function and scope.
+                } else {
+                    found = subscribers.list.some(function (subscriber, i) {
+                        if (subscriber.fn === handler && (!scope ||
+                            subscriber.scope === scope)) {
+                            subscribers.list.splice(i, 1);
+                            delete subscribers.map[getSubscriberHash(subscriber)];
+                            return true;
+                        }
+                    });
+                }
             }
         }
         return found;
@@ -144,24 +149,6 @@ function getSubscriberHash(subscriber) {
  */
 Li.PublisherEvent = function PublisherEvent(cfg) {
     Object.assign(this, cfg);
-};
-
-/**
- * Given a class, it inherits event types from base class.
- * @private
- */
-Li.inheritEvents = function (func) {
-    //No need to do anything if class hasn't added any new event types.
-    var proto = func.prototype;
-    if (proto.eventTypes) {
-        var eventTypes = proto.eventTypes || [],
-            types = proto._eventTypes_; //This should recursively go up prototype
-                                                //chain and find the first _eventTypes_
-        proto._eventTypes_ = Object.assign({}, types);
-        eventTypes.forEach(function (eventType) {
-            proto._eventTypes_[eventType.toLowerCase()] = true;
-        });
-    }
 };
 
 module.exports = Li;
