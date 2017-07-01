@@ -68,7 +68,7 @@ Li.Modal = Li.component('li-modal', Li.Popover, {
     hide: function () {
         this.super(arguments);
 
-        //Hide overlay only after the last Modal has been closed.
+        // Hide overlay only after the last Modal has been closed.
         var $overlay = Li.Modal.overlay,
             stack = Li.Popover.stack,
             hasModal = stack.some(function (info) {
@@ -81,14 +81,12 @@ Li.Modal = Li.component('li-modal', Li.Popover, {
 
     statics: {
         /**
-         * Properties to manage z-index
-         */
-        stack: [],
-
-        /**
          * Overlay element
          */
-        overlay: $('<div class="lean-overlay"></div>')
+        overlay: $('<div class="lean-overlay"></div>'),
+
+        // Alias to Li.Popover.Singleton
+        singleton: Li.Popover.singleton
     }
 });
 
