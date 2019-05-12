@@ -3,13 +3,15 @@
 var Li = require('../core/Component.js');
 var $ = require('./libs.js');
 
+var innerTpl = require('./Alert-inner.ko');
 require('./Alert.css');
-require('./Alert.ko');
 
 /**
  * Alert.
  */
 Li.Alert = Li.component('li-alert', {
+    innerTpl: innerTpl,
+
     html: 'Alert!',
     alertType: 'warning',
     cls: 'alert-stick-top',

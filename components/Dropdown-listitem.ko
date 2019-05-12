@@ -1,0 +1,1 @@
+<span data-bind="text: $data.text, attr: { class: $data.cls }"></span>

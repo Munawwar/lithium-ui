@@ -2,13 +2,15 @@
 var Li = require('../core/Box.js');
 var $ = require('./libs.js');
 
-require('./CollapsableBox.ko');
+var outerTpl = require('./CollapsableBox-outer.ko');
 require('./CollapsableBox.css');
 
 /**
  * Class for Font selection dropdown.
  */
 Li.CollapsableBox = Li.component('li-collapsablebox', {
+    outerTpl: outerTpl,
+
     /**
      * Collapse button text
      */

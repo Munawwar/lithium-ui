@@ -1,0 +1,4 @@
+<span class="fa fa-exclamation-circle icon"></span>
+<button type="button" class="close" aria-hidden="true">&times;</button>
+<span class="text" data-bind="html: html"></span>
+

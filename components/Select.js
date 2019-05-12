@@ -2,7 +2,8 @@ var Li = require('../core/Component.js');
 var $ = require('jquery');
 
 require('./Dropdown.js');
-require('./Select.ko');
+
+var outerTpl = require('./Select-outer.ko');
 require('./Select.css');
 
 /**
@@ -16,6 +17,8 @@ require('./Select.css');
     ```
     */
 Li.Select = Li.component('li-select', {
+    outerTpl: outerTpl,
+    
     /**
      * Disabled when true.
      */

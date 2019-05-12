@@ -1,0 +1,1 @@
+<input type="text" data-bind="attr: {value: value, placeholder: placeholder}" />

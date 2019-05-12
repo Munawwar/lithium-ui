@@ -5,12 +5,14 @@
 var $ = require('jquery');
 var Li = require('../core/Box.js');
 
-require('./Popover.ko');
+var outerTpl = require('./Popover-outer.ko');
 
 /**
  * Base class for Window.
  */
 Li.Popover = Li.component('li-popover', {
+    outerTpl: outerTpl,
+    
     /**
      * Configure whether popover can be closed by user or not.
      */

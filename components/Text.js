@@ -1,12 +1,14 @@
 var Li = require('../core/Component.js');
 var $ = require('jquery');
 
-require('./Text.ko');
+var outerTpl = require('./Text-outer.ko');
 
 /**
  * Text field.
  */
 Li.Text = Li.component('li-text', {
+    outerTpl: outerTpl,
+    
     placeholder: Li.Observable(''),
 
     /**

@@ -1,3 +1,0 @@
-<script type="text/html" id="li-text-outer">
-    <input type="text" data-bind="attr: {value: value, placeholder: placeholder}" />
-</script>

@@ -5,7 +5,8 @@ require('./base/lithium.pubsub.js');
 require('./View.js');
 require('./Observable.js');
 
-require('./Component.ko');
+var outerTpl = require('./Component.ko');
+
 /**
  * Base class for all components.
  */
@@ -17,24 +18,15 @@ Li.Component = Li.component('li-component', Li.Publisher, {
     el: null,
     /**
      * Outer render template
-     * @type {Li.Template|undefined}
-     * if undefined, then script tag in document with id="component-type-outer" is searched.
-     *
-     * If instance of Li.Template, then that is used directly.
-     * Use Li.findTemplate() to find and load a template (in a script tag) using attribute and type.
+     * @type {DocumentFragment|undefined}
      */
-    outerTpl: undefined,
+    outerTpl: outerTpl,
     /**
      * Inner render template
-     * @type {Li.Template|DocumentFragment|undefined}
-     * if undefined, then script tag in document with id="component-type-inner" is searched.
-     *
-     * If instance of Li.Template, then that is used directly.
-     * Use Li.findTemplate() to find and load a template (in a script tag) using attribute and type.
-     *
+     * @type {Li.Template|undefined}
      * If null, then no template. Some components don't have different "inner" and "outer", (eg component with a single void tag like <input>).
      */
-    innerTpl: new Li.Template(' '), //dummy innerTpl
+    innerTpl: ' ', //dummy innerTpl
 
     /**
      * Called from within Li.component(). Called exactly once for a class.
@@ -50,14 +42,11 @@ Li.Component = Li.component('li-component', Li.Publisher, {
         //Note: When Li.Component is being created, it's afterExtend method is called before Li.Component is available in the Li namespace.
         //Therefore, use the Li.getClass() method.
         if (proto === Li.getClass('li-component').prototype || (proto instanceof Li.Component)) {
-            var prefix = proto.customTag;
-            tpl = Li.findTemplate('id', prefix + '-outer', true);
-            if (tpl) { //not to override prototype, if template doesn't exist
-                proto.outerTpl = tpl;
+            if (typeof proto.outerTpl === 'string') {
+                proto.outerTpl = Li.dom(proto.outerTpl);
             }
-            tpl = Li.findTemplate('id', prefix + '-inner', false);
-            if (tpl) {
-                proto.innerTpl = tpl;
+            if (typeof proto.innerTpl === 'string') {
+                proto.innerTpl = new Li.Template(proto.innerTpl);
             }
         }
     },
@@ -92,7 +81,7 @@ Li.Component = Li.component('li-component', Li.Publisher, {
         $.extend(cfg, {
             innerTpl: element.innerHTML.trim() || undefined
         });
-        if (cfg.innerTpl) {
+        if (typeof cfg.innerTpl === 'string') {
             cfg.innerTpl = new Li.Template(cfg.innerTpl);
         }
         return cfg;
@@ -105,7 +94,8 @@ Li.Component = Li.component('li-component', Li.Publisher, {
         this.id = 'cmp-' + Li.Component.getNewId();
 
         //Add attributes
-        this.outerTpl = this.outerTpl.cloneNode(true); //create clone so as to not modify prototype outerTpl
+        //create clone so as to not modify prototype outerTpl
+        this.outerTpl = this.outerTpl.cloneNode(true);
         cfg.addAttribute = cfg.addAttribute || {};
         cfg.addAttribute.id = this.id;
         cfg.addAttribute['data-type'] = this.customTag;
@@ -136,6 +126,9 @@ Li.Component = Li.component('li-component', Li.Publisher, {
      * @protected
      */
     initializeView: function () {
+        if (typeof this.innerTpl === 'string') {
+            this.innerTpl = new Li.Template(this.innerTpl);
+        }
         var tpl = new Li.Template(this.outerTpl);
         this.view = new Li.View(tpl, this);
         this.el = this.view.fragment.firstElementChild;

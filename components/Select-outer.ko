@@ -1,0 +1,9 @@
+<button class="select-wrapper btn-flat mimick-textfield" role="combobox" aria-autocomplete="list" aria-expanded="false"
+    data-bind="attr: {
+            aria-owns: dropdown.id,
+            aria-activedescendant: dropdown.id + '-item-' + getIndexOfValue(getValue()),
+            disabled: disabled() ? 'disabled' : null
+        },
+        css: {disabled: disabled}">
+    <span class="text" data-bind="text: getTextForValue(getValue())"></span><span class="caret">▼</span>
+</button>

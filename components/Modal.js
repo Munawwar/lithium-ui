@@ -1,13 +1,15 @@
 var $ = require('jquery');
 var Li = require('./Popover.js');
 
-require('./Modal.ko');
+var outerTpl = require('./Modal-outer.ko');
 require('./Modal.css');
 
 /**
  * Base class for Window.
  */
 Li.Modal = Li.component('li-modal', Li.Popover, {
+    outerTpl: outerTpl,
+    
     /**
      * Footer template
      * @type {Li.Template|DocumentFragment}
@@ -22,14 +24,14 @@ Li.Modal = Li.component('li-modal', Li.Popover, {
             footerEl = element.querySelector('li-footer');
 
         $.extend(cfg, {
-            innerTpl: innerTpl ? innerTpl.innerHTML.trim() : undefined,
-            footerTpl: footerEl ? footerEl.innerHTML.trim() : undefined
+            innerTpl: innerTpl ? (innerTpl.innerHTML.trim() || undefined) : undefined,
+            footerTpl: footerEl ? (footerEl.innerHTML.trim() || undefined) : undefined
         });
-        if (cfg.innerTpl) {
+        if (typeof cfg.innerTpl === 'string') {
             cfg.innerTpl = new Li.Template(cfg.innerTpl);
         }
-        if (cfg.footerEl) {
-            cfg.footerTpl = new Li.Template(cfg.footerEl);
+        if (typeof cfg.footerTpl === 'string') {
+            cfg.footerTpl = new Li.Template(cfg.footerTpl);
         }
 
         return cfg;
@@ -38,14 +40,18 @@ Li.Modal = Li.component('li-modal', Li.Popover, {
     afterExtend: function (proto) {
         this.super(arguments);
 
-        if (proto === Li.getClass('li-component').prototype || (proto instanceof Li.Component)) {
-            var prefix = proto.customTag,
-                tpl = Li.findTemplate('id', prefix + '-header');
-            tpl = Li.findTemplate('id', prefix + '-footer');
-            if (tpl) {
-                proto.footerTpl = tpl;
+        if (proto === Li.getClass('li-modal').prototype || (proto instanceof Li.Modal)) {
+            if (typeof proto.footerTpl === 'string') {
+                proto.footerTpl = new Li.Template(proto.footerTpl);
             }
         }
+    },
+
+    initializeView: function () {
+        if (typeof this.footerTpl === 'string') {
+            this.footerTpl = new Li.Template(this.footerTpl);
+        }
+        this.super(arguments);
     },
 
     /**

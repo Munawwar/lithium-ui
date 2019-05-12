@@ -1,0 +1,6 @@
+<div class="tabs">
+    <div ref="tabsEl" class="tabs" role="tablist">
+        <!-- ko template: innerTpl --><!-- /ko -->
+    </div>
+    <div class="indicator" ref="indicatorEl"></div>
+</div>

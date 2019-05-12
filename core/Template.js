@@ -17,6 +17,9 @@ var conflictingBindings = unwrap('if,ifnot,foreach,with,text,html'),
  * containerless statements beginning and ending with "ko" prefix will be ignored.
  */
 function Template(template, cfg) {
+    if (!(this instanceof Template)) {
+        return new Template(template, cfg);
+    }
     this.cfg = cfg;
     Object.assign(this, cfg);
     if (typeof template === 'string') {

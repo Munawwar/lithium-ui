@@ -1,7 +1,7 @@
 var Li = require('../core/Box.js');
 var $ = require('jquery');
 
-require('./TabStrip.ko');
+var outerTpl = require('./TabStrip-outer.ko');
 
 /**
  * TabPanel that needs to be initialized as follows in a template:
@@ -17,6 +17,8 @@ require('./TabStrip.ko');
  */
 //TODO: align option hasn't be implemented
 Li.TabStrip = Li.component('li-tabstrip', {
+    outerTpl: outerTpl,
+
     /**
      * Active tab item.
      */

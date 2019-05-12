@@ -1,16 +1,20 @@
 var Li = require('./Popover.js');
 var $ = require('jquery');
-require('./Dropdown.ko');
+
+var outerTpl = require('./Dropdown-outer.ko');
+var listItemTpl = require('./Dropdown-listitem.ko');
 
 /**
  * Dropdown component. It cannot be used without first filling the
  * fieldEl property (the element that triggers the dropdown to show).
  */
 Li.Dropdown = Li.component('li-dropdown', Li.Popover, {
+    outerTpl: outerTpl,
+
     /**
      * List item template.
      */
-    listItemTpl: null,
+    listItemTpl: listItemTpl,
 
     /**
      * @cfg {Array[]} options Array of {value: <value>, text: <text>} objects.
@@ -44,14 +48,11 @@ Li.Dropdown = Li.component('li-dropdown', Li.Popover, {
      * Extends base class method.
      */
     afterExtend: function (proto) {
-        proto.constructor.super.afterExtend(proto);
+        this.super(arguments);
 
-        var tpl;
         if (proto === Li.getClass('li-dropdown').prototype || (proto instanceof Li.Dropdown)) {
-            var prefix = proto.customTag;
-            tpl = Li.findTemplate('id', prefix + '-listitem');
-            if (tpl) {
-                proto.listItemTpl = tpl;
+            if (typeof proto.listItemTpl === 'string') {
+                proto.listItemTpl = new Li.Template(proto.listItemTpl);
             }
         }
     },

@@ -1,0 +1,10 @@
+<div class="modal">
+    <div class="modal-content">
+        <!-- ko template: innerTpl --><!-- /ko -->
+    </div>
+    <!-- ko if: footerTpl -->
+    <div class="modal-footer hbox cross-center main-end">
+        <!-- ko template: footerTpl --><!-- /ko -->
+    </div>
+    <!-- /ko -->
+</div>

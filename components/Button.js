@@ -1,12 +1,14 @@
 var $ = require('./libs.js');
 var Li = require('../core/Component.js');
 require('../core/Observable.js');
-require('./Button.ko');
+
+var outerTpl = require('./Button-outer.ko');
 
 /**
  * Button.
  */
 Li.Button = Li.component('li-button', {
+    outerTpl: outerTpl,
     /**
      * Text to display on button
      */
