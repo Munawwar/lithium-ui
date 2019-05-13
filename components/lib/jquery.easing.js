@@ -35,7 +35,15 @@
  *
 */
 
-define(['jquery'], function () {
+(function (factory) {
+	if (typeof define === 'function' && define.amd) {
+			define(['jquery'], factory);
+	} else if (typeof exports === 'object') {
+			factory(require('jquery'));
+	} else {
+			factory(jQuery);
+	}
+}(function (jQuery) {
 	// t: current time, b: begInnIng value, c: change In value, d: duration
 	jQuery.easing['jswing'] = jQuery.easing['swing'];
 
@@ -171,7 +179,7 @@ define(['jquery'], function () {
 			return jQuery.easing.easeOutBounce (x, t*2-d, 0, c, d) * .5 + c*.5 + b;
 		}
 	});
-});
+}));
 /*
  *
  * TERMS OF USE - EASING EQUATIONS
